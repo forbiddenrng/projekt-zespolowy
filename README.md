@@ -42,5 +42,10 @@ Dzięki integracji z modelami AI (OpenAI API) aplikacja analizuje oferty pracy i
 
 ---
 
+## Zespół 5
+
+Daniel Baca, Mateusz Gawlik, Antoni Gawron
+
+
 
 
