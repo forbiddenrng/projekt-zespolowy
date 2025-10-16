@@ -1,6 +1,6 @@
-# 🧠 JobMatch.AI — Inteligentny Generator CV i Listów Motywacyjnych
+# JobMatch.AI — Inteligentny Generator CV i Listów Motywacyjnych
 
-## 📋 Opis projektu
+## Opis projektu
 **JobMatch.AI** to aplikacja webowa stworzona dla osób poszukujących pracy.  
 Umożliwia tworzenie, dopasowywanie i ocenę dokumentów aplikacyjnych (CV i listów motywacyjnych) z wykorzystaniem sztucznej inteligencji.  
 
@@ -8,27 +8,27 @@ Dzięki integracji z modelami AI (OpenAI API) aplikacja analizuje oferty pracy i
 
 ---
 
-## 🚀 Główne funkcjonalności
+## Główne funkcjonalności
 
-### 🔹 Generowanie CV dopasowanego do oferty pracy
+### Generowanie CV dopasowanego do oferty pracy
 - Użytkownik wprowadza dane osobiste i zawodowe.  
 - Wkleja treść ogłoszenia o pracę.  
 - Model AI dopasowuje informacje z profilu do wymagań z oferty i generuje gotowe **CV w PDF**.  
 
-### 🔹 Generowanie listu motywacyjnego
+### Generowanie listu motywacyjnego
 - Na podstawie profilu użytkownika i oferty pracy generowany jest **list motywacyjny** dopasowany stylistycznie i merytorycznie.  
 
-### 🔹 Ocena dokumentów
+### Ocena dokumentów
 - System AI ocenia jakość CV i listu motywacyjnego (np. spójność, język, dopasowanie do oferty).  
 - Użytkownik otrzymuje rekomendacje dotyczące poprawy dokumentów.  
 
-### 🔹 Powiadomienia o ofertach pracy
+### Powiadomienia o ofertach pracy
 - Aplikacja **scrapuje popularne portale z ogłoszeniami** (np. [the-protocol.it](https://the-protocol.it))  
 - Wysyła powiadomienia o ofertach dopasowanych do profilu użytkownika.  
 
 ---
 
-## 🧩 Stack technologiczny
+## Stack technologiczny
 
 | Warstwa | Technologia | Opis |
 |----------|--------------|------|
@@ -42,14 +42,5 @@ Dzięki integracji z modelami AI (OpenAI API) aplikacja analizuje oferty pracy i
 
 ---
 
-## Zespół projektowy
-
-| Imię i nazwisko | Rola               | Zakres odpowiedzialności            |
-| --------------- | ------------------ | ----------------------------------- |
-| ...             | Frontend Developer | Interfejs użytkownika               |
-| ...             | Backend Developer  | API Express / integracja Auth0      |
-| ...             | AI Developer       | Flask, OpenAI, logika dopasowywania |
-| ...             | Data Engineer      | Baza danych, scrapowanie ofert      |
-| ...             | Project Manager    | Koordynacja i dokumentacja projektu |
 
 
