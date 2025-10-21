@@ -26,6 +26,11 @@ Dzięki integracji z modelami AI (OpenAI API) aplikacja analizuje oferty pracy i
 - Aplikacja **scrapuje popularne portale z ogłoszeniami** (np. [the-protocol.it](https://the-protocol.it))  
 - Wysyła powiadomienia o ofertach dopasowanych do profilu użytkownika.  
 
+### Workspace
+- Zapisywanie ulubionych ofert pracy
+- Tworzenie notatek dotyczących danej oferty, rozmów rekrutacyjnych
+- Ustawienie statusu procesu rekrutacyjnego 
+- Integracja z kalendarzem Google 
 ---
 
 ## Stack technologiczny
@@ -35,10 +40,20 @@ Dzięki integracji z modelami AI (OpenAI API) aplikacja analizuje oferty pracy i
 | **Frontend** | [Next.js](https://nextjs.org/) + [React](https://react.dev/) | Interfejs użytkownika SPA/SSR |
 | **Backend** | [Node.js](https://nodejs.org/) + [Express](https://expressjs.com/) | Główne API, obsługa użytkowników i zapytań |
 | **AI Service** | [Python Flask](https://flask.palletsprojects.com/) | Komunikacja z modelami LLM (OpenAI API) |
-| **Baza danych** | [MongoDB](https://www.mongodb.com/) + [Mongoose](https://mongoosejs.com/) | Przechowywanie danych użytkowników i profili |
-| **Autoryzacja** | [Auth0](https://auth0.com/) lub [Firebase Authentication](https://firebase.google.com/docs/auth) | Logowanie, rejestracja i zarządzanie kontami |
+| **Baza danych** | [PostgreSQL](https://www.postgresql.org.pl/) + [Prisma](https://www.prisma.io/) | Przechowywanie danych użytkowników i profili |
+| **Autoryzacja** | [Auth0](https://auth0.com/) | Logowanie, rejestracja i zarządzanie kontami |
 | **LLM API** | [OpenAI API](https://platform.openai.com/) | Generowanie i analiza tekstów (CV, list motywacyjny, oceny) |
 
+
+---
+
+## Flow użytkownika
+![Flow użytkownika](images/user_flow.jpg)
+
+---
+
+## Flow backendowe
+![Flow backendowy](images/backend_flow.jpg)
 
 ---
 
