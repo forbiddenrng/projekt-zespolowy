@@ -16,6 +16,7 @@ datasource db {
 
 model User {
   id    Int    @id @default(autoincrement())
+  auth0_id  String @unique @db.VarChar(255)
   name  String @db.VarChar(100)
   surname String @db.VarChar(100)
   phone_number String @unique @db.VarChar(9)
