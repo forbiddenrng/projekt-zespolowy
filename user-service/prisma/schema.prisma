@@ -27,11 +27,11 @@ model User {
   links Link[]
   education Education[]
   work_experiences Work_Experience[]
-  user_languages User_Languages[]
-  user_certificates User_Certificate[]
-  user_technical_abilities User_Technical_Abilities[]
+  languages Languages[]
+  certificates Certificate[]
+  abilities Abilities[]
 }
-
+// (1:n)
 model Link{
   id Int @id @default(autoincrement())
   user_id Int
@@ -39,7 +39,7 @@ model Link{
 
   user User @relation(fields: [user_id], references: [id])
 }
-
+// (1:n)
 model Education{
   id Int @id @default(autoincrement())
   user_id Int
@@ -51,7 +51,7 @@ model Education{
 
   user User @relation(fields: [user_id], references: [id])
 }
-
+// (1:n)
 model Work_Experience{
   id Int @id @default(autoincrement())
   user_id Int 
@@ -63,52 +63,57 @@ model Work_Experience{
 
   user User @relation(fields: [user_id], references: [id])
 }
-
+// (n:m)
 model Languages{
   id Int @id @default(autoincrement())
   name String @db.VarChar(50)
   level String @db.VarChar(6)
 
-  user_languages User_Languages[]
+  users User[]
 }
 
-model User_Languages{
-  id Int @id @default(autoincrement())
-  user_id Int
-  language_id Int
+// model User_Languages{
+//   id Int @id @default(autoincrement())
+//   user_id Int
+//   language_id Int
 
-  user User @relation(fields: [user_id], references: [id])
-  language Languages @relation(fields: [language_id], references: [id])
-}
+//   user User @relation(fields: [user_id], references: [id])
+//   language Languages @relation(fields: [language_id], references: [id])
+// }
 
+// (1:n)
 model Certificate{
   id Int @id @default(autoincrement())
-  name String @db.VarChar(100)
-
-  user_certificate User_Certificate[]
-}
-
-model User_Certificate{
-  id Int @id @default(autoincrement())
   user_id Int
-  certificate_id Int
+  name String @db.VarChar(100)
+  issuer String @db.VarChar(255)
+  certification_date DateTime
 
   user User @relation(fields: [user_id], references: [id])
-  certificate Certificate @relation(fields: [certificate_id], references: [id])
 }
 
-model Technical_Abilities{
-  id Int @id @default(autoincrement())
-  name String @db.VarChar(100)
+// model User_Certificate{
+//   id Int @id @default(autoincrement())
+//   user_id Int
+//   certificate_id Int
 
-  user_technical_abilities User_Technical_Abilities[]
-}
-
-model User_Technical_Abilities{
+//   user User @relation(fields: [user_id], references: [id])
+//   certificate Certificate @relation(fields: [certificate_id], references: [id])
+// }
+// (1:n)
+model Abilities{
   id Int @id @default(autoincrement())
   user_id Int
-  technical_ability_id Int
+  name String @db.VarChar(255)
 
-  user User @relation(fields: [user_id], references: [id])
-  technical_ability Technical_Abilities @relation(fields: [technical_ability_id], references: [id])
+  users User @relation(fields: [user_id], references: [id])
 }
+
+// model User_Technical_Abilities{
+//   id Int @id @default(autoincrement())
+//   user_id Int
+//   technical_ability_id Int
+
+//   user User @relation(fields: [user_id], references: [id])
+//   technical_ability Technical_Abilities @relation(fields: [technical_ability_id], references: [id])
+// }
