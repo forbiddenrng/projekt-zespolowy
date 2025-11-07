@@ -25,7 +25,7 @@ model User {
   profile_summary String? @db.Text
 
   links Link[]
-  educations Education[]
+  education Education[]
   work_experiences Work_Experience[]
   user_languages User_Languages[]
   user_certificates User_Certificate[]
@@ -43,11 +43,11 @@ model Link{
 model Education{
   id Int @id @default(autoincrement())
   user_id Int
-  school_name String@db.VarChar(100)
+  school_name String @db.VarChar(100)
   major String @db.VarChar(100)
   degree String @db.VarChar(20)
   begin_date DateTime
-  end_date DateTime
+  end_date DateTime?
 
   user User @relation(fields: [user_id], references: [id])
 }
@@ -58,7 +58,7 @@ model Work_Experience{
   company_name String @db.VarChar(150)
   position String @db.VarChar(150)
   begin_date DateTime
-  end_date DateTime
+  end_date DateTime?
   description String @db.Text
 
   user User @relation(fields: [user_id], references: [id])
