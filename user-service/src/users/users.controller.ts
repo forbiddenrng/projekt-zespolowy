@@ -3,6 +3,20 @@ import { UsersService } from './users.service';
 import { Prisma } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
 
+
+/** Response structure
+ * {
+ *  status: "success" | "error"
+ *  code: HTTP Code
+ *  data: {} | null
+ *  error: {
+ *    message: String
+ *  } | null
+ * 
+ * }
+ * 
+ */
+
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
