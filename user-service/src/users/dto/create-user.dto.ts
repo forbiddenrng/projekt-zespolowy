@@ -1,7 +1,11 @@
-import {IsString, IsOptional, IsArray, ValidateNested, IsEmail, IsNotEmpty} from "class-validator";
+import {IsString, IsOptional, IsArray, ValidateNested, IsEmail, IsNotEmpty, MinLength, IsPhoneNumber, IsInt} from "class-validator";
 import {Type} from 'class-transformer';
-import { CreateLinkDto } from "./create-link.dto";
-import { CreateEducationDto } from "./create-education.dto";
+import { LinkDto } from "./create-link.dto";
+import { EducationDto } from "./create-education.dto";
+import { CertificateDto } from "./create-certificate.dto";
+import { AbilityDto } from "./create-ability.dto";
+import { WorkExperienceDto } from "./create-work-experience.dto";
+import { LanguageDto } from "./create-language.dto";
 
 export class CreateUserDto {
   @IsString()
@@ -17,7 +21,7 @@ export class CreateUserDto {
   surname: String;
 
   @IsString()
-  @IsNotEmpty()
+  @IsPhoneNumber('PL')
   phoneNumber: String;
 
   @IsEmail()
@@ -29,18 +33,41 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
+  @MinLength(20)
   profileSummary?: String;
 
   @IsOptional()
   @IsArray()
   @ValidateNested({each: true})
-  @Type(() => CreateLinkDto)
-  links?: CreateLinkDto[];
+  @Type(() => LinkDto)
+  links?: LinkDto[];
 
 
   @IsOptional()
   @IsArray()
-  @Type(() => CreateEducationDto)
-  education?: CreateEducationDto[];
+  @Type(() => EducationDto)
+  education?: EducationDto[];
+
+  @IsOptional()
+  @IsArray()
+  @Type(() => CertificateDto)
+  certificates?: CertificateDto[];
+
+
+  @IsOptional()
+  @IsArray()
+  @Type(() => AbilityDto)
+  abilities?: AbilityDto[];
+
+  @IsOptional()
+  @IsArray()
+  @Type(() => WorkExperienceDto)
+  workExperience?: WorkExperienceDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({each: true})
+  @Type(() => LanguageDto)
+  languages?: LanguageDto[];
 
 }

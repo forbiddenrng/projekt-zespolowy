@@ -1,29 +1,34 @@
-import {IsString, IsNotEmpty, IsDateString, IsOptional} from "class-validator";
+import {IsString, IsNotEmpty, IsDateString, IsOptional, MinLength, MaxDate} from "class-validator";
+import { OmitType } from "@nestjs/mapped-types";
 
+// used when creating education from a separate request
 export class CreateEducationDto {
-  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  userId?: String;
+  userId: String;
 
   @IsString()
-  @IsNotEmpty()
+  @MinLength(3)
   schoolName: String;
 
   @IsString()
-  @IsNotEmpty()
+  @MinLength(3)
   major: String;
 
   @IsString()
-  @IsNotEmpty()
+  @MinLength(3)
   degree: String;
 
   @IsDateString()
-  @IsNotEmpty()
+  @MaxDate(() => new Date())
   beginDate: Date;
 
   @IsOptional()
-  @IsNotEmpty()
   @IsDateString()
+  @MaxDate(() => new Date())
   endDate?: Date;
 }
+
+// used when creating education with user simultaneously
+// the same class as CreateEducationDto but without userId key
+export class EducationDto extends OmitType(CreateEducationDto, ['userId']) {}

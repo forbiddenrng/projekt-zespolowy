@@ -27,7 +27,8 @@ model User {
   links Link[]
   education Education[]
   work_experiences Work_Experience[]
-  languages Languages[]
+  // languages Languages[]
+  user_languages User_Languages[]
   certificates Certificate[]
   abilities Abilities[]
 }
@@ -67,19 +68,21 @@ model Work_Experience{
 model Languages{
   id Int @id @default(autoincrement())
   name String @db.VarChar(50)
-  level String @db.VarChar(6)
 
-  users User[]
+  user_languages User_Languages[]
 }
 
-// model User_Languages{
-//   id Int @id @default(autoincrement())
-//   user_id Int
-//   language_id Int
+model User_Languages{
+  id Int @id @default(autoincrement())
+  user_id Int
+  language_id Int
+  level String @db.VarChar(6)
 
-//   user User @relation(fields: [user_id], references: [id])
-//   language Languages @relation(fields: [language_id], references: [id])
-// }
+  user User @relation(fields: [user_id], references: [id])
+  language Languages @relation(fields: [language_id], references: [id])
+
+  @@unique([user_id, language_id])
+}
 
 // (1:n)
 model Certificate{
