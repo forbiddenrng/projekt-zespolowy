@@ -24,12 +24,14 @@ export class UsersService {
       workExperience,
       auth0Id,
       phoneNumber,
+      profileSummary,
       ...userData
     } = userDto;
     
     const data: any = {...userData};
     data.auth0_id = auth0Id;
     data.phone_number = phoneNumber;
+    data.profile_summary = profileSummary;
 
     if(abilities){
       data.abilities = {create: abilities.map((ability: AbilityDto) => ({...ability}))}
@@ -118,7 +120,11 @@ export class UsersService {
       id: true,
       auth0_id: true,
       name: true,
-      surname: true
+      surname: true,
+      phone_number: true,
+      email: true,
+      city: true,
+      profile_summary: true
     };
 
     if (abilities === "true" || all==="true"){

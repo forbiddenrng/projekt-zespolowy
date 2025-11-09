@@ -1,98 +1,265 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# User Service — Dokumentacja
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Krótki opis
+- Serwis użytkowników napisany w **NestJS** z użyciem **Prisma** jako ORM.
+- Struktura bazy została zaprojektowana z myślą o przechowywaniu danych użytkownika (CV/Portfolio), w tym edukacji, doświadczenia, języków, certyfikatów i umiejętności technicznych.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Szybki start (po sklonowaniu repo)
+1. Zainstaluj zależności:
+   ```sh
+   npm install
+   ```
+2. Wygeneruj klienta Prisma:
+   ```sh
+   npx prisma generate
+   ```
+3. Uruchom bazę danych (jeśli w repo jest `docker-compose.yml`):
+   ```sh
+   docker compose up -d
+   ```
+   Upewnij się, że connection string w `prisma/schema.prisma` wskazuje na uruchomioną bazę.
+4. Uruchom serwis w trybie deweloperskim:
+   ```sh
+   npm run start:dev
+   ```
 
-## Description
+## Struktura projektu (ważne pliki)
+- src/main.ts — entrypoint aplikacji
+- src/users/
+  - users.controller.ts — definicje endpointów
+  - users.service.ts — logika tworzenia/pobierania/usuwania użytkowników
+  - dto/*.ts — DTO używane do walidacji/transferu danych (create-user.dto.ts, create-ability.dto.ts, itd.)
+- src/database/database.service.ts — wrapper Prisma (używany przez UsersService)
+- src/interceptors/response/response.interceptor.ts — mapuje odpowiedzi kontrolerów do formatu SuccessResponse
+- src/filters/all-exceptions-filter/all-exceptions.filter.ts — globalny filtr wyjątków (ErrorResponse)
+- src/prisma-client-exception/prisma-client-exception.filter.ts — obsługa znanych błędów Prisma (np. P2002)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Uruchomienie
+- Dev: `sh npm run start:dev`
+- Production build: `npm run build` i `node dist/main.js`
 
-## Project setup
+---
 
-```bash
-$ npm install
+## API — dostępne endpointy
+
+Wszystkie ścieżki zaczynają się od `/users`.
+
+Formaty ogólne:
+- Sukces (ResponseInterceptor) — SuccessResponse:
+  ```json
+  {
+    "status": "success",
+    "statusCode": 200,
+    "data": { /* payload lub null */ },
+    "message": "string or null"
+  }
+  ```
+- Błąd (AllExceptionsFilter) — ErrorResponse:
+  ```json
+  {
+    "status": "error",
+    "statusCode": 400,
+    "message": "string | string[]",
+    "error": "szczegóły / description / cause",
+    "timestamp": "2025-11-09T...",
+    "path": "/users/..."
+  }
+  ```
+- Prisma-known error (np. P2002 — unique constraint) obsługiwany przez PrismaClientExceptionFilter zwraca co najmniej:
+  ```json
+  {
+    "statusCode": 409,
+    "message": "Unique constraint failed on the fields: (...)"
+  }
+  ```
+
+### 1) Tworzenie użytkownika
+- Metoda: POST
+- Ścieżka: /users
+- Body (JSON) — pola akceptowane przez CreateUserDto i używane w buildCreateData:
+
+
+
+
+```json
+{
+  "auth0Id": "string", // mapowane na auth0_id
+  "email": "string",
+  "phoneNumber": "string" // mapowane na phone_number
+  "name": "string",
+  "surname": "string",
+  "city": "string",
+  "profileSummary": "string", // OPTIONAL mapowane na profile_summary
+  "abilities": [ // OPTIONAL
+    {"name": "string"}
+  ],
+  "certificates": [ // OPTIONAL
+    {
+      "name": "string",
+      "issuer": "string",
+      "certificationDate": "Date"
+    }
+  ],
+  "education": [ //OPTIONAL
+    { 
+      "schoolName": "string", 
+      "major": "string", 
+      "degree": "string", 
+      "beginDate": "string", //(ISO), 
+      "endDate": "string" // OPTIONAL (ISO) 
+    } 
+  ], 
+  "links": [ // OPTIONAL
+    {"linkString": "string"}
+  ],
+  "workExperience": [ //OPTIONAL
+    { 
+      "position": "string", 
+      "description": "string", 
+      "companyName": "string", 
+      "beginDate": "string", //(ISO), 
+      "endDate": "string" // OPTIONAL (ISO) 
+    }
+  ], 
+  "languages": [ //OPTIONAL
+    { 
+      "languageId": "number", 
+      "level": "string" 
+    }
+  ]
+}
 ```
 
-## Compile and run the project
+- Działanie:
+  - Buduje obiekt do zapisu (mapowania nazw pól -> zgodne z DB).
+  - Sprawdza czy użytkownik nie istnieje (po auth0_id, email, phone_number).
+  - Jeśli OK — zapisuje w bazie i zwraca wybrane pola nowego użytkownika.
 
-```bash
-# development
-$ npm run start
+- Przykładowy request:
+  ```json
+  {
+    "auth0Id": "auth0|123",
+    "email": "jan@example.com",
+    "phoneNumber": "+48123123123",
+    "name": "Jan",
+    "surname": "Kowalski",
+    "city": "Warszawa",
+    "profileSummary": "Fullstack dev",
+    "abilities": [{ "name": "TypeScript" }],
+    "languages": [{ "languageId": 1, "level": "B2" }],
+    "links": [{ "linkString": "https://github.com/jan" }]
+  }
+  ```
 
-# watch mode
-$ npm run start:dev
+- Przykładowa odpowiedź (sukces):
+  ```json
+  {
+    "status": "success",
+    "statusCode": 201,
+    "data": {
+      "id": 1,
+      "name": "Jan",
+      "surname": "Kowalski",
+      "email": "jan@example.com"
+    },
+    "message": "User successfuly created"
+  }
+  ```
 
-# production mode
-$ npm run start:prod
-```
+- Możliwe błędy:
+  - 400 BadRequestException — np. użytkownik już istnieje. AllExceptionsFilter zwróci ErrorResponse z `message` i `error` (zawiera description z wyjątku).
+  - 409 — Prisma P2002 (unique constraint), obsłużone przez PrismaClientExceptionFilter.
 
-## Run tests
+### 2) Pobieranie użytkownika z relacjami (opcjonalnie)
+- Metoda: GET
+- Ścieżka: /users/:id
+  - Parametr :id to auth0_id (np. `auth0|123`)
+- Query params (wszystkie oczekują wartości "true" aby dołączyć relację):
+  - abilities=true
+  - certificates=true
+  - education=true
+  - languages=true
+  - links=true
+  - work=true
+  - all=true (dołącza wszystkie relacje)
 
-```bash
-# unit tests
-$ npm run test
+- Działanie:
+  - buildFindOneQuery konstruuje `select` dla Prisma zależnie od query params.
+  - Dla relacji: pola powiązane (np. user_id) są omitowane tam, gdzie to zdefiniowano.
+  - Dla user_languages zwrócone jest `language` (select: { language: true }).
 
-# e2e tests
-$ npm run test:e2e
+- Przykładowe wywołanie:
+  ```
+  GET /users/auth0%7C123?abilities=true&languages=true
+  ```
 
-# test coverage
-$ npm run test:cov
-```
+- Przykładowa odpowiedź (sukces):
+  ```json
+  {
+    "status": "success",
+    "statusCode": 200,
+    "data": {
+      "id": 1,
+      "auth0_id": "auth0|123",
+      "name": "Jan",
+      "surname": "Kowalski",
+      "phone_number": "+48123123123",
+      "email": "jan@example.com",
+      "city": "Warszawa",
+      "profile_summary": "Fullstack dev",
+      "abilities": [{ "id": 1, "name": "TypeScript" }],
+      "user_languages": [{ "language": { "id": 1, "name": "English" } }]
+    },
+    "message": "User found successfuly"
+  }
+  ```
 
-## Deployment
+- Możliwe błędy:
+  - 404 NotFoundException — jeżeli użytkownik nie istnieje. ErrorResponse zawiera `message` i `error` (description).
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+### 3) Usuwanie użytkownika
+- Metoda: DELETE
+- Ścieżka: /users/:id
+  - Parametr :id to auth0_id
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- Działanie:
+  - Wykonuje `user.delete({ where: { auth0_id: id } })`.
+  - Jeżeli rekord nie istnieje, rzucany jest NotFoundException.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+- Przykładowa odpowiedź (sukces):
+  ```json
+  {
+    "status": "success",
+    "statusCode": 200,
+    "data": {
+      "id": 1,
+      "auth0_id": "auth0|123",
+      "email": "jan@example.com"
+    },
+    "message": "User successfuly deleted"
+  }
+  ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+- Możliwe błędy:
+  - 404 NotFoundException — ErrorResponse z opisem.
 
-## Resources
+---
 
-Check out a few resources that may come in handy when working with NestJS:
+## Obsługa wyjątków — szczegóły
+- AllExceptionsFilter
+  - Mapuje HttpException i błędy nie-HTTP do ustandaryzowanego ErrorResponse.
+  - Jeżeli wyjątek jest HttpException i ma pole `response.description` (np. BadRequestException(..., { description: '...' })), to to pole trafia do `error` w odpowiedzi.
+  - Dla zwykłych Error zwraca stack w `error` (może być użyteczne tylko lokalnie).
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- PrismaClientExceptionFilter
+  - Wyłapuje Prisma.PrismaClientKnownRequestError.
+  - Dla kodu `P2002` (unique constraint) zwraca status 409 i message z wyjątku.
+  - Inne kody delegowane do BaseExceptionFilter (domyślne zachowanie).
 
-## Support
+---
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Wymagania
 
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- [Docker Desktop](https://www.docker.com/)
+- [Node.js 18+](https://nodejs.org/)
+- [Prisma CLI](https://www.prisma.io/docs) (instaluje się automatycznie przez `npx`)
