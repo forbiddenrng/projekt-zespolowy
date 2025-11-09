@@ -45,22 +45,26 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsArray()
+  @ValidateNested({each: true})
   @Type(() => EducationDto)
   education?: EducationDto[];
 
   @IsOptional()
   @IsArray()
+  @ValidateNested({each: true})
   @Type(() => CertificateDto)
   certificates?: CertificateDto[];
 
 
   @IsOptional()
   @IsArray()
+  @ValidateNested({each: true})
   @Type(() => AbilityDto)
   abilities?: AbilityDto[];
 
   @IsOptional()
   @IsArray()
+  @ValidateNested({each: true})
   @Type(() => WorkExperienceDto)
   workExperience?: WorkExperienceDto[];
 

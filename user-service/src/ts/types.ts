@@ -13,3 +13,13 @@ export type ErrorResponse = {
   timestamp: string;
   path?: string;
 }
+
+export type FindOneQueryParams = {
+  abilities: string, 
+  certificates: string,
+  education: string,
+  languages: string,
+  links: string,
+  work: string,
+  all: string
+}

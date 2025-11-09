@@ -38,7 +38,7 @@ model Link{
   user_id Int
   linkString String @db.VarChar(150)
 
-  user User @relation(fields: [user_id], references: [id])
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 // (1:n)
 model Education{
@@ -50,7 +50,7 @@ model Education{
   begin_date DateTime
   end_date DateTime?
 
-  user User @relation(fields: [user_id], references: [id])
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 // (1:n)
 model Work_Experience{
@@ -62,7 +62,7 @@ model Work_Experience{
   end_date DateTime?
   description String @db.Text
 
-  user User @relation(fields: [user_id], references: [id])
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 // (n:m)
 model Languages{
@@ -78,8 +78,8 @@ model User_Languages{
   language_id Int
   level String @db.VarChar(6)
 
-  user User @relation(fields: [user_id], references: [id])
-  language Languages @relation(fields: [language_id], references: [id])
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  language Languages @relation(fields: [language_id], references: [id], onDelete: Restrict)
 
   @@unique([user_id, language_id])
 }
@@ -92,7 +92,7 @@ model Certificate{
   issuer String @db.VarChar(255)
   certification_date DateTime
 
-  user User @relation(fields: [user_id], references: [id])
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 // model User_Certificate{
@@ -109,7 +109,7 @@ model Abilities{
   user_id Int
   name String @db.VarChar(255)
 
-  users User @relation(fields: [user_id], references: [id])
+  users User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 // model User_Technical_Abilities{
