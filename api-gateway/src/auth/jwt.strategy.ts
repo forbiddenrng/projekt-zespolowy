@@ -6,11 +6,16 @@ import * as jwksRsa from "jwks-rsa";
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt'){
   constructor(){
+  
     super({
       secretOrKeyProvider: jwksRsa.passportJwtSecret({
         cache: true,
         rateLimit: true,
-        jwksUri: process.env.AUTH0_JWKS_URI as string
+        jwksUri: process.env.AUTH0_JWKS_URI as string,
+        handleSigningKeyError(err, cb) {
+          console.error('JWKS signing key error', err)
+          cb(err)
+        },
       }),
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       audience: process.env.AUTH0_AUDIENCE,
@@ -20,6 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt'){
   }
 
   async validate(payload: any) {
+    console.log(payload)
     return payload;
   }
 }
