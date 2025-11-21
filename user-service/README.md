@@ -332,6 +332,81 @@ Powiązane pliki/symbole:
 
 ---
 
+### Education (wykształcenie) — endpointy
+
+- POST /users/education
+  - Opis: Dodaje wpis wykształcenia do profilu zalogowanego użytkownika.
+  - Header: x-user: JSON.stringify({ "id": "auth0|..." }) (string) — nagłówek generowany przez gateway ([gateway/index.js](gateway/index.js)) i parsowany przez [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts).
+  - Body (JSON, zgodne z [`EducationDto`](user-service/src/users/dto/create-education.dto.ts)):
+    ```json
+    {
+      "schoolName": "Uniwersytet X",
+      "major": "Informatyka",
+      "degree": "Inżynier",
+      "beginDate": "2018-10-01T00:00:00.000Z",
+      "endDate": "2022-06-30T00:00:00.000Z" // opcjonalne
+    }
+    ```
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 201 i dodanym obiektem (pola zgodne z modelem DB `Education`).
+  - Powiązane implementacje:
+    - Kontroler: [`EducationController`](user-service/src/users/education.controller.ts)
+    - Serwis: [`UsersService.addEducation`](user-service/src/users/users.service.ts)
+
+- GET /users/education
+  - Opis: Zwraca listę wpisów wykształcenia zalogowanego użytkownika (id z nagłówka `x-user`).
+  - Header: x-user (jak powyżej)
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i tablicą wpisów.
+  - Powiązane: [`UsersService.listEducationForCurrentUser`](user-service/src/users/users.service.ts)
+
+- GET /users/:id/education
+  - Opis: Publiczne pobranie wpisów wykształcenia po auth0Id (dla innych serwisów).
+  - Path param: :id — auth0_id (np. `auth0|123`) (URL-encode pipe -> `%7C`)
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i tablicą wpisów.
+  - Powiązane: [`UsersService.listEducationByAuth0Id`](user-service/src/users/users.service.ts)
+
+- PATCH /users/education/:id
+  - Opis: Aktualizuje wpis wykształcenia należący do zalogowanego użytkownika.
+  - Header: x-user (jak powyżej)
+  - Path param: :id — identyfikator rekordu Education (liczba)
+  - Body: dowolne pola z [`UpdateEducationDto`](user-service/src/users/dto/update-education.dto.ts):
+    ```json
+    {
+      "degree": "Magister",
+      "endDate": "2023-06-30T00:00:00.000Z"
+    }
+    ```
+  - Odpowiedź: SuccessResponse ze statusCode 200 i zaktualizowanym obiektem.
+  - Powiązane: [`UsersService.updateEducation`](user-service/src/users/users.service.ts)
+
+- DELETE /users/education/:id
+  - Opis: Usuwa wpis wykształcenia należący do zalogowanego użytkownika.
+  - Header: x-user (jak powyżej)
+  - Path param: :id — identyfikator rekordu Education (liczba)
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i usuniętym obiektem.
+  - Powiązane: [`UsersService.removeEducation`](user-service/src/users/users.service.ts)
+
+Uwaga dotycząca dat i walidacji:
+
+- Pola `beginDate` i `endDate` muszą być w formacie ISO (np. "2018-10-01T00:00:00.000Z") i nie mogą być w przyszłości — walidowane przez [`MaxNow`](user-service/src/validators/max-now.validator.ts). Niepoprawne daty zwrócą 400 Bad Request z komunikatem walidacji.
+
+Błędy i zachowanie
+
+- 400 BadRequest — np. brak parsowalnego nagłówka `x-user` lub niepoprawne pola (walidacja DTO). ValidationPipe jest włączony w [`src/main.ts`](user-service/src/main.ts).
+- 404 NotFound — rekord nie istnieje lub nie należy do zalogowanego użytkownika.
+- 409 Conflict — naruszenie unikalności (Prisma P2002), obsługiwane przez [`PrismaClientExceptionFilter`](user-service/src/prisma-client-exception/prisma-client-exception.filter.ts).
+
+Powiązane pliki/symbole:
+
+- [`EducationController`](user-service/src/users/education.controller.ts)
+- [`EducationDto`](user-service/src/users/dto/create-education.dto.ts)
+- [`UpdateEducationDto`](user-service/src/users/dto/update-education.dto.ts)
+- [`UsersService`](user-service/src/users/users.service.ts)
+- [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts)
+- [`UsersModule`](user-service/src/users/users.module.ts)
+- Gateway: [`gateway/index.js`](gateway/index.js)
+
+---
+
 ## Obsługa wyjątków — szczegóły
 
 - AllExceptionsFilter

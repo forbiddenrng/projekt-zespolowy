@@ -9,6 +9,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { AbilityDto } from './dto/create-ability.dto';
 import { CertificateDto } from './dto/create-certificate.dto';
 import { EducationDto } from './dto/create-education.dto';
+import { UpdateEducationDto } from './dto/update-education.dto';
 import { LinkDto } from './dto/create-link.dto';
 import { WorkExperienceDto } from './dto/create-work-experience.dto';
 import { UpdateWorkExperienceDto } from './dto/update-work-experience.dto';
@@ -411,5 +412,126 @@ export class UsersService {
       message: 'Work experience deleted',
       data: deleted,
     };
+  }
+
+  // -------------------------------------------
+  // ----- Education related methods -----
+  // -------------------------------------------
+
+  // list education for current user (req.userId parsed from x-user)
+  async listEducationForCurrentUser(reqUserId: string | undefined) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const items = await this.databaseService.education.findMany({
+      where: { user_id: user.id },
+      orderBy: { begin_date: 'desc' },
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Education items fetched',
+      data: items,
+    };
+  }
+
+  // list education by auth0Id (public for other services)
+  async listEducationByAuth0Id(auth0Id: string) {
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: auth0Id },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found', {
+        description: `User with id ${auth0Id} not found.`,
+      });
+    }
+
+    const items = await this.databaseService.education.findMany({
+      where: { user_id: user.id },
+      orderBy: { begin_date: 'desc' },
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Education items fetched',
+      data: items,
+    };
+  }
+
+  async addEducation(reqUserId: string | undefined, dto: EducationDto) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const created = await this.databaseService.education.create({
+      data: {
+        user_id: user.id,
+        school_name: dto.schoolName,
+        major: dto.major,
+        degree: dto.degree,
+        begin_date: new Date(dto.beginDate),
+        end_date: dto.endDate ? new Date(dto.endDate) : undefined,
+      },
+    });
+
+    return { statusCode: 201, message: 'Education added', data: created };
+  }
+
+  async updateEducation(
+    reqUserId: string | undefined,
+    id: number,
+    dto: UpdateEducationDto,
+  ) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const existing = await this.databaseService.education.findUnique({
+      where: { id },
+    });
+    if (!existing || existing.user_id !== user.id)
+      throw new NotFoundException('Education record not found for this user');
+
+    const data: any = {};
+    if (dto.schoolName !== undefined) data.school_name = dto.schoolName;
+    if (dto.major !== undefined) data.major = dto.major;
+    if (dto.degree !== undefined) data.degree = dto.degree;
+    if (dto.beginDate !== undefined) data.begin_date = new Date(dto.beginDate);
+    if (dto.endDate !== undefined)
+      data.end_date = dto.endDate ? new Date(dto.endDate) : null;
+
+    const updated = await this.databaseService.education.update({
+      where: { id },
+      data,
+    });
+
+    return { statusCode: 200, message: 'Education updated', data: updated };
+  }
+
+  async removeEducation(reqUserId: string | undefined, id: number) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const existing = await this.databaseService.education.findUnique({
+      where: { id },
+    });
+    if (!existing || existing.user_id !== user.id)
+      throw new NotFoundException('Education record not found for this user');
+
+    const deleted = await this.databaseService.education.delete({
+      where: { id },
+    });
+
+    return { statusCode: 200, message: 'Education deleted', data: deleted };
   }
 }

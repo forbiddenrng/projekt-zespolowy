@@ -4,10 +4,11 @@ import { UsersController } from './users.controller';
 import { DatabaseModule } from 'src/database/database.module';
 import { UserFromHeaderMiddleware } from 'src/middleware/user-from-header.middleware';
 import { WorkExperienceController } from './work-experience.controller';
+import { EducationController } from './education.controller';
 
 @Module({
   imports: [DatabaseModule],
-  controllers: [WorkExperienceController, UsersController],
+  controllers: [WorkExperienceController, EducationController, UsersController],
   providers: [UsersService],
 })
 export class UsersModule implements NestModule {

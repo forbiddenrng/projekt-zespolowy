@@ -10,10 +10,10 @@ import { MaxNow } from 'src/validators/max-now.validator';
 
 // used when creating work experience from a separate request
 export class CreateWorkExperienceDto {
-  // @IsOptional()
-  // @IsString()
-  // @IsNotEmpty()
-  // userId: string;
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
 
   @IsString()
   @MinLength(3)
