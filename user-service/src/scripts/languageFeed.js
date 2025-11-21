@@ -13,20 +13,9 @@ async function createLanguages(){
       data: languagesData,
       skipDuplicates: true
     });
-    console.log(`Languages created successfuly. Created languages: ${createMany.count}`);
+    console.log(`Languages created successfully. Created languages: ${createMany.count}`);
   } catch (err){
-    console.log(`Failed to create languages: ${err}`);
-  } finally {
-    await prisma.$disconnect();
-  }
-}
-
-async function getLanguages() {
-  try {
-    const languages = await prisma.languages.findMany();
-    console.log(languages);
-  } catch (err){
-    console.log('Failed to get langages');
+    console.error(`Failed to create languages: ${err}`);
   } finally {
     await prisma.$disconnect();
   }
