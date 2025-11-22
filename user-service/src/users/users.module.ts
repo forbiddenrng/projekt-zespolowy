@@ -8,6 +8,7 @@ import { EducationController } from './education.controller';
 import { LinksController } from './links.controller';
 import { CertificatesController } from './certificates.controller';
 import { AbilitiesController } from './abilities.controller';
+import { LanguagesController } from './languages.controller';
 
 @Module({
   imports: [DatabaseModule],
@@ -17,6 +18,7 @@ import { AbilitiesController } from './abilities.controller';
     LinksController,
     CertificatesController,
     AbilitiesController,
+    LanguagesController,
     UsersController,
   ],
   providers: [UsersService],

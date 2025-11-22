@@ -1,13 +1,14 @@
-import {IsInt, IsString, IsNotEmpty } from "class-validator";
+import { IsInt, IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class LanguageDto {
   @IsNotEmpty()
   @IsInt()
   languageId: number;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  userId: String;
+  userId: string;
 
   @IsNotEmpty()
   @IsString()

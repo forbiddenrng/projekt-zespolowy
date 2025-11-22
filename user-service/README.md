@@ -603,6 +603,72 @@ Powiązane pliki/symbole (otwórz w edytorze):
 
 ---
 
+### Languages (języki) — endpointy
+
+- POST /users/languages
+  - Opis: Dodaje wpis języka do profilu zalogowanego użytkownika (poziom, odniesienie do tabeli Languages).
+  - Header: `x-user: JSON.stringify({ "id": "auth0|..." })` — parsowany przez [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts).
+  - Body (JSON, zgodne z [`LanguageDto`](user-service/src/users/dto/create-language.dto.ts)):
+    ```json
+    {
+      "languageId": 1,
+      "level": "B2"
+    }
+    ```
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 201 i dodanym obiektem (rekord z `user_languages`).
+  - Powiązane implementacje:
+    - Kontroler: [`LanguagesController`](user-service/src/users/languages.controller.ts)
+    - Serwis: [`UsersService.addLanguage`](user-service/src/users/users.service.ts)
+
+- GET /users/languages
+  - Opis: Zwraca listę wpisów języków zalogowanego użytkownika (id z nagłówka `x-user`).
+  - Header: x-user
+  - Odpowiedź: SuccessResponse ze statusCode 200 i tablicą obiektów (z dołączonym `language`).
+  - Powiązane: [`UsersService.listLanguagesForCurrentUser`](user-service/src/users/users.service.ts)
+
+- GET /users/:id/languages
+  - Opis: Publiczne pobranie wpisów języków użytkownika po auth0Id (dla innych serwisów).
+  - Path param: `:id` — auth0_id (np. `auth0|123`) (URL-encode pipe -> `%7C`)
+  - Odpowiedź: SuccessResponse ze statusCode 200 i tablicą obiektów (z dołączonym `language`).
+  - Powiązane: [`UsersService.listLanguagesByAuth0Id`](user-service/src/users/users.service.ts)
+
+- PATCH /users/languages/:id
+  - Opis: Aktualizuje wpis języka należący do zalogowanego użytkownika (poziom lub zmiana `languageId`).
+  - Header: x-user
+  - Path param: `:id` — identyfikator rekordu `user_languages` (liczba)
+  - Body: `UpdateLanguageDto` (np. `{ "level": "C1" }`) — definicja: [`UpdateLanguageDto`](user-service/src/users/dto/update-language.dto.ts)
+  - Odpowiedź: SuccessResponse ze statusCode 200 i zaktualizowanym obiektem.
+  - Powiązane: [`UsersService.updateLanguage`](user-service/src/users/users.service.ts)
+
+- DELETE /users/languages/:id
+  - Opis: Usuwa wpis języka należący do zalogowanego użytkownika.
+  - Header: x-user
+  - Path param: `:id` — identyfikator rekordu `user_languages` (liczba)
+  - Odpowiedź: SuccessResponse ze statusCode 200 i usuniętym obiektem.
+  - Powiązane: [`UsersService.removeLanguage`](user-service/src/users/users.service.ts)
+
+Uwagi:
+
+- `languageId` odnosi się do tabeli [`Languages`](user-service/prisma/schema.prisma) — sprawdzane w serwisie.
+- Błędy walidacji DTO zwrócą 400 Bad Request. Unikalność pary (user_id, language_id) jest narzucona w schema Prisma i powoduje P2002 (409) jeśli użytkownik doda dwa razy ten sam język.
+
+Powiązane pliki/symbole:
+
+- [`LanguagesController`](user-service/src/users/languages.controller.ts)
+- [`LanguageDto`](user-service/src/users/dto/create-language.dto.ts)
+- [`UpdateLanguageDto`](user-service/src/users/dto/update-language.dto.ts)
+- [`UsersService.listLanguagesForCurrentUser`](user-service/src/users/users.service.ts)
+- [`UsersService.listLanguagesByAuth0Id`](user-service/src/users/users.service.ts)
+- [`UsersService.addLanguage`](user-service/src/users/users.service.ts)
+- [`UsersService.updateLanguage`](user-service/src/users/users.service.ts)
+- [`UsersService.removeLanguage`](user-service/src/users/users.service.ts)
+- [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts)
+- [`UsersModule`](user-service/src/users/users.module.ts)
+- Gateway: [`gateway/index.js`](gateway/index.js)
+- Schema: [user-service/prisma/schema.prisma](user-service/prisma/schema.prisma) (models `Languages` and `User_Languages`)
+
+---
+
 ## Obsługa wyjątków — szczegóły
 
 - AllExceptionsFilter

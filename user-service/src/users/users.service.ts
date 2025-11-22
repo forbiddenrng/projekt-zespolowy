@@ -17,6 +17,7 @@ import { UpdateLinkDto } from './dto/update-link.dto';
 import { WorkExperienceDto } from './dto/create-work-experience.dto';
 import { UpdateWorkExperienceDto } from './dto/update-work-experience.dto';
 import { LanguageDto } from './dto/create-language.dto';
+import { UpdateLanguageDto } from './dto/update-language.dto';
 import { FindOneQueryParams } from 'src/ts/types';
 
 @Injectable()
@@ -881,5 +882,138 @@ export class UsersService {
     });
 
     return { statusCode: 200, message: 'Ability deleted', data: deleted };
+  }
+
+  // ------------------------------------------------------
+  // ----- Languages (user_languages) related methods -----
+  // ------------------------------------------------------
+
+  // list languages for current user (req.userId parsed from x-user)
+  async listLanguagesForCurrentUser(reqUserId: string | undefined) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const items = await this.databaseService.user_Languages.findMany({
+      where: { user_id: user.id },
+      orderBy: { id: 'desc' },
+      include: { language: true },
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Languages fetched',
+      data: items,
+    };
+  }
+
+  // list languages by auth0Id (public for other services)
+  async listLanguagesByAuth0Id(auth0Id: string) {
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: auth0Id },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found', {
+        description: `User with id ${auth0Id} not found.`,
+      });
+    }
+
+    const items = await this.databaseService.user_Languages.findMany({
+      where: { user_id: user.id },
+      orderBy: { id: 'desc' },
+      include: { language: true },
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Languages fetched',
+      data: items,
+    };
+  }
+
+  async addLanguage(reqUserId: string | undefined, dto: LanguageDto) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const language = await this.databaseService.languages.findUnique({
+      where: { id: dto.languageId },
+    });
+    if (!language) throw new NotFoundException('Language not found');
+
+    const created = await this.databaseService.user_Languages.create({
+      data: {
+        user_id: user.id,
+        language_id: dto.languageId,
+        level: dto.level,
+      },
+    });
+
+    return { statusCode: 201, message: 'Language added', data: created };
+  }
+
+  async updateLanguage(
+    reqUserId: string | undefined,
+    id: number,
+    dto: UpdateLanguageDto,
+  ) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const existing = await this.databaseService.user_Languages.findUnique({
+      where: { id },
+      include: { language: true },
+    });
+    if (!existing || existing.user_id !== user.id)
+      throw new NotFoundException('Language record not found for this user');
+
+    const data: any = {};
+    if (dto.level !== undefined) data.level = dto.level;
+    if (dto.languageId !== undefined) {
+      // validate language exists
+      const lang = await this.databaseService.languages.findUnique({
+        where: { id: dto.languageId },
+      });
+      if (!lang) throw new NotFoundException('Language not found');
+      data.language_id = dto.languageId;
+    }
+
+    const updated = await this.databaseService.user_Languages.update({
+      where: { id },
+      data,
+    });
+
+    return { statusCode: 200, message: 'Language updated', data: updated };
+  }
+
+  async removeLanguage(reqUserId: string | undefined, id: number) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const existing = await this.databaseService.user_Languages.findUnique({
+      where: { id },
+    });
+    if (!existing || existing.user_id !== user.id)
+      throw new NotFoundException('Language record not found for this user');
+
+    const deleted = await this.databaseService.user_Languages.delete({
+      where: { id },
+    });
+
+    return { statusCode: 200, message: 'Language deleted', data: deleted };
   }
 }
