@@ -9,10 +9,7 @@ import {
   Get,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import {
-  CreateWorkExperienceDto,
-  WorkExperienceDto,
-} from './dto/create-work-experience.dto';
+import { WorkExperienceDto } from './dto/create-work-experience.dto';
 import { UpdateWorkExperienceDto } from './dto/update-work-experience.dto';
 
 @Controller('users')

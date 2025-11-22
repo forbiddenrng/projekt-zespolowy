@@ -49,7 +49,7 @@ export class UsersService {
       };
     }
 
-    //provide create fileds EXPLICITLY
+    //provide create fields EXPLICITLY
     if (certificates) {
       data.certificates = {
         create: certificates.map((certificate: CertificateDto) => ({
@@ -60,7 +60,7 @@ export class UsersService {
       };
     }
 
-    //provide create fileds EXPLICITLY
+    //provide create fields EXPLICITLY
     if (education) {
       data.education = {
         create: education.map((education_value: EducationDto) => ({
@@ -75,7 +75,7 @@ export class UsersService {
       };
     }
 
-    //provide create fileds EXPLICITLY
+    //provide create fields EXPLICITLY
     if (links) {
       data.links = {
         create: links.map((link: LinkDto) => ({
@@ -84,7 +84,7 @@ export class UsersService {
       };
     }
 
-    //provide create fileds EXPLICITLY
+    //provide create fields EXPLICITLY
     if (workExperience) {
       data.work_experiences = {
         create: workExperience.map((work: WorkExperienceDto) => ({
@@ -224,7 +224,7 @@ export class UsersService {
 
     return {
       statusCode: 201,
-      message: 'User successfuly created',
+      message: 'User successfully created',
       data: newUser,
     };
   }
@@ -262,7 +262,7 @@ export class UsersService {
 
   //   return {
   //     statusCode: 200,
-  //     message: "User found successfuly",
+  //     message: "User found successfully",
   //     data: user
   //   }
   // }
@@ -282,7 +282,7 @@ export class UsersService {
     }
     return {
       statusCode: 200,
-      message: 'User found successfuly',
+      message: 'User found successfully',
       data: user,
     };
   }
@@ -303,7 +303,7 @@ export class UsersService {
     }
     return {
       statusCode: 200,
-      message: 'User successfuly deleted',
+      message: 'User successfully deleted',
       data: deletedUser,
     };
   }
@@ -731,9 +731,7 @@ export class UsersService {
       issuer: dto.issuer,
     };
 
-    if (dto.certificationDate) {
-      data.certification_date = new Date(dto.certificationDate);
-    }
+    data.certification_date = new Date(dto.certificationDate);
 
     const created = await this.databaseService.certificate.create({ data });
     return { statusCode: 201, message: 'Certificate added', data: created };

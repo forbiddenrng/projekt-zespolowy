@@ -7,8 +7,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, //remove unverified fileds
-      forbidNonWhitelisted: true, // throw error when unknow field
+      whitelist: true, //remove unverified fields
+      forbidNonWhitelisted: true, // throw error when unknown field
       transform: true,
     }),
   );

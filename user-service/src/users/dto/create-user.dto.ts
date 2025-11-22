@@ -7,7 +7,6 @@ import {
   IsNotEmpty,
   MinLength,
   IsPhoneNumber,
-  IsInt,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { LinkDto } from './create-link.dto';

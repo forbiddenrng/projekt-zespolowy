@@ -78,6 +78,10 @@ export class UsersController {
     @Query('all') all: string,
   ) {
     const id = req.userId;
+    if (!id) {
+      throw new BadRequestException('User id not provided in x-user header');
+    }
+
     return this.usersService.findOne(id, {
       abilities,
       certificates,
