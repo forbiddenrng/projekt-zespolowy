@@ -407,6 +407,66 @@ Powiązane pliki/symbole:
 
 ---
 
+### Links — endpointy
+
+- POST /users/links
+  - Opis: Dodaje wpis z linkiem (np. GitHub, LinkedIn) do profilu zalogowanego użytkownika.
+  - Header: `x-user: JSON.stringify({ "id": "auth0|..." })` (string) — nagłówek generowany przez gateway ([gateway/index.js](gateway/index.js)) i parsowany przez [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts).
+  - Body (JSON, zgodne z [`LinkDto`](user-service/src/users/dto/create-link.dto.ts)):
+    ```json
+    {
+      "linkString": "https://github.com/jan"
+    }
+    ```
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 201 i dodanym obiektem `Link`.
+  - Powiązane implementacje:
+    - Kontroler: [`LinksController`](user-service/src/users/links.controller.ts)
+    - Serwis: [`UsersService.addLink`](user-service/src/users/users.service.ts)
+
+- GET /users/links
+  - Opis: Zwraca listę linków zalogowanego użytkownika (id z nagłówka `x-user`).
+  - Header: x-user (jak powyżej)
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i tablicą obiektów.
+  - Powiązane: [`UsersService.listLinksForCurrentUser`](user-service/src/users/users.service.ts)
+
+- GET /users/:id/links
+  - Opis: Publiczne pobranie linków użytkownika po auth0Id (dla innych serwisów).
+  - Path param: `:id` — auth0_id (np. `auth0|123`) (URL-encode pipe -> `%7C`)
+  - Odpowiedź: SuccessResponse ze statusCode 200 i tablicą obiektów.
+  - Powiązane: [`UsersService.listLinksByAuth0Id`](user-service/src/users/users.service.ts)
+
+- PATCH /users/links/:id
+  - Opis: Aktualizuje wpis linku należący do zalogowanego użytkownika.
+  - Header: x-user (jak powyżej)
+  - Path param: `:id` — identyfikator rekordu Link (liczba)
+  - Body: `UpdateLinkDto` (np. `{ "linkString": "https://..." }`) — definicja: [`UpdateLinkDto`](user-service/src/users/dto/update-link.dto.ts)
+  - Odpowiedź: SuccessResponse ze statusCode 200 i zaktualizowanym obiektem.
+  - Powiązane: [`UsersService.updateLink`](user-service/src/users/users.service.ts)
+
+- DELETE /users/links/:id
+  - Opis: Usuwa wpis linku należący do zalogowanego użytkownika.
+  - Header: x-user (jak powyżej)
+  - Path param: `:id` — identyfikator rekordu Link (liczba)
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i usuniętym obiektem.
+  - Powiązane: [`UsersService.removeLink`](user-service/src/users/users.service.ts)
+
+Uwagi:
+
+- Pola DTO są walidowane przez klasy w [`user-service/src/users/dto/`](user-service/src/users/dto/). Błędy walidacji zwrócą 400 Bad Request.
+- Wszystkie endpointy tworzenia/aktualizacji pobierają id użytkownika z nagłówka i przypisują rekord do wewnętrznego `user.id` (logika w [`UsersService`](user-service/src/users/users.service.ts)).
+
+Powiązane pliki/symbole (otwórz w edytorze):
+
+- [`LinksController`](user-service/src/users/links.controller.ts)
+- [`LinkDto`](user-service/src/users/dto/create-link.dto.ts)
+- [`UpdateLinkDto`](user-service/src/users/dto/update-link.dto.ts)
+- [`addLink`, `listLinksForCurrentUser`, `listLinksByAuth0Id`, `updateLink`, `removeLink`](user-service/src/users/users.service.ts)
+- [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts) — parsowanie `x-user`
+- [`UsersModule`](user-service/src/users/users.module.ts) — rejestracja kontrolerów
+- Gateway: [`gateway/index.js`](gateway/index.js)
+
+---
+
 ## Obsługa wyjątków — szczegóły
 
 - AllExceptionsFilter

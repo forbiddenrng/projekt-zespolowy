@@ -11,6 +11,7 @@ import { CertificateDto } from './dto/create-certificate.dto';
 import { EducationDto } from './dto/create-education.dto';
 import { UpdateEducationDto } from './dto/update-education.dto';
 import { LinkDto } from './dto/create-link.dto';
+import { UpdateLinkDto } from './dto/update-link.dto';
 import { WorkExperienceDto } from './dto/create-work-experience.dto';
 import { UpdateWorkExperienceDto } from './dto/update-work-experience.dto';
 import { LanguageDto } from './dto/create-language.dto';
@@ -414,9 +415,9 @@ export class UsersService {
     };
   }
 
-  // -------------------------------------------
+  // -------------------------------------
   // ----- Education related methods -----
-  // -------------------------------------------
+  // -------------------------------------
 
   // list education for current user (req.userId parsed from x-user)
   async listEducationForCurrentUser(reqUserId: string | undefined) {
@@ -533,5 +534,117 @@ export class UsersService {
     });
 
     return { statusCode: 200, message: 'Education deleted', data: deleted };
+  }
+
+  // ---------------------------------
+  // ----- Links related methods -----
+  // ---------------------------------
+
+  // list links for current user (req.userId parsed from x-user)
+  async listLinksForCurrentUser(reqUserId: string | undefined) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const items = await this.databaseService.link.findMany({
+      where: { user_id: user.id },
+      orderBy: { id: 'desc' },
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Links fetched',
+      data: items,
+    };
+  }
+
+  // list links by auth0Id (public for other services)
+  async listLinksByAuth0Id(auth0Id: string) {
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: auth0Id },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found', {
+        description: `User with id ${auth0Id} not found.`,
+      });
+    }
+
+    const items = await this.databaseService.link.findMany({
+      where: { user_id: user.id },
+      orderBy: { id: 'desc' },
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Links fetched',
+      data: items,
+    };
+  }
+
+  async addLink(reqUserId: string | undefined, dto: LinkDto) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const created = await this.databaseService.link.create({
+      data: {
+        user_id: user.id,
+        linkString: dto.linkString,
+      },
+    });
+
+    return { statusCode: 201, message: 'Link added', data: created };
+  }
+
+  async updateLink(
+    reqUserId: string | undefined,
+    id: number,
+    dto: UpdateLinkDto,
+  ) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const existing = await this.databaseService.link.findUnique({
+      where: { id },
+    });
+    if (!existing || existing.user_id !== user.id)
+      throw new NotFoundException('Link record not found for this user');
+
+    const data: any = {};
+    if (dto.linkString !== undefined) data.linkString = dto.linkString;
+
+    const updated = await this.databaseService.link.update({
+      where: { id },
+      data,
+    });
+
+    return { statusCode: 200, message: 'Link updated', data: updated };
+  }
+
+  async removeLink(reqUserId: string | undefined, id: number) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const existing = await this.databaseService.link.findUnique({
+      where: { id },
+    });
+    if (!existing || existing.user_id !== user.id)
+      throw new NotFoundException('Link record not found for this user');
+
+    const deleted = await this.databaseService.link.delete({
+      where: { id },
+    });
+
+    return { statusCode: 200, message: 'Link deleted', data: deleted };
   }
 }
