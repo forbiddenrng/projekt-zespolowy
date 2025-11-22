@@ -229,6 +229,26 @@ export class UsersService {
     };
   }
 
+  // check if profile exists for current user (req.userId parsed from x-user)
+  async profileExistsForCurrentUser(reqUserId: string | undefined) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    return this.profileExistsByAuth0Id(reqUserId);
+  }
+
+  // public check by auth0Id used by other services
+  async profileExistsByAuth0Id(auth0Id: string) {
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: auth0Id },
+      select: { id: true }, // minimal select
+    });
+
+    return {
+      statusCode: 200,
+      message: user ? 'User exists' : 'User not found',
+      data: { exists: !!user },
+    };
+  }
+
   // async findOneAbilities(id: string){
   //   const user = await this.databaseService.user.findUnique({where: {auth0_id: id},
   //   select: {

@@ -8,6 +8,7 @@ import {
   Delete,
   Query,
   Req,
+  BadRequestException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { Prisma } from '@prisma/client';
@@ -31,9 +32,32 @@ import { FindOneQueryParams } from 'src/ts/types';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // POST /users  — create uses auth0 id from header (x-user)
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  create(@Req() req: any, @Body() createUserDto: CreateUserDto) {
+    const reqUserId = req.userId;
+    if (!reqUserId) {
+      throw new BadRequestException('User id not provided in x-user header');
+    }
+    // override auth0Id from header (ignore client-sent auth0Id)
+    createUserDto.auth0Id = reqUserId;
     return this.usersService.create(createUserDto);
+  }
+
+  // GET /users/profile-exists (current user via x-user header)
+  @Get('profile-exists')
+  findMyProfileExists(@Req() req: any) {
+    const reqUserId = req.userId;
+    if (!reqUserId) {
+      throw new BadRequestException('User id not provided in x-user header');
+    }
+    return this.usersService.profileExistsForCurrentUser(reqUserId);
+  }
+
+  // GET /users/:id/profile-exists (public by auth0Id)
+  @Get(':id/profile-exists')
+  findProfileExistsByAuth0Id(@Param('id') id: string) {
+    return this.usersService.profileExistsByAuth0Id(id);
   }
 
   // @Get('abilities/:id')

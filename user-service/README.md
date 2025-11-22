@@ -72,7 +72,7 @@ Formaty ogólne:
     "path": "/users/..."
   }
   ```
-- Prisma-known error (np. P2002 — unique constraint) obsługiwany przez PrismaClientExceptionFilter zwraca co najmniej:
+- Prisma-known error (np. P2002 — unique constraint) obsługiwany przez [`PrismaClientExceptionFilter`](user-service/src/prisma-client-exception/prisma-client-exception.filter.ts) zwraca co najmniej:
   ```json
   {
     "statusCode": 409,
@@ -80,184 +80,93 @@ Formaty ogólne:
   }
   ```
 
+Uwaga dotycząca nagłówka x-user i autoryzacji
+
+- Gateway wstrzykuje nagłówek `x-user` jako string JSON: `JSON.stringify({ "id": "auth0|..." })`. Middleware parsuje nagłówek i zapisuje `req.userId`. Implementacja: [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts).
+- Middleware jest rejestrowany dla ścieżek użytkownika w [`UsersModule`](user-service/src/users/users.module.ts).
+- ValidationPipe jest włączony w bootstrapie aplikacji: [`src/main.ts`](user-service/src/main.ts).
+- Response mapping: [`src/interceptors/response/response.interceptor.ts`](user-service/src/interceptors/response/response.interceptor.ts).
+- Globalne mapowanie błędów Prisma: [`PrismaClientExceptionFilter`](user-service/src/prisma-client-exception/prisma-client-exception.filter.ts).
+- Globalny filtr wyjątków: [`AllExceptionsFilter`](user-service/src/filters/all-exceptions-filter/all-exceptions.filter.ts).
+
 ### 1) Tworzenie użytkownika
 
 - Metoda: POST
 - Ścieżka: /users
-- Body (JSON) — pola akceptowane przez CreateUserDto i używane w buildCreateData:
+- Header: `x-user: JSON.stringify({ "id": "auth0|..." })` — jeśli header jest obecny, kontroler nadpisuje `auth0Id` z body wartością z nagłówka. Z tego powodu DTO akceptuje `auth0Id` jako opcjonalne; serwis i kontroler gwarantują przypisanie rekordu do właściwego Auth0 id.
+- Zmiana wykonana: kontroler używa `req.userId` (wartość ustawiona przez [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts)) i przypisuje do `createUserDto.auth0Id` przed wywołaniem [`UsersService.create`](user-service/src/users/users.service.ts). Implementacja: [`UsersController.create`](user-service/src/users/users.controller.ts), [`UsersService.create`](user-service/src/users/users.service.ts).
 
-```json
-{
-  "auth0Id": "string", // mapowane na auth0_id
-  "email": "string",
-  "phoneNumber": "string" // mapowane na phone_number
-  "name": "string",
-  "surname": "string",
-  "city": "string",
-  "profileSummary": "string", // OPTIONAL mapowane na profile_summary
-  "abilities": [ // OPTIONAL
-    {"name": "string"}
-  ],
-  "certificates": [ // OPTIONAL
-    {
-      "name": "string",
-      "issuer": "string",
-      "certificationDate": "Date"
-    }
-  ],
-  "education": [ //OPTIONAL
-    {
-      "schoolName": "string",
-      "major": "string",
-      "degree": "string",
-      "beginDate": "string", //(ISO),
-      "endDate": "string" // OPTIONAL (ISO)
-    }
-  ],
-  "links": [ // OPTIONAL
-    {"linkString": "string"}
-  ],
-  "workExperience": [ //OPTIONAL
-    {
-      "position": "string",
-      "description": "string",
-      "companyName": "string",
-      "beginDate": "string", //(ISO),
-      "endDate": "string" // OPTIONAL (ISO)
-    }
-  ],
-  "languages": [ //OPTIONAL
-    {
-      "languageId": "number",
-      "level": "string"
-    }
-  ]
-}
-```
+- Body (JSON) — pola akceptowane przez [`CreateUserDto`](user-service/src/users/dto/create-user.dto.ts) i używane w buildCreateData:
+
+  ```json
+  {
+    "auth0Id": "string", // OPTIONAL — nadpisywane z nagłówka jeżeli header istnieje
+    "email": "string",
+    "phoneNumber": "string",
+    "name": "string",
+    "surname": "string",
+    "city": "string",
+    "profileSummary": "string", // OPTIONAL
+    "abilities": [ {"name":"string"} ],
+    "certificates": [ { "name":"string", "issuer":"string", "certificationDate":"Date" } ],
+    "education": [ { "schoolName":"string", "major":"string", "degree":"string", "beginDate":"ISO", "endDate":"ISO?" } ],
+    "links": [ {"linkString":"string"} ],
+    "workExperience": [ { "companyName":"string", "position":"string", "beginDate":"ISO", "endDate":"ISO?", "description":"string" } ],
+    "languages": [ { "languageId": number, "level":"string" } ]
+  }
+  ```
 
 - Działanie:
-  - Buduje obiekt do zapisu (mapowania nazw pól -> zgodne z DB).
-  - Sprawdza czy użytkownik nie istnieje (po auth0_id, email, phone_number).
-  - Jeśli OK — zapisuje w bazie i zwraca wybrane pola nowego użytkownika.
-
-- Przykładowy request:
-
-  ```json
-  {
-    "auth0Id": "auth0|123",
-    "email": "jan@example.com",
-    "phoneNumber": "+48123123123",
-    "name": "Jan",
-    "surname": "Kowalski",
-    "city": "Warszawa",
-    "profileSummary": "Fullstack dev",
-    "abilities": [{ "name": "TypeScript" }],
-    "languages": [{ "languageId": 1, "level": "B2" }],
-    "links": [{ "linkString": "https://github.com/jan" }]
-  }
-  ```
-
-- Przykładowa odpowiedź (sukces):
-
-  ```json
-  {
-    "status": "success",
-    "statusCode": 201,
-    "data": {
-      "id": 1,
-      "name": "Jan",
-      "surname": "Kowalski",
-      "email": "jan@example.com"
-    },
-    "message": "User successfuly created"
-  }
-  ```
+  - Kontroler sprawdza `req.userId`; jeżeli brak → 400 Bad Request.
+  - `createUserDto.auth0Id` jest nadpisywane `req.userId`.
+  - [`UsersService.create`](user-service/src/users/users.service.ts) buduje `Prisma.UserCreateInput` (mapowanie pól) i tworzy rekord.
+  - Walidacja DTO wykonywana przez [`ValidationPipe`](user-service/src/main.ts).
+- Przykładowa odpowiedź (sukces): SuccessResponse statusCode 201 (zwraca pola wybrane w serwisie).
 
 - Możliwe błędy:
-  - 400 BadRequestException — np. użytkownik już istnieje. AllExceptionsFilter zwróci ErrorResponse z `message` i `error` (zawiera description z wyjątku).
-  - 409 — Prisma P2002 (unique constraint), obsłużone przez PrismaClientExceptionFilter.
+  - 400 BadRequest — brak parsowalnego `x-user` lub walidacja DTO (ValidationPipe) — zobacz [`src/main.ts`](user-service/src/main.ts).
+  - 409 Conflict — Prisma P2002 (unique constraint) → mapowane przez [`PrismaClientExceptionFilter`](user-service/src/prisma-client-exception/prisma-client-exception.filter.ts).
 
-### 2) Pobieranie użytkownika z relacjami (opcjonalnie)
+### 2) Pobieranie aktualnie zalogowanego użytkownika (me) oraz publiczne pobranie po auth0Id
 
-- Metoda: GET
-- Ścieżka: /users/:id
-  - Parametr :id to auth0_id (np. `auth0|123`)
-- Query params (wszystkie oczekują wartości "true" aby dołączyć relację):
-  - abilities=true
-  - certificates=true
-  - education=true
-  - languages=true
-  - links=true
-  - work=true
-  - all=true (dołącza wszystkie relacje)
+- GET /users/me
+  - Opis: Zwraca profil aktualnie zalogowanego użytkownika; `req.userId` jest brany z nagłówka `x-user`.
+  - Query params: abilities/certificates/education/languages/links/work/all (wartość "true" dołącza relację).
+  - Kontroler: [`UsersController.findMe`](user-service/src/users/users.controller.ts) → serwis [`UsersService.findOne`](user-service/src/users/users.service.ts).
 
-- Działanie:
-  - buildFindOneQuery konstruuje `select` dla Prisma zależnie od query params.
-  - Dla relacji: pola powiązane (np. user_id) są omitowane tam, gdzie to zdefiniowano.
-  - Dla user_languages zwrócone jest `language` (select: { language: true }).
+- GET /users/:id
+  - Opis: Publiczne pobranie użytkownika po auth0Id (np. `auth0|123`) — identyczne query params jak powyżej.
+  - Kontroler: [`UsersController.findOne`](user-service/src/users/users.controller.ts) → serwis [`UsersService.findOne`](user-service/src/users/users.service.ts).
 
-- Przykładowe wywołanie:
+- Implementacja zapytań wykorzystuje `buildFindOneQuery` w [`UsersService`](user-service/src/users/users.service.ts) (konstruuje `select` dla Prisma).
 
-  ```
-  GET /users/auth0%7C123?abilities=true&languages=true
-  ```
+### 3) Sprawdzanie istnienia profilu
 
-- Przykładowa odpowiedź (sukces):
+- GET /users/profile-exists
+  - Opis: Sprawdza, czy istnieje profil aktualnego użytkownika (id z `x-user`).
+  - Kontroler: [`UsersController.findMyProfileExists`](user-service/src/users/users.controller.ts).
+  - Serwis: [`UsersService.profileExistsForCurrentUser`](user-service/src/users/users.service.ts).
 
-  ```json
-  {
-    "status": "success",
-    "statusCode": 200,
-    "data": {
-      "id": 1,
-      "auth0_id": "auth0|123",
-      "name": "Jan",
-      "surname": "Kowalski",
-      "phone_number": "+48123123123",
-      "email": "jan@example.com",
-      "city": "Warszawa",
-      "profile_summary": "Fullstack dev",
-      "abilities": [{ "id": 1, "name": "TypeScript" }],
-      "user_languages": [{ "language": { "id": 1, "name": "English" } }]
-    },
-    "message": "User found successfuly"
-  }
-  ```
+- GET /users/:id/profile-exists
+  - Opis: Publiczne sprawdzenie istnienia profilu po auth0Id (dla innych serwisów).
+  - Kontroler: [`UsersController.findProfileExistsByAuth0Id`](user-service/src/users/users.controller.ts).
+  - Serwis: [`UsersService.profileExistsByAuth0Id`](user-service/src/users/users.service.ts).
 
-- Możliwe błędy:
-  - 404 NotFoundException — jeżeli użytkownik nie istnieje. ErrorResponse zawiera `message` i `error` (description).
+### 4) Usuwanie użytkownika
 
-### 3) Usuwanie użytkownika
+- DELETE /users/:id
+  - Parametr :id to auth0_id.
+  - Implementacja: [`UsersService.remove`](user-service/src/users/users.service.ts) — usuwa `user` po `auth0_id` (zwraca 404 jeśli brak).
 
-- Metoda: DELETE
-- Ścieżka: /users/:id
-  - Parametr :id to auth0_id
+### 5) CRUD relacji (work-experience, education, links, certificates, abilities, languages)
 
-- Działanie:
-  - Wykonuje `user.delete({ where: { auth0_id: id } })`.
-  - Jeżeli rekord nie istnieje, rzucany jest NotFoundException.
+- Wszystkie endpointy tworzenia/aktualizacji dla relacji używają schematu:
+  - POST /users/<resource> — dla aktualnego użytkownika (nagłówek `x-user` parsowany przez [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts)).
+  - GET /users/<resource> — listuje zasoby aktualnego użytkownika (z nagłówka).
+  - GET /users/:id/<resource> — publiczne listowanie po auth0Id (dla innych serwisów).
+  - PATCH /users/<resource>/:id i DELETE /users/<resource>/:id — operacje nad zasobami przypisanymi do aktualnego użytkownika (weryfikacja user_id w serwisie).
 
-- Przykładowa odpowiedź (sukces):
-
-  ```json
-  {
-    "status": "success",
-    "statusCode": 200,
-    "data": {
-      "id": 1,
-      "auth0_id": "auth0|123",
-      "email": "jan@example.com"
-    },
-    "message": "User successfuly deleted"
-  }
-  ```
-
-- Możliwe błędy:
-  - 404 NotFoundException — ErrorResponse z opisem.
-
----
-
-### Work experience (doświadczenie) — endpointy
+### 5a) Work experience (doświadczenie) — endpointy
 
 - POST /users/work-experiences
   - Opis: Dodaje wpis doświadczenia zawodowego do profilu zalogowanego użytkownika.
@@ -332,7 +241,7 @@ Powiązane pliki/symbole:
 
 ---
 
-### Education (wykształcenie) — endpointy
+### 5b) Education (wykształcenie) — endpointy
 
 - POST /users/education
   - Opis: Dodaje wpis wykształcenia do profilu zalogowanego użytkownika.
@@ -407,7 +316,7 @@ Powiązane pliki/symbole:
 
 ---
 
-### Links — endpointy
+### 5c) Links — endpointy
 
 - POST /users/links
   - Opis: Dodaje wpis z linkiem (np. GitHub, LinkedIn) do profilu zalogowanego użytkownika.
@@ -467,7 +376,7 @@ Powiązane pliki/symbole (otwórz w edytorze):
 
 ---
 
-### Certificates (certyfikaty) — endpointy
+### 5d) Certificates (certyfikaty) — endpointy
 
 - POST /users/certificates
   - Opis: Dodaje wpis certyfikatu do profilu zalogowanego użytkownika.
@@ -538,9 +447,7 @@ Powiązane pliki/symbole:
 
 ---
 
-// ...existing code...
-
-### Abilities (umiejętności) — endpointy
+### 5e) Abilities (umiejętności) — endpointy
 
 - POST /users/abilities
   - Opis: Dodaje wpis umiejętności (np. "TypeScript") do profilu zalogowanego użytkownika.
@@ -603,7 +510,7 @@ Powiązane pliki/symbole (otwórz w edytorze):
 
 ---
 
-### Languages (języki) — endpointy
+### 5f) Languages (języki) — endpointy
 
 - POST /users/languages
   - Opis: Dodaje wpis języka do profilu zalogowanego użytkownika (poziom, odniesienie do tabeli Languages).
