@@ -1,28 +1,33 @@
-import { IsString, IsNotEmpty, IsDate, MinLength, MaxDate } from "class-validator";
-import { Type } from "class-transformer";
-import { OmitType } from "@nestjs/mapped-types";
+import {
+  IsString,
+  IsNotEmpty,
+  IsDateString,
+  MinLength,
+  IsOptional,
+} from 'class-validator';
+import { OmitType } from '@nestjs/mapped-types';
+import { MaxNow } from 'src/validators/max-now.validator';
 
 // used when creating certificate from a separate request
 export class CreateCertificateDto {
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  userId: String;
+  userId: string;
 
   @IsString()
   @MinLength(10)
-  name: String;
+  name: string;
 
   @IsString()
   @MinLength(3)
-  issuer: String;
+  issuer: string;
 
-  // @IsDateString()
-  @IsDate()
-  @Type(() => Date)
-  @MaxDate(() => new Date(), {
-    message: () => `maximal certification date is ${new Date().toISOString()}`
-  })
-  certificationDate: Date;
+  @IsDateString()
+  @MaxNow({ message: 'maximal certification date is now' })
+  certificationDate: string;
 }
 //used when creating a user
-export class CertificateDto extends OmitType(CreateCertificateDto, ['userId']) {}
+export class CertificateDto extends OmitType(CreateCertificateDto, [
+  'userId',
+]) {}

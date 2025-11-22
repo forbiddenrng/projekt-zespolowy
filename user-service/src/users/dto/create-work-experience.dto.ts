@@ -1,31 +1,41 @@
-import { OmitType } from "@nestjs/mapped-types";
-import {IsString, IsNotEmpty, IsDateString, IsOptional, MinLength, MaxDate} from "class-validator";
+import { OmitType } from '@nestjs/mapped-types';
+import {
+  IsString,
+  IsNotEmpty,
+  IsDateString,
+  IsOptional,
+  MinLength,
+} from 'class-validator';
+import { MaxNow } from 'src/validators/max-now.validator';
 
 // used when creating work experience from a separate request
-export class CreateWorkExperienceDto{
+export class CreateWorkExperienceDto {
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  userId: String;
+  userId: string;
 
   @IsString()
   @MinLength(3)
-  companyName: String;
+  companyName: string;
 
   @IsString()
   @MinLength(5)
-  position: String;
+  position: string;
 
   @IsDateString()
-  @MaxDate(() => new Date())
-  beginDate: Date;
+  @MaxNow({ message: 'maximal allowed date for beginDate is now' })
+  beginDate: string;
 
   @IsOptional()
   @IsDateString()
-  @MaxDate(() => new Date())
-  endDate?: Date;
+  @MaxNow({ message: 'maximal allowed date for endDate is now' })
+  endDate?: string;
 
   @IsString()
   @MinLength(10)
-  description: String;
+  description: string;
 }
-export class WorkExperienceDto extends OmitType(CreateWorkExperienceDto, ['userId']){}
+export class WorkExperienceDto extends OmitType(CreateWorkExperienceDto, [
+  'userId',
+]) {}
