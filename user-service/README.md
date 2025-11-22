@@ -674,12 +674,40 @@ Powiązane pliki/symbole:
 - AllExceptionsFilter
   - Mapuje HttpException i błędy nie-HTTP do ustandaryzowanego ErrorResponse.
   - Jeżeli wyjątek jest HttpException i ma pole `response.description` (np. BadRequestException(..., { description: '...' })), to to pole trafia do `error` w odpowiedzi.
-  - Dla zwykłych Error zwraca stack w `error` (może być użyteczne tylko lokalnie).
+  - Dla zwykłych Error zwraca stack tylko lokalnie — w produkcji stack nie jest ujawniany (kontrola przez NODE_ENV).
+  - Implementacja: [`AllExceptionsFilter`](user-service/src/filters/all-exceptions-filter/all-exceptions.filter.ts)
 
 - PrismaClientExceptionFilter
-  - Wyłapuje Prisma.PrismaClientKnownRequestError.
-  - Dla kodu `P2002` (unique constraint) zwraca status 409 i message z wyjątku.
-  - Inne kody delegowane do BaseExceptionFilter (domyślne zachowanie).
+  - Wyłapuje błędy typu `Prisma.PrismaClientKnownRequestError` i mapuje najczęściej spotykane kody na odpowiednie statusy HTTP:
+    - P2002 — unique constraint -> 409 Conflict
+    - P2025 — record(s) not found -> 404 Not Found
+    - P2003 — foreign key / constraint violation -> 400 Bad Request
+    - P1001 — database connection / engine error -> 503 Service Unavailable
+  - Inne kody są delegowane do domyślnego `BaseExceptionFilter`.
+  - Implementacja: [`PrismaClientExceptionFilter`](user-service/src/prisma-client-exception/prisma-client-exception.filter.ts)
+  - Filtr jest rejestrowany globalnie w [`src/main.ts`](user-service/src/main.ts)
+
+- Rejestracja i bezpieczne logowanie
+  - PrismaClientExceptionFilter zarejestrowany globalnie zapobiega "przeciekowi" surowych błędów Prisma do klienta.
+  - AllExceptionsFilter zwraca stack tylko w środowisku non-production dla ułatwienia debugowania.
+  - Sprawdź konfigurację bazy w [`prisma/schema.prisma`](user-service/prisma/schema.prisma)
+
+- Autoryzacja i nagłówek x-user
+  - Gateway wstrzykuje nagłówek `x-user` na podstawie tokena JWT — implementacja w [`gateway/index.js`](gateway/index.js)
+  - Middleware parsuje `x-user` i ustawia `req.userId` w serwisie: [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts)
+
+- Dobre praktyki
+  - Nie ujawniać szczegółów stacka w produkcji.
+  - Mapować znane kody Prisma na czytelne statusy HTTP (jak powyżej).
+  - Logować szczegóły błędów po stronie serwera (centralny logger) i zwracać klientowi tylko niezbędne informacje.
+
+- Powiązane pliki/symbole:
+  - [`AllExceptionsFilter`](user-service/src/filters/all-exceptions-filter/all-exceptions.filter.ts)
+  - [`PrismaClientExceptionFilter`](user-service/src/prisma-client-exception/prisma-client-exception.filter.ts)
+  - [`src/main.ts`](user-service/src/main.ts)
+  - [`prisma/schema.prisma`](user-service/prisma/schema.prisma)
+  - [`gateway/index.js`](gateway/index.js)
+  - [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts)
 
 ---
 

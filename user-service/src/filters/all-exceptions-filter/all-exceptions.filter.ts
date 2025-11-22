@@ -1,4 +1,10 @@
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ErrorResponse } from 'src/ts/types';
 
@@ -11,43 +17,46 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     const isHttp = exception instanceof HttpException;
 
-    const status = isHttp ? 
-      (exception as HttpException).getStatus() : 
-      HttpStatus.INTERNAL_SERVER_ERROR;
+    const status = isHttp
+      ? (exception as HttpException).getStatus()
+      : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    const rawResponse = isHttp
+      ? (exception as HttpException).getResponse()
+      : null;
 
-    const rawResponse = isHttp ? (exception as HttpException).getResponse() : null;
-
-    let message: string = (exception as any)?.message ?? 'Internal server error';
+    let message: string =
+      (exception as any)?.message ?? 'Internal server error';
     let error: any = null;
 
-    if(typeof rawResponse === 'string'){
+    if (typeof rawResponse === 'string') {
       message = rawResponse;
-    } else if(rawResponse && typeof rawResponse === 'object'){
-      //rawResponse message: string | string[]
-      const response: any = rawResponse;
-      
-      //check for message in response
-      if(response.message !== undefined){
-        message = Array.isArray(response.message) ? response.message.join(', ') : String(response.message);
-      } else if ((exception as any).message){ // check for message in exception
-        message = String((exception as any).message);
+    } else if (rawResponse && typeof rawResponse === 'object') {
+      const resp: any = rawResponse;
+
+      if (resp.message !== undefined) {
+        message = Array.isArray(resp.message)
+          ? resp.message.join(', ')
+          : String(resp.message);
       }
 
-      //set error: response.error | response.description | response.cause
-      if(response.error !== undefined){
-        error = response.error;
-      } else if(response.description !== undefined){
-        error = response.description;
-      } else if(response.cause !== undefined){
-        const c = response.cause;
+      // set error: response.error | response.description | response.cause
+      if (resp.error !== undefined) {
+        error = resp.error;
+      } else if (resp.description !== undefined) {
+        error = resp.description;
+      } else if (resp.cause !== undefined) {
+        const c = resp.cause;
         error = c instanceof Error ? c.message : String(c);
       }
-
-    } else if(!isHttp && exception instanceof Error){
+    } else if (!isHttp && exception instanceof Error) {
       // non-Http error
       message = exception.message;
-      error = exception.stack;
+      // do not expose stack in production
+      error =
+        process.env.NODE_ENV === 'production'
+          ? 'Internal server error'
+          : exception.stack;
     }
 
     const payload: ErrorResponse = {
@@ -56,10 +65,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       message: message,
       error: error,
       timestamp: new Date().toISOString(),
-      path: request.path
-    }
-    response
-      .status(status)
-      .json(payload);
+      path: request.path,
+    };
+    
+    response.status(status).json(payload);
   }
 }
