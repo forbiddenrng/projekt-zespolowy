@@ -8,6 +8,7 @@ import { DatabaseService } from 'src/database/database.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AbilityDto } from './dto/create-ability.dto';
 import { CertificateDto } from './dto/create-certificate.dto';
+import { UpdateCertificateDto } from './dto/update-certificate.dto';
 import { EducationDto } from './dto/create-education.dto';
 import { UpdateEducationDto } from './dto/update-education.dto';
 import { LinkDto } from './dto/create-link.dto';
@@ -646,5 +647,126 @@ export class UsersService {
     });
 
     return { statusCode: 200, message: 'Link deleted', data: deleted };
+  }
+
+  // ----------------------------------------
+  // ----- Certificates related methods -----
+  // ----------------------------------------
+
+  // list certificates for current user (req.userId parsed from x-user)
+  async listCertificatesForCurrentUser(reqUserId: string | undefined) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const items = await this.databaseService.certificate.findMany({
+      where: { user_id: user.id },
+      orderBy: { certification_date: 'desc' },
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Certificates fetched',
+      data: items,
+    };
+  }
+
+  // list certificates by auth0Id (public for other services)
+  async listCertificatesByAuth0Id(auth0Id: string) {
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: auth0Id },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found', {
+        description: `User with id ${auth0Id} not found.`,
+      });
+    }
+
+    const items = await this.databaseService.certificate.findMany({
+      where: { user_id: user.id },
+      orderBy: { certification_date: 'desc' },
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Certificates fetched',
+      data: items,
+    };
+  }
+
+  async addCertificate(reqUserId: string | undefined, dto: CertificateDto) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+    const data: any = {
+      user_id: user.id,
+      name: dto.name,
+      issuer: dto.issuer,
+    };
+
+    if (dto.certificationDate) {
+      data.certification_date = new Date(dto.certificationDate);
+    }
+
+    const created = await this.databaseService.certificate.create({ data });
+    return { statusCode: 201, message: 'Certificate added', data: created };
+  }
+
+  async updateCertificate(
+    reqUserId: string | undefined,
+    id: number,
+    dto: UpdateCertificateDto,
+  ) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const existing = await this.databaseService.certificate.findUnique({
+      where: { id },
+    });
+    if (!existing || existing.user_id !== user.id)
+      throw new NotFoundException('Certificate record not found for this user');
+
+    const data: any = {};
+    if (dto.name !== undefined) data.name = dto.name;
+    if (dto.issuer !== undefined) data.issuer = dto.issuer;
+    if (dto.certificationDate !== undefined)
+      data.certification_date = dto.certificationDate
+        ? new Date(dto.certificationDate)
+        : null;
+
+    const updated = await this.databaseService.certificate.update({
+      where: { id },
+      data,
+    });
+
+    return { statusCode: 200, message: 'Certificate updated', data: updated };
+  }
+
+  async removeCertificate(reqUserId: string | undefined, id: number) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const existing = await this.databaseService.certificate.findUnique({
+      where: { id },
+    });
+    if (!existing || existing.user_id !== user.id)
+      throw new NotFoundException('Certificate record not found for this user');
+
+    const deleted = await this.databaseService.certificate.delete({
+      where: { id },
+    });
+
+    return { statusCode: 200, message: 'Certificate deleted', data: deleted };
   }
 }

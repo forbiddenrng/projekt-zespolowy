@@ -6,6 +6,7 @@ import { UserFromHeaderMiddleware } from 'src/middleware/user-from-header.middle
 import { WorkExperienceController } from './work-experience.controller';
 import { EducationController } from './education.controller';
 import { LinksController } from './links.controller';
+import { CertificatesController } from './certificates.controller';
 
 @Module({
   imports: [DatabaseModule],
@@ -13,6 +14,7 @@ import { LinksController } from './links.controller';
     WorkExperienceController,
     EducationController,
     LinksController,
+    CertificatesController,
     UsersController,
   ],
   providers: [UsersService],

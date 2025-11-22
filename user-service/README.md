@@ -467,6 +467,77 @@ Powiązane pliki/symbole (otwórz w edytorze):
 
 ---
 
+### Certificates (certyfikaty) — endpointy
+
+- POST /users/certificates
+  - Opis: Dodaje wpis certyfikatu do profilu zalogowanego użytkownika.
+  - Header: `x-user: JSON.stringify({ "id": "auth0|..." })` (string) — nagłówek generowany przez gateway ([gateway/index.js](gateway/index.js)) i parsowany przez [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts).
+  - Body (JSON, zgodne z [`CertificateDto`](user-service/src/users/dto/create-certificate.dto.ts)):
+    ```json
+    {
+      "name": "Certyfikat X",
+      "issuer": "Issuer Y",
+      "certificationDate": "2022-06-30T00:00:00.000Z"
+    }
+    ```
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 201 i dodanym obiektem `Certificate`.
+  - Powiązane implementacje:
+    - Kontroler: [`CertificatesController`](user-service/src/users/certificates.controller.ts)
+    - Serwis: [`UsersService.addCertificate`](user-service/src/users/users.service.ts)
+
+- GET /users/certificates
+  - Opis: Zwraca listę certyfikatów zalogowanego użytkownika (id z nagłówka `x-user`).
+  - Header: x-user (jak powyżej)
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i tablicą obiektów.
+  - Powiązane: [`UsersService.listCertificatesForCurrentUser`](user-service/src/users/users.service.ts)
+
+- GET /users/:id/certificates
+  - Opis: Publiczne pobranie certyfikatów użytkownika po auth0Id (dla innych serwisów).
+  - Path param: `:id` — auth0_id (np. `auth0|123`) (URL-encode pipe -> `%7C`)
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i tablicą wpisów.
+  - Powiązane: [`UsersService.listCertificatesByAuth0Id`](user-service/src/users/users.service.ts)
+
+- PATCH /users/certificates/:id
+  - Opis: Aktualizuje wpis certyfikatu należący do zalogowanego użytkownika.
+  - Header: x-user (jak powyżej)
+  - Path param: `:id` — identyfikator rekordu Certificate (liczba)
+  - Body: `UpdateCertificateDto` (np. `{ "issuer": "Nowy Issuer" }`) — definicja: [`UpdateCertificateDto`](user-service/src/users/dto/update-certificate.dto.ts)
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i zaktualizowanym obiektem.
+  - Powiązane: [`UsersService.updateCertificate`](user-service/src/users/users.service.ts)
+
+- DELETE /users/certificates/:id
+  - Opis: Usuwa wpis certyfikatu należący do zalogowanego użytkownika.
+  - Header: x-user (jak powyżej)
+  - Path param: `:id` — identyfikator rekordu Certificate (liczba)
+  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i usuniętym obiektem.
+  - Powiązane: [`UsersService.removeCertificate`](user-service/src/users/users.service.ts)
+
+Uwaga dotycząca dat i walidacji:
+
+- Pole `certificationDate` musi być w formacie ISO (np. "2022-06-30T00:00:00.000Z") i nie może być w przyszłości — walidowane przez [`MaxNow`](user-service/src/validators/max-now.validator.ts). Niepoprawne daty zwrócą 400 Bad Request z komunikatem walidacji.
+
+Błędy i zachowanie:
+
+- 400 BadRequest — np. brak parsowalnego nagłówka `x-user` lub niepoprawne pola (walidacja DTO). ValidationPipe jest włączony w [`src/main.ts`](user-service/src/main.ts).
+- 404 NotFound — rekord nie istnieje lub nie należy do zalogowanego użytkownika.
+- 409 Conflict — naruszenie unikalności (Prisma P2002), obsługiwane przez [`PrismaClientExceptionFilter`](user-service/src/prisma-client-exception/prisma-client-exception.filter.ts).
+
+Powiązane pliki/symbole:
+
+- [`CertificatesController`](user-service/src/users/certificates.controller.ts)
+- [`CertificateDto`](user-service/src/users/dto/create-certificate.dto.ts)
+- [`UpdateCertificateDto`](user-service/src/users/dto/update-certificate.dto.ts)
+- [`UsersService.addCertificate`](user-service/src/users/users.service.ts)
+- [`UsersService.listCertificatesForCurrentUser`](user-service/src/users/users.service.ts)
+- [`UsersService.listCertificatesByAuth0Id`](user-service/src/users/users.service.ts)
+- [`UsersService.updateCertificate`](user-service/src/users/users.service.ts)
+- [`UsersService.removeCertificate`](user-service/src/users/users.service.ts)
+- [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts)
+- [`UsersModule`](user-service/src/users/users.module.ts)
+- Gateway: [`gateway/index.js`](gateway/index.js)
+
+---
+
 ## Obsługa wyjątków — szczegóły
 
 - AllExceptionsFilter
