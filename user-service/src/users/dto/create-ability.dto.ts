@@ -1,17 +1,17 @@
-import { IsString, IsNotEmpty, MinLength } from "class-validator";
-import { OmitType } from "@nestjs/mapped-types";
+import { IsString, IsNotEmpty, MinLength, IsOptional } from 'class-validator';
+import { OmitType } from '@nestjs/mapped-types';
 
 // used when creating ability from a separate request
 export class CreateAbilityDto {
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  userId: String;
+  userId: string;
 
   @IsString()
   @MinLength(10)
-  name: String;
+  name: string;
 }
 
-// used when creating user 
+// used when creating user
 export class AbilityDto extends OmitType(CreateAbilityDto, ['userId']) {}
-

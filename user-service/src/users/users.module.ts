@@ -7,6 +7,7 @@ import { WorkExperienceController } from './work-experience.controller';
 import { EducationController } from './education.controller';
 import { LinksController } from './links.controller';
 import { CertificatesController } from './certificates.controller';
+import { AbilitiesController } from './abilities.controller';
 
 @Module({
   imports: [DatabaseModule],
@@ -15,6 +16,7 @@ import { CertificatesController } from './certificates.controller';
     EducationController,
     LinksController,
     CertificatesController,
+    AbilitiesController,
     UsersController,
   ],
   providers: [UsersService],

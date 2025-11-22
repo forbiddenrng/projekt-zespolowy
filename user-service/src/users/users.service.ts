@@ -7,6 +7,7 @@ import { Prisma } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AbilityDto } from './dto/create-ability.dto';
+import { UpdateAbilityDto } from './dto/update-ability.dto';
 import { CertificateDto } from './dto/create-certificate.dto';
 import { UpdateCertificateDto } from './dto/update-certificate.dto';
 import { EducationDto } from './dto/create-education.dto';
@@ -768,5 +769,117 @@ export class UsersService {
     });
 
     return { statusCode: 200, message: 'Certificate deleted', data: deleted };
+  }
+
+  // --------------------------------------
+  // ----- Abilities (skills) methods -----
+  // --------------------------------------
+
+  // list abilities for current user (req.userId parsed from x-user)
+  async listAbilitiesForCurrentUser(reqUserId: string | undefined) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const items = await this.databaseService.abilities.findMany({
+      where: { user_id: user.id },
+      orderBy: { id: 'desc' },
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Abilities fetched',
+      data: items,
+    };
+  }
+
+  // list abilities by auth0Id (public for other services)
+  async listAbilitiesByAuth0Id(auth0Id: string) {
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: auth0Id },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found', {
+        description: `User with id ${auth0Id} not found.`,
+      });
+    }
+
+    const items = await this.databaseService.abilities.findMany({
+      where: { user_id: user.id },
+      orderBy: { id: 'desc' },
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Abilities fetched',
+      data: items,
+    };
+  }
+
+  async addAbility(reqUserId: string | undefined, dto: AbilityDto) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const created = await this.databaseService.abilities.create({
+      data: {
+        user_id: user.id,
+        name: dto.name,
+      },
+    });
+
+    return { statusCode: 201, message: 'Ability added', data: created };
+  }
+
+  async updateAbility(
+    reqUserId: string | undefined,
+    id: number,
+    dto: UpdateAbilityDto,
+  ) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const existing = await this.databaseService.abilities.findUnique({
+      where: { id },
+    });
+    if (!existing || existing.user_id !== user.id)
+      throw new NotFoundException('Ability record not found for this user');
+
+    const data: any = {};
+    if (dto.name !== undefined) data.name = dto.name;
+
+    const updated = await this.databaseService.abilities.update({
+      where: { id },
+      data,
+    });
+
+    return { statusCode: 200, message: 'Ability updated', data: updated };
+  }
+
+  async removeAbility(reqUserId: string | undefined, id: number) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const existing = await this.databaseService.abilities.findUnique({
+      where: { id },
+    });
+    if (!existing || existing.user_id !== user.id)
+      throw new NotFoundException('Ability record not found for this user');
+
+    const deleted = await this.databaseService.abilities.delete({
+      where: { id },
+    });
+
+    return { statusCode: 200, message: 'Ability deleted', data: deleted };
   }
 }
