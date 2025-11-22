@@ -32,9 +32,8 @@ export class CreateUserDto {
   @IsNotEmpty()
   surname: string;
 
-  // accept international phone numbers (any region)
   @IsString()
-  @IsPhoneNumber()
+  @IsPhoneNumber('PL')
   phoneNumber: string;
 
   @IsEmail()
