@@ -26,18 +26,35 @@ function injectUserHeader(req, res, next) {
   next();
 }
 
+// function logger(req,res,next){
+//   console.log(req.path)
+//   console.log("redirect to user service")
+//   next()
+// }
+
+// function logger2(req, res,next){
+//   console.log(req.path)
+//   console.log("redirect to ai service")
+//   next()
+// }
+
 app.use(
   "/users",
-  checkJwt,
+  // checkJwt,
   createProxyMiddleware({
-    target: `${process.env.USER_SERVICE}`,
+    target: `${process.env.USER_SERVICE}/users`,
     changeOrigin: true,
-    onProxyReq: (proxyReq, req) => {
-      const userInfo = { id: req.auth.sub };
+    on: {
+      proxyReq: (proxyReq, req) => {
+      // const userInfo = { id: req.auth.sub };
+      console.log(`Proxying: ${req.method} ${req.url} -> ${process.env.USER_SERVICE}${req.url}`); // dodaj to
+      const userInfo = { id: "auth0|123" };
       proxyReq.setHeader("x-user", JSON.stringify(userInfo));
-    },
+    }
+    }
   })
 );
+
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`API Gateway running on port ${PORT}`));
