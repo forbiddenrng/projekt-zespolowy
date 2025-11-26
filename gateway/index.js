@@ -46,15 +46,16 @@ app.use(
     changeOrigin: true,
     on: {
       proxyReq: (proxyReq, req) => {
-      // const userInfo = { id: req.auth.sub };
-      console.log(`Proxying: ${req.method} ${req.url} -> ${process.env.USER_SERVICE}${req.url}`); // dodaj to
-      const userInfo = { id: "auth0|123" };
-      proxyReq.setHeader("x-user", JSON.stringify(userInfo));
-    }
-    }
+        // const userInfo = { id: req.auth.sub };
+        console.log(
+          `Proxying: ${req.method} ${req.url} -> ${process.env.USER_SERVICE}${req.url}`
+        ); // dodaj to
+        const userInfo = { id: "auth0|123" };
+        proxyReq.setHeader("x-user", JSON.stringify(userInfo));
+      },
+    },
   })
 );
-
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`API Gateway running on port ${PORT}`));

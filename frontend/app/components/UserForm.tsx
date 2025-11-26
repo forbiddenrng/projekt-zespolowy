@@ -46,25 +46,25 @@ const userValidator = Yup.object({
 });
 
 export default function UserForm({ user, savedProfile = null }: UserFormProps) {
-  const initialUserValues: UserFormValues = {
+  const [initialValues, setInitialValues] = useState<UserFormValues>({
     name: "",
     surename: "",
     phoneNum: "",
     email: "",
     city: "",
     profileSummary: "",
-  };
+  });
 
-  const [initialValues, setInitialValues] =
-    useState<UserFormValues>(initialUserValues);
   const [locked, setLocked] = useState({
     name: false,
     surename: false,
     email: false,
   });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Dane z Auth0
     const byAuth0: UserFormValues = {
       name: user?.given_name ?? user?.name ?? "",
       surename: user?.family_name ?? "",
@@ -74,8 +74,9 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
       profileSummary: "",
     };
 
+    // Dane z backendu
     if (savedProfile) {
-      const dbVals: UserFormValues = {
+      const merged: UserFormValues = {
         name: savedProfile.name ?? byAuth0.name,
         surename: savedProfile.surename ?? byAuth0.surename,
         phoneNum: savedProfile.phoneNum ?? "",
@@ -83,7 +84,8 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
         city: savedProfile.city ?? "",
         profileSummary: savedProfile.profileSummary ?? "",
       };
-      setInitialValues(dbVals);
+
+      setInitialValues(merged);
       setLocked({
         name: Boolean(savedProfile.name),
         surename: Boolean(savedProfile.surename),
@@ -102,6 +104,7 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
     helpers: FormikHelpers<UserFormValues>
   ) => {
     const { setSubmitting } = helpers;
+
     try {
       setSubmitting(true);
 
@@ -120,32 +123,33 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
         languages: [],
       };
 
-      // DEBUG: czy funkcja w ogóle się wywołuje i co jest wysyłane
-      console.log("[UserForm] about to fetch /api/user/create", {
-        payload,
-      });
+      console.log("[UserForm] SENDING PAYLOAD:", payload);
 
       const res = await fetch("/api/user/create", {
         method: "POST",
         credentials: "include",
         cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
 
       console.log("[UserForm] fetch returned status", res.status);
 
       if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || `Server returned ${res.status}`);
+        const err = await res.text();
+        throw new Error(err || `Server returned ${res.status}`);
       }
 
       const data = await res.json();
-      console.log("[UserForm] User service response:", data);
+      console.log("[UserForm] SUCCESS:", data);
 
+      // Blokujemy już zapisane wartości
       setLocked({
-        name: Boolean(values.name),
-        surename: Boolean(values.surename),
-        email: Boolean(values.email),
+        name: true,
+        surename: true,
+        email: true,
       });
 
       alert("Dane zapisane pomyślnie.");
@@ -179,12 +183,8 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
               <Field
                 id="name"
                 name="name"
-                placeholder="Jan"
-                aria-label="Imię"
-                readOnly={locked.name}
-                className={`w-full p-2 border rounded ${
-                  locked.name ? "opacity-60" : ""
-                }`}
+                disabled={locked.name}
+                className="w-full p-2 border rounded"
               />
               <ErrorMessage name="name" component="p" className="text-error" />
             </div>
@@ -195,12 +195,8 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
               <Field
                 id="surename"
                 name="surename"
-                placeholder="Kowalski"
-                aria-label="Nazwisko"
-                readOnly={locked.surename}
-                className={`w-full p-2 border rounded ${
-                  locked.surename ? "opacity-60" : ""
-                }`}
+                disabled={locked.surename}
+                className="w-full p-2 border rounded"
               />
               <ErrorMessage
                 name="surename"
@@ -209,14 +205,12 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
               />
             </div>
 
-            {/* Numer telefonu */}
+            {/* Telefon */}
             <div>
               <label htmlFor="phoneNum">Numer telefonu</label>
               <Field
                 id="phoneNum"
                 name="phoneNum"
-                placeholder="+48 600 000 000"
-                aria-label="Numer telefonu"
                 className="w-full p-2 border rounded"
               />
               <ErrorMessage
@@ -233,12 +227,8 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
                 id="email"
                 name="email"
                 type="email"
-                placeholder="email@przyklad.pl"
-                aria-label="Email"
-                readOnly={locked.email}
-                className={`w-full p-2 border rounded ${
-                  locked.email ? "opacity-60" : ""
-                }`}
+                disabled={locked.email}
+                className="w-full p-2 border rounded"
               />
               <ErrorMessage name="email" component="p" className="text-error" />
             </div>
@@ -249,21 +239,18 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
               <Field
                 id="city"
                 name="city"
-                placeholder="Warszawa"
-                aria-label="Miasto"
                 className="w-full p-2 border rounded"
               />
               <ErrorMessage name="city" component="p" className="text-error" />
             </div>
 
-            {/* Krótkie podsumowanie profilu */}
+            {/* Podsumowanie */}
             <div>
-              <label htmlFor="profileSummary">Krótki opis / podsumowanie</label>
+              <label htmlFor="profileSummary">Krótki opis</label>
               <Field
                 as="textarea"
                 id="profileSummary"
                 name="profileSummary"
-                placeholder="Napisz coś o sobie (opcjonalnie)..."
                 rows={5}
                 className="w-full p-2 border rounded resize-vertical"
               />

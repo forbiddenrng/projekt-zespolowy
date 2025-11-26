@@ -4,7 +4,7 @@ import { auth0 } from "@/app/lib/auth0";
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-export const POST = auth0.withApiAuthRequired(async (req: Request) => {
+export async function POST(req: Request) {
   try {
     console.log(">>> /api/user/create HIT");
 
@@ -12,10 +12,11 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
     const session = await auth0.getSession();
     console.log("SESSION:", session ? "OK" : "NULL");
 
+    // odczytaj body
     const body = await req.json();
     console.log("BODY RECEIVED:", body);
 
-    // TOKEN DO GATEWAY
+    // token do gateway (opcjonalnie)
     const accessTokenResp = await auth0.getAccessToken({
       audience: process.env.AUTH0_AUDIENCE,
     });
@@ -27,24 +28,23 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
 
     console.log("TOKEN:", token ? "OK" : "MISSING");
 
-    // FORWARD DO GATEWAY
-    const gatewayRes = await fetch(`${process.env.GATEWAY_URL}/users`, {
+    // fetch do gateway (BEZ /users, bo proxy doda)
+    const gatewayRes = await fetch(`${process.env.GATEWAY_URL}`, {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(body),
     });
 
-    const contentType = gatewayRes.headers.get("content-type") ?? "";
     const text = await gatewayRes.text();
-
     console.log("GATEWAY RESPONSE:", gatewayRes.status, text);
 
+    const contentType = gatewayRes.headers.get("content-type") ?? "";
+
     if (contentType.includes("application/json")) {
-      return NextResponse.json(JSON.parse(text), {
-        status: gatewayRes.status,
-      });
+      return NextResponse.json(JSON.parse(text), { status: gatewayRes.status });
     }
 
     return new NextResponse(text, {
@@ -58,4 +58,4 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
       { status: 500 }
     );
   }
-});
+}
