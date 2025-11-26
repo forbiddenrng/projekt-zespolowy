@@ -20,19 +20,19 @@
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
-  --secondary: #1a1a1a;
-  --border: #2a2a2a;
-  --card-background: #141414;
-  --card-border: #2a2a2a;
-  --muted: #9ca3af;
-  --accent: #34d399;
-  --error: #f87171;
-  --success: #4ade80;
-  --warning: #fbbf24;
+  --background: #121212;
+  --foreground: #d4d4d4;
+  --primary: #60a5fa;
+  --primary-hover: #3b82f6;
+  --secondary: #1e1e1e;
+  --border: #333333;
+  --card-background: #1a1a1a;
+  --card-border: #333333;
+  --muted: #888888;
+  --accent: #5eead4;
+  --error: #fca5a5;
+  --success: #86efac;
+  --warning: #fcd34d;
 }
 
 @theme inline {

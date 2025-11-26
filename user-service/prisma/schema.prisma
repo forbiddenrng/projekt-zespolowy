@@ -19,7 +19,7 @@ model User {
   auth0_id  String @unique @db.VarChar(255)
   name  String @db.VarChar(100)
   surname String @db.VarChar(100)
-  phone_number String @unique @db.VarChar(9)
+  phone_number String @unique @db.VarChar(20)
   email String @unique @db.VarChar(150)
   city String @db.VarChar(100)
   profile_summary String? @db.Text

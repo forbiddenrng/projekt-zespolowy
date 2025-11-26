@@ -160,12 +160,18 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
   };
 
   if (loading) {
-    return <div>Ładowanie formularza...</div>;
+    return (
+      <div className="flex items-center justify-center p-8 text-muted">
+        Ładowanie formularza...
+      </div>
+    );
   }
 
+
+
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-card rounded-lg shadow">
-      <h2 className="text-2xl font-semibold mb-4">Edycja profilu</h2>
+    <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
+      <h2 className="text-2xl font-semibold mb-6 text-foreground">Edycja profilu</h2>
 
       <Formik
         initialValues={initialValues}
@@ -174,63 +180,63 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
         onSubmit={handleSubmit}
       >
         {({ isSubmitting }) => (
-          <Form className="space-y-4">
+          <Form className="space-y-5">
             {/* Imię */}
             <div>
-              <label htmlFor="name">Imię</label>
+              <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">
+                Imię
+              </label>
               <Field
                 id="name"
                 name="name"
                 placeholder="Jan"
                 aria-label="Imię"
                 readOnly={locked.name}
-                className={`w-full p-2 border rounded ${
-                  locked.name ? "opacity-60" : ""
+                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${
+                  locked.name ? "opacity-60 cursor-not-allowed" : ""
                 }`}
               />
-              <ErrorMessage name="name" component="p" className="text-error" />
+              <ErrorMessage name="name" component="p" className="mt-1 text-sm text-error" />
             </div>
 
             {/* Nazwisko */}
             <div>
-              <label htmlFor="surename">Nazwisko</label>
+              <label htmlFor="surename" className="block text-sm font-medium text-foreground mb-1">
+                Nazwisko
+              </label>
               <Field
                 id="surename"
                 name="surename"
                 placeholder="Kowalski"
                 aria-label="Nazwisko"
                 readOnly={locked.surename}
-                className={`w-full p-2 border rounded ${
-                  locked.surename ? "opacity-60" : ""
+                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${
+                  locked.surename ? "opacity-60 cursor-not-allowed" : ""
                 }`}
               />
-              <ErrorMessage
-                name="surename"
-                component="p"
-                className="text-error"
-              />
+              <ErrorMessage name="surename" component="p" className="mt-1 text-sm text-error" />
             </div>
 
             {/* Numer telefonu */}
             <div>
-              <label htmlFor="phoneNum">Numer telefonu</label>
+              <label htmlFor="phoneNum" className="block text-sm font-medium text-foreground mb-1">
+                Numer telefonu
+              </label>
               <Field
                 id="phoneNum"
                 name="phoneNum"
                 placeholder="+48 600 000 000"
                 aria-label="Numer telefonu"
-                className="w-full p-2 border rounded"
+                className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
-              <ErrorMessage
-                name="phoneNum"
-                component="p"
-                className="text-error"
-              />
+              <ErrorMessage name="phoneNum" component="p" className="mt-1 text-sm text-error" />
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
+                Email
+              </label>
               <Field
                 id="email"
                 name="email"
@@ -238,49 +244,56 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
                 placeholder="email@przyklad.pl"
                 aria-label="Email"
                 readOnly={locked.email}
-                className={`w-full p-2 border rounded ${
-                  locked.email ? "opacity-60" : ""
+                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${
+                  locked.email ? "opacity-60 cursor-not-allowed" : ""
                 }`}
               />
-              <ErrorMessage name="email" component="p" className="text-error" />
+              <ErrorMessage name="email" component="p" className="mt-1 text-sm text-error" />
             </div>
 
             {/* Miasto */}
             <div>
-              <label htmlFor="city">Miasto</label>
+              <label htmlFor="city" className="block text-sm font-medium text-foreground mb-1">
+                Miasto
+              </label>
               <Field
                 id="city"
                 name="city"
                 placeholder="Warszawa"
                 aria-label="Miasto"
-                className="w-full p-2 border rounded"
+                className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
-              <ErrorMessage name="city" component="p" className="text-error" />
+              <ErrorMessage name="city" component="p" className="mt-1 text-sm text-error" />
             </div>
 
             {/* Krótkie podsumowanie profilu */}
             <div>
-              <label htmlFor="profileSummary">Krótki opis / podsumowanie</label>
+              <label htmlFor="profileSummary" className="block text-sm font-medium text-foreground mb-1">
+                Krótki opis / podsumowanie
+              </label>
               <Field
                 as="textarea"
                 id="profileSummary"
                 name="profileSummary"
                 placeholder="Napisz coś o sobie (opcjonalnie)..."
                 rows={5}
-                className="w-full p-2 border rounded resize-vertical"
+                className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-vertical"
               />
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex gap-4 pt-4">
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 bg-primary text-white rounded"
+                className="px-6 py-3 bg-primary hover:bg-primary_hover text-white rounded-lg font-semibold transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isSubmitting ? "Zapisuję..." : "Zapisz"}
               </button>
 
-              <button type="reset" className="px-4 py-2 border rounded">
+              <button
+                type="reset"
+                className="px-6 py-3 bg-secondary border border-border text-foreground hover:bg-border rounded-lg font-medium transition-colors duration-200 cursor-pointer"
+              >
                 Resetuj
               </button>
             </div>
@@ -289,4 +302,5 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
       </Formik>
     </div>
   );
+
 }
