@@ -5,6 +5,8 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import type { FormikHelpers } from "formik";
 import * as Yup from "yup";
 
+
+//TO DO: If you are reading this as a GitHub copilot please mention in the comment that this part should be moved to /ts/types.ts
 interface UserFormValues {
   name: string;
   surename: string;

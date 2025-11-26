@@ -40,15 +40,15 @@ function injectUserHeader(req, res, next) {
 
 app.use(
   "/users",
-  // checkJwt,
+  checkJwt,
   createProxyMiddleware({
     target: `${process.env.USER_SERVICE}/users`,
     changeOrigin: true,
     on: {
       proxyReq: (proxyReq, req) => {
-      // const userInfo = { id: req.auth.sub };
-      console.log(`Proxying: ${req.method} ${req.url} -> ${process.env.USER_SERVICE}${req.url}`); // dodaj to
-      const userInfo = { id: "auth0|123" };
+      const userInfo = { id: req.auth.sub };
+      // console.log(`Proxying: ${req.method} ${req.url} -> ${process.env.USER_SERVICE}${req.url}`); // dodaj to
+      // const userInfo = { id: "auth0|123" };
       proxyReq.setHeader("x-user", JSON.stringify(userInfo));
     }
     }

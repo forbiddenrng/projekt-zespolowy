@@ -31,6 +31,7 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
     const gatewayRes = await fetch(`${process.env.GATEWAY_URL}/users`, {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(body),
