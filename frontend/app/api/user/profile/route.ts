@@ -1,23 +1,44 @@
 import { NextResponse } from "next/server";
-// import { getAccessToken } from "@auth0/nextjs-auth0";
-import {auth0} from "@/app/lib/auth0"
+import { auth0 } from "@/app/lib/auth0";
 
+export const GET = auth0.withApiAuthRequired(
+  async (_req: Request): Promise<Response> => {
+    try {
+      const accessTokenResp = await auth0.getAccessToken({
+        audience: process.env.AUTH0_AUDIENCE,
+      });
 
-export const GET = auth0.withApiAuthRequired(async function handler() {
-  try {
+      const token =
+        typeof accessTokenResp === "string"
+          ? accessTokenResp
+          : (accessTokenResp as any)?.token ?? null;
 
-    const accessToken = await auth0.getAccessToken({
-      audience: process.env.AUTH0_AUDIENCE,
-    })
-    
-    const apiRes = await fetch(`${process.env.API_URL}/users/profile`, {
-      headers: {
-        'Authorization': `Bearer ${accessToken.token}`
-      },
-    });
+      const backendUrl = `${process.env.GATEWAY_URL}/users/profile`;
+      const gatewayRes = await fetch(backendUrl, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Accept: "application/json",
+        },
+      });
 
-    return NextResponse.json({});
-  } catch(err: any){
-    return NextResponse.json({message: err.message}, {status: 500});
+      const contentType = gatewayRes.headers.get("content-type") ?? "";
+      const text = await gatewayRes.text();
+
+      if (contentType.includes("application/json")) {
+        return NextResponse.json(JSON.parse(text), {
+          status: gatewayRes.status,
+        });
+      } else {
+        return new NextResponse(text, {
+          status: gatewayRes.status,
+          headers: { "Content-Type": contentType || "text/plain" },
+        });
+      }
+    } catch (err: any) {
+      return NextResponse.json(
+        { message: err?.message ?? "Unknown error" },
+        { status: 500 }
+      );
+    }
   }
-})
+);

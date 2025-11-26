@@ -1,23 +1,38 @@
-"use client"
-import { useEffect, useState } from "react";
+// components/UserProfile.tsx
+"use client";
 
-export default function UserProfile() {
+interface SavedProfile {
+  name?: string | null;
+  surename?: string | null;
+  phoneNum?: string | null;
+  email?: string | null;
+  city?: string | null;
+  profileSummary?: string | null;
+}
 
-  const [profile, setProfile] = useState<any>(null);
+interface UserProfileProps {
+  user: {
+    name?: string;
+    email?: string;
+    given_name?: string;
+    family_name?: string;
+    sub: string;
+  };
+  savedProfile?: SavedProfile | null;
+}
 
-  useEffect(() => {
-    async function fetchProfile() {
-      const res = await fetch('/api/user/profile');
-      const data = await res.json();
-      setProfile(data);
-      console.log(data);
-    }
-    fetchProfile();
-  }, []);
+export default function UserProfile({
+  user,
+  savedProfile = null,
+}: UserProfileProps) {
+  const displayName =
+    savedProfile?.name ??
+    user?.name ??
+    user?.given_name ??
+    (`${user?.given_name ?? ""} ${user?.family_name ?? ""}`.trim() ||
+      "Użytkownik");
 
-  return (
-    <div>
-      {JSON.stringify(profile)}
-    </div>
-  )
-};
+  const email = savedProfile?.email ?? user?.email ?? "brak email";
+
+  return null;
+}
