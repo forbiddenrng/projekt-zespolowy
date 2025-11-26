@@ -48,25 +48,25 @@ const userValidator = Yup.object({
 });
 
 export default function UserForm({ user, savedProfile = null }: UserFormProps) {
-  const initialUserValues: UserFormValues = {
+  const [initialValues, setInitialValues] = useState<UserFormValues>({
     name: "",
     surename: "",
     phoneNum: "",
     email: "",
     city: "",
     profileSummary: "",
-  };
+  });
 
-  const [initialValues, setInitialValues] =
-    useState<UserFormValues>(initialUserValues);
   const [locked, setLocked] = useState({
     name: false,
     surename: false,
     email: false,
   });
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Dane z Auth0
     const byAuth0: UserFormValues = {
       name: user?.given_name ?? user?.name ?? "",
       surename: user?.family_name ?? "",
@@ -76,8 +76,9 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
       profileSummary: "",
     };
 
+    // Dane z backendu
     if (savedProfile) {
-      const dbVals: UserFormValues = {
+      const merged: UserFormValues = {
         name: savedProfile.name ?? byAuth0.name,
         surename: savedProfile.surename ?? byAuth0.surename,
         phoneNum: savedProfile.phoneNum ?? "",
@@ -85,7 +86,8 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
         city: savedProfile.city ?? "",
         profileSummary: savedProfile.profileSummary ?? "",
       };
-      setInitialValues(dbVals);
+
+      setInitialValues(merged);
       setLocked({
         name: Boolean(savedProfile.name),
         surename: Boolean(savedProfile.surename),
@@ -104,6 +106,7 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
     helpers: FormikHelpers<UserFormValues>
   ) => {
     const { setSubmitting } = helpers;
+
     try {
       setSubmitting(true);
 
@@ -122,32 +125,33 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
         languages: [],
       };
 
-      // DEBUG: czy funkcja w ogóle się wywołuje i co jest wysyłane
-      console.log("[UserForm] about to fetch /api/user/create", {
-        payload,
-      });
+      console.log("[UserForm] SENDING PAYLOAD:", payload);
 
       const res = await fetch("/api/user/create", {
         method: "POST",
         credentials: "include",
         cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
       });
 
       console.log("[UserForm] fetch returned status", res.status);
 
       if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || `Server returned ${res.status}`);
+        const err = await res.text();
+        throw new Error(err || `Server returned ${res.status}`);
       }
 
       const data = await res.json();
-      console.log("[UserForm] User service response:", data);
+      console.log("[UserForm] SUCCESS:", data);
 
+      // Blokujemy już zapisane wartości
       setLocked({
-        name: Boolean(values.name),
-        surename: Boolean(values.surename),
-        email: Boolean(values.email),
+        name: true,
+        surename: true,
+        email: true,
       });
 
       alert("Dane zapisane pomyślnie.");
@@ -217,7 +221,7 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
               <ErrorMessage name="surename" component="p" className="mt-1 text-sm text-error" />
             </div>
 
-            {/* Numer telefonu */}
+            {/* Telefon */}
             <div>
               <label htmlFor="phoneNum" className="block text-sm font-medium text-foreground mb-1">
                 Numer telefonu
@@ -266,7 +270,7 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
               <ErrorMessage name="city" component="p" className="mt-1 text-sm text-error" />
             </div>
 
-            {/* Krótkie podsumowanie profilu */}
+            {/* Podsumowanie */}
             <div>
               <label htmlFor="profileSummary" className="block text-sm font-medium text-foreground mb-1">
                 Krótki opis / podsumowanie
@@ -275,7 +279,6 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
                 as="textarea"
                 id="profileSummary"
                 name="profileSummary"
-                placeholder="Napisz coś o sobie (opcjonalnie)..."
                 rows={5}
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-vertical"
               />
