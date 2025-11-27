@@ -69,7 +69,7 @@ export default async function Profile() {
   console.log(savedProfile)
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-5">
       <UserNavigation user={user} />
       <UserProfile user={user} savedProfile={savedProfile} />
       <UserForm user={user} savedProfile={savedProfile} />
