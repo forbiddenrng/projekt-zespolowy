@@ -23,16 +23,19 @@ interface UserFormProps {
 const userValidator = Yup.object({
   name: Yup.string().required("Imię jest wymagane"),
   surname: Yup.string().required("Nazwisko jest wymagane"),
-  phoneNum: Yup.string().required("Numer telefonu jest wymagany")
-  .min(9, "Numer telefonu musi mieć co najmniej 9 znaków")
-  .max(20, "Numer telefonu nie może być krótszy niż 20 znaków"),
+  phoneNum: Yup.string()
+    .required("Numer telefonu jest wymagany")
+    .min(9, "Numer telefonu musi mieć co najmniej 9 znaków")
+    .max(20, "Numer telefonu nie może być krótszy niż 20 znaków"),
   email: Yup.string()
     .email("Niepoprawny email")
     .required("Email jest wymagany"),
   city: Yup.string().required("Nazwa Miasta jest wymagana"),
-  profileSummary: Yup.string().min(20, "Opis profilu musi być dłuższy niż 20 znaków"),
+  profileSummary: Yup.string().min(
+    20,
+    "Opis profilu musi być dłuższy niż 20 znaków"
+  ),
 });
-
 
 /**
  * user - loaded from session
@@ -40,19 +43,22 @@ const userValidator = Yup.object({
  * initialValues - values saved from form
  * Form values loading: initialValues (values already saved in form) -> savedProfile -> default values (empty string)
  */
-export default function UserForm({ user, savedProfile = null, initialValues, onNext }: UserFormProps) {
-
-  const initialFormValues = useMemo<UserFormValues>( () => {
-
+export default function UserForm({
+  user,
+  savedProfile = null,
+  initialValues,
+  onNext,
+}: UserFormProps) {
+  const initialFormValues = useMemo<UserFormValues>(() => {
     return {
       name: initialValues?.name || savedProfile?.name || "",
       surname: initialValues?.surname || savedProfile?.surname || "",
       phoneNum: initialValues?.phoneNum || savedProfile?.phone_number || "",
       email: initialValues?.email || savedProfile?.email || "",
       city: initialValues?.city || savedProfile?.city || "",
-      profileSummary: initialValues?.profileSummary || savedProfile?.profile_summary || "",
+      profileSummary:
+        initialValues?.profileSummary || savedProfile?.profile_summary || "",
     };
-
   }, [user, savedProfile]);
 
   const savedProfileValues = useMemo<UserFormValues>(() => {
@@ -66,13 +72,11 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
     };
   }, [savedProfile]);
 
-
   const [locked, setLocked] = useState(() => ({
     name: Boolean(savedProfile?.name),
     surname: Boolean(savedProfile?.surname),
     email: Boolean(savedProfile?.email),
   }));
-
 
   const handleSubmit = async (
     values: UserFormValues,
@@ -83,7 +87,7 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
     try {
       setSubmitting(true);
 
-      onNext(values)
+      onNext(values);
 
       // Blokujemy już zapisane wartości
       setLocked({
@@ -101,10 +105,11 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
     }
   };
 
-
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
-      <h2 className="text-2xl font-semibold mb-6 text-foreground">Dane osobowe</h2>
+      <h2 className="text-2xl font-semibold mb-6 text-foreground">
+        Dane osobowe
+      </h2>
       <p className="text-muted mb-6">
         Dodaj informacje o swoich danych osobowych.
       </p>
@@ -121,7 +126,10 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
           <Form className="space-y-5">
             {/* Imię */}
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-foreground mb-1"
+              >
                 Imię
               </label>
               <Field
@@ -134,12 +142,19 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
                   locked.name ? "opacity-60 cursor-not-allowed" : ""
                 }`}
               />
-              <ErrorMessage name="name" component="p" className="mt-1 text-sm text-error" />
+              <ErrorMessage
+                name="name"
+                component="p"
+                className="mt-1 text-sm text-error"
+              />
             </div>
 
             {/* Nazwisko */}
             <div>
-              <label htmlFor="surname" className="block text-sm font-medium text-foreground mb-1">
+              <label
+                htmlFor="surname"
+                className="block text-sm font-medium text-foreground mb-1"
+              >
                 Nazwisko
               </label>
               <Field
@@ -152,12 +167,19 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
                   locked.surname ? "opacity-60 cursor-not-allowed" : ""
                 }`}
               />
-              <ErrorMessage name="surname" component="p" className="mt-1 text-sm text-error" />
+              <ErrorMessage
+                name="surname"
+                component="p"
+                className="mt-1 text-sm text-error"
+              />
             </div>
 
             {/* Telefon */}
             <div>
-              <label htmlFor="phoneNum" className="block text-sm font-medium text-foreground mb-1">
+              <label
+                htmlFor="phoneNum"
+                className="block text-sm font-medium text-foreground mb-1"
+              >
                 Numer telefonu
               </label>
               <Field
@@ -167,12 +189,19 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
                 aria-label="Numer telefonu"
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
-              <ErrorMessage name="phoneNum" component="p" className="mt-1 text-sm text-error" />
+              <ErrorMessage
+                name="phoneNum"
+                component="p"
+                className="mt-1 text-sm text-error"
+              />
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-foreground mb-1"
+              >
                 Email
               </label>
               <Field
@@ -186,12 +215,19 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
                   locked.email ? "opacity-60 cursor-not-allowed" : ""
                 }`}
               />
-              <ErrorMessage name="email" component="p" className="mt-1 text-sm text-error" />
+              <ErrorMessage
+                name="email"
+                component="p"
+                className="mt-1 text-sm text-error"
+              />
             </div>
 
             {/* Miasto */}
             <div>
-              <label htmlFor="city" className="block text-sm font-medium text-foreground mb-1">
+              <label
+                htmlFor="city"
+                className="block text-sm font-medium text-foreground mb-1"
+              >
                 Miasto
               </label>
               <Field
@@ -201,12 +237,19 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
                 aria-label="Miasto"
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
-              <ErrorMessage name="city" component="p" className="mt-1 text-sm text-error" />
+              <ErrorMessage
+                name="city"
+                component="p"
+                className="mt-1 text-sm text-error"
+              />
             </div>
 
             {/* Podsumowanie */}
             <div>
-              <label htmlFor="profileSummary" className="block text-sm font-medium text-foreground mb-1">
+              <label
+                htmlFor="profileSummary"
+                className="block text-sm font-medium text-foreground mb-1"
+              >
                 Krótki opis / podsumowanie
               </label>
               <Field
@@ -221,7 +264,7 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
             <div className="flex gap-4 justify-between pt-4">
               <button
                 type="button"
-                onClick={() => resetForm({values: savedProfileValues})}
+                onClick={() => resetForm({ values: savedProfileValues })}
                 className="px-6 py-3 bg-secondary border border-border text-foreground hover:bg-border rounded-lg font-medium transition-colors duration-200 cursor-pointer"
               >
                 Resetuj
@@ -237,5 +280,4 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
       </Formik>
     </div>
   );
-
 }

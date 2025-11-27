@@ -18,7 +18,6 @@ export interface NavItemProps {
   isActive: boolean;
 }
 
-
 export interface UserFormValues {
   name: string;
   surname: string;
@@ -37,18 +36,30 @@ export interface SavedProfile {
   profile_summary?: string | null;
 }
 
-
 // Nowe typy dla edukacji
 export interface Education {
   schoolName: string;
   major: string;
   degree: string;
   beginDate: string; // ISO format
-  endDate?: string;  // ISO format, opcjonalne
+  endDate?: string; // ISO format, opcjonalne
 }
 
 export interface EducationFormValues {
   education: Education[];
+}
+
+//Typy dla doświadczenia zawodowego
+export interface WorkExp {
+  companyName: string;
+  position: string;
+  beginDate: string; // ISO format
+  endDate?: string; // ISO format, opcjonalne
+  description: string;
+}
+
+export interface WorkExpFormValues {
+  workExp: WorkExp[];
 }
 
 // Pełny profil użytkownika
