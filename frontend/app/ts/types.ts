@@ -62,6 +62,15 @@ export interface WorkExpFormValues {
   workExp: WorkExp[];
 }
 
+// Typy dla umiejętności
+export interface Abilities {
+  name: string;
+}
+
+export interface AbilitiesFormValues {
+  abilities: Abilities[];
+}
+
 // Pełny profil użytkownika
 export interface FullProfilePayload extends UserFormValues {
   education: Education[];

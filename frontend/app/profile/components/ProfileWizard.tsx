@@ -4,7 +4,13 @@ import React, { useState } from "react";
 import UserForm from "./UserForm";
 import EducationForm from "./UserEducation";
 import WorkExpForm from "./UserWorkExperience";
-import type { UserFormValues, Education, WorkExp } from "@/app/ts/types";
+import UserAbilities from "./UserAbilities"; // <--- komponent umiejętności (dostosuj ścieżkę jeśli potrzebne)
+import type {
+  UserFormValues,
+  Education,
+  WorkExp,
+  Abilities,
+} from "@/app/ts/types";
 
 interface ProfileWizardProps {
   user: {
@@ -17,12 +23,14 @@ interface ProfileWizardProps {
   savedProfile?: any;
 }
 
-type WizardStep = "user" | "education" | "work" | "summary";
+// Rozszerzone kroki: dodajemy 'abilities' (umiejętności)
+type WizardStep = "user" | "education" | "work" | "abilities" | "summary";
 
 interface WizardData {
   userInfo: UserFormValues | null;
   education: Education[];
-  workExperience: WorkExp[]; // nowa sekcja
+  workExperience: WorkExp[];
+  abilities: Abilities[]; // nowa sekcja
 }
 
 export default function ProfileWizard({
@@ -34,6 +42,7 @@ export default function ProfileWizard({
     userInfo: null,
     education: savedProfile?.education || [],
     workExperience: savedProfile?.workExperience || [],
+    abilities: savedProfile?.abilities || [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -41,6 +50,7 @@ export default function ProfileWizard({
     { key: "user", label: "Dane osobowe" },
     { key: "education", label: "Edukacja" },
     { key: "work", label: "Doświadczenie" },
+    { key: "abilities", label: "Umiejętności" },
     { key: "summary", label: "Podsumowanie" },
   ];
 
@@ -58,6 +68,11 @@ export default function ProfileWizard({
 
   const handleWorkNext = (workExperience: WorkExp[]) => {
     setWizardData((prev) => ({ ...prev, workExperience }));
+    setCurrentStep("abilities"); // po doświadczeniu idziemy do umiejętności
+  };
+
+  const handleAbilitiesNext = (abilities: Abilities[]) => {
+    setWizardData((prev) => ({ ...prev, abilities }));
     setCurrentStep("summary");
   };
 
@@ -75,7 +90,7 @@ export default function ProfileWizard({
         city: wizardData.userInfo.city,
         profileSummary: wizardData.userInfo.profileSummary,
         education: wizardData.education,
-        abilities: [],
+        abilities: wizardData.abilities,
         certificates: [],
         links: [],
         workExperience: wizardData.workExperience,
@@ -178,10 +193,18 @@ export default function ProfileWizard({
         />
       )}
 
+      {currentStep === "abilities" && (
+        <UserAbilities
+          initialAbilities={wizardData.abilities}
+          onBack={() => setCurrentStep("work")}
+          onNext={handleAbilitiesNext}
+        />
+      )}
+
       {currentStep === "summary" && (
         <SummaryStep
           data={wizardData}
-          onBack={() => setCurrentStep("work")}
+          onBack={() => setCurrentStep("abilities")}
           onSubmit={handleFinalSubmit}
           isSubmitting={isSubmitting}
         />
@@ -297,6 +320,23 @@ function SummaryStep({
             <p className="text-sm text-foreground mt-1">{we.description}</p>
           </div>
         ))}
+      </div>
+
+      {/* Umiejętności */}
+      <div className="mb-6 p-4 bg-secondary rounded-lg">
+        <h3 className="font-medium text-foreground mb-3">
+          Umiejętności ({data.abilities.length})
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {data.abilities.map((ab, i) => (
+            <span
+              key={i}
+              className="text-sm bg-border px-3 py-1 rounded-full text-foreground"
+            >
+              {ab.name}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Przyciski */}
