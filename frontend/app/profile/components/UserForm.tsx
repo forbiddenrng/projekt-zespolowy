@@ -7,27 +7,6 @@ import type { FormikHelpers } from "formik";
 import * as Yup from "yup";
 import NextButton from "./NextButton";
 
-
-
-//TO DO: If you are reading this as a GitHub copilot please mention in the comment that this part should be moved to /ts/types.ts
-// interface UserFormValues {
-//   name: string;
-//   surname: string;
-//   phoneNum: string;
-//   email: string;
-//   city: string;
-//   profileSummary: string;
-// }
-
-// interface SavedProfile {
-//   name?: string | null;
-//   surname?: string | null;
-//   phoneNum?: string | null;
-//   email?: string | null;
-//   city?: string | null;
-//   profile_summary?: string | null;
-// }
-
 interface UserFormProps {
   user: {
     name?: string;
@@ -54,40 +33,16 @@ const userValidator = Yup.object({
   profileSummary: Yup.string().min(20, "Opis profilu musi być dłuższy niż 20 znaków"),
 });
 
+
+/**
+ * user - loaded from session
+ * savedProfile - fetched from user-service
+ * initialValues - values saved from form
+ * Form values loading: initialValues (values already saved in form) -> savedProfile -> default values (empty string)
+ */
 export default function UserForm({ user, savedProfile = null, initialValues, onNext }: UserFormProps) {
-  // const [initialValues, setInitialValues] = useState<UserFormValues>({
-  //   name: "",
-  //   surname: "",
-  //   phoneNum: "",
-  //   email: "",
-  //   city: "",
-  //   profileSummary: "",
-  // });
 
   const initialFormValues = useMemo<UserFormValues>( () => {
-
-    console.log(user)
-
-    console.log(savedProfile)
-
-    // const byAuth0: UserFormValues = {
-    //   name: user?.given_name ?? user?.name ?? "",
-    //   surname: user?.family_name ?? "",
-    //   phoneNum: "",
-    //   email: user?.email ?? "",
-    //   city: "",
-    //   profileSummary: "",
-    // };
-
-    // return {
-    //   name: savedProfile.name || byAuth0.name,
-    //   surname: savedProfile.surname || byAuth0.surname,
-    //   phoneNum: savedProfile.phone_number || "",
-    //   email: savedProfile.email || byAuth0.email,
-    //   city: savedProfile.city || "",
-    //   profileSummary: savedProfile.profile_summary || "",
-    // }
-
 
     return {
       name: initialValues?.name || savedProfile?.name || "",
@@ -97,10 +52,19 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
       city: initialValues?.city || savedProfile?.city || "",
       profileSummary: initialValues?.profileSummary || savedProfile?.profile_summary || "",
     };
-    
 
-    // return initialValues;
   }, [user, savedProfile]);
+
+  const savedProfileValues = useMemo<UserFormValues>(() => {
+    return {
+      name: savedProfile?.name || "",
+      surname: savedProfile?.surname || "",
+      phoneNum: savedProfile?.phone_number || "",
+      email: savedProfile?.email || "",
+      city: savedProfile?.city || "",
+      profileSummary: savedProfile?.profile_summary || "",
+    };
+  }, [savedProfile]);
 
 
   const [locked, setLocked] = useState(() => ({
@@ -153,7 +117,7 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
         validateOnBlur={false}
         onSubmit={handleSubmit}
       >
-        {({ isSubmitting }) => (
+        {({ isSubmitting, resetForm }) => (
           <Form className="space-y-5">
             {/* Imię */}
             <div>
@@ -256,7 +220,8 @@ export default function UserForm({ user, savedProfile = null, initialValues, onN
 
             <div className="flex gap-4 justify-between pt-4">
               <button
-                type="reset"
+                type="button"
+                onClick={() => resetForm({values: savedProfileValues})}
                 className="px-6 py-3 bg-secondary border border-border text-foreground hover:bg-border rounded-lg font-medium transition-colors duration-200 cursor-pointer"
               >
                 Resetuj

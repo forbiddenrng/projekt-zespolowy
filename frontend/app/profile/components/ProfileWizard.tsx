@@ -40,14 +40,11 @@ export default function ProfileWizard({ user, savedProfile }: ProfileWizardProps
   const currentStepIndex = steps.findIndex((s) => s.key === currentStep);
 
   const handleUserFormNext = (values: UserFormValues) => {
-    console.log(values)
     setWizardData((prev) => ({ ...prev, userInfo: values }));
     setCurrentStep("education");
   };
 
   const handleEducationNext = (education: Education[]) => {
-    console.log("--edu--")
-    console.log(education)
     setWizardData((prev) => ({ ...prev, education }));
     setCurrentStep("summary");
   };
@@ -74,6 +71,13 @@ export default function ProfileWizard({ user, savedProfile }: ProfileWizardProps
       };
 
       console.log("[ProfileWizard] SENDING PAYLOAD:", payload);
+
+      // Zanim wyśle się request trzeba najpierw sprawdzić na jaki endpoint go wysłać 
+      // trzeba wysłać request na /users/profile-exists
+      // jeżeli profile-exists zwróci że profil istnieje to trzeba dokonac updata 
+      // jeżeli zwróci że nie istnieje to trzeba dokonać edycji 
+      //UWAGA: endpoint do edycji całościowej tj. z podaniem wszystkich pól edukacja, umiejętności itd. nie istnieje
+      // możliwa jest na razie tylko edycja poszczególnych pól poprzez dedykowane endpointy. Zobacz README.md w user-service
 
       const res = await fetch("/api/user/create", {
         method: "POST",
