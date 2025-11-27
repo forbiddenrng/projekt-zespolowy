@@ -2,8 +2,9 @@
 import { auth0 } from "../lib/auth0";
 import UserNavigation from "../components/UserNavigation";
 import WelcomePage from "../components/WelcomePage";
-import UserProfile from "../components/UserProfile";
-import UserForm from "../components/UserForm";
+import UserProfile from "./components/UserProfile";
+import UserForm from "./components/UserForm";
+import ProfileWizard from "./components/ProfileWizard";
 
 
 async function fetchProfile() {
@@ -71,8 +72,9 @@ export default async function Profile() {
   return (
     <div className="min-h-screen bg-background pt-5">
       <UserNavigation user={user} />
-      <UserProfile user={user} savedProfile={savedProfile} />
-      <UserForm user={user} savedProfile={savedProfile} />
+      {/* <UserProfile user={user} savedProfile={savedProfile} /> */}
+      <ProfileWizard user={user} savedProfile={savedProfile}/>
+      {/* <UserForm user={user} savedProfile={savedProfile} /> */}
     </div>
   );
 }

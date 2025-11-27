@@ -2,28 +2,31 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
+import { UserFormValues, SavedProfile } from "@/app/ts/types";
 import type { FormikHelpers } from "formik";
 import * as Yup from "yup";
+import NextButton from "./NextButton";
+
 
 
 //TO DO: If you are reading this as a GitHub copilot please mention in the comment that this part should be moved to /ts/types.ts
-interface UserFormValues {
-  name: string;
-  surname: string;
-  phoneNum: string;
-  email: string;
-  city: string;
-  profileSummary: string;
-}
+// interface UserFormValues {
+//   name: string;
+//   surname: string;
+//   phoneNum: string;
+//   email: string;
+//   city: string;
+//   profileSummary: string;
+// }
 
-interface SavedProfile {
-  name?: string | null;
-  surname?: string | null;
-  phoneNum?: string | null;
-  email?: string | null;
-  city?: string | null;
-  profile_summary?: string | null;
-}
+// interface SavedProfile {
+//   name?: string | null;
+//   surname?: string | null;
+//   phoneNum?: string | null;
+//   email?: string | null;
+//   city?: string | null;
+//   profile_summary?: string | null;
+// }
 
 interface UserFormProps {
   user: {
@@ -33,7 +36,9 @@ interface UserFormProps {
     given_name?: string;
     sub: string;
   };
-  savedProfile?: SavedProfile | null;
+  savedProfile: SavedProfile | null;
+  initialValues: UserFormValues;
+  onNext: (values: UserFormValues) => void;
 }
 
 const userValidator = Yup.object({
@@ -49,7 +54,7 @@ const userValidator = Yup.object({
   profileSummary: Yup.string().min(20, "Opis profilu musi być dłuższy niż 20 znaków"),
 });
 
-export default function UserForm({ user, savedProfile = null }: UserFormProps) {
+export default function UserForm({ user, savedProfile = null, initialValues, onNext }: UserFormProps) {
   // const [initialValues, setInitialValues] = useState<UserFormValues>({
   //   name: "",
   //   surname: "",
@@ -59,29 +64,42 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
   //   profileSummary: "",
   // });
 
-  const initialValues = useMemo<UserFormValues>( () => {
+  const initialFormValues = useMemo<UserFormValues>( () => {
 
-    const byAuth0: UserFormValues = {
-      name: user?.given_name ?? user?.name ?? "",
-      surname: user?.family_name ?? "",
-      phoneNum: "",
-      email: user?.email ?? "",
-      city: "",
-      profileSummary: "",
+    console.log(user)
+
+    console.log(savedProfile)
+
+    // const byAuth0: UserFormValues = {
+    //   name: user?.given_name ?? user?.name ?? "",
+    //   surname: user?.family_name ?? "",
+    //   phoneNum: "",
+    //   email: user?.email ?? "",
+    //   city: "",
+    //   profileSummary: "",
+    // };
+
+    // return {
+    //   name: savedProfile.name || byAuth0.name,
+    //   surname: savedProfile.surname || byAuth0.surname,
+    //   phoneNum: savedProfile.phone_number || "",
+    //   email: savedProfile.email || byAuth0.email,
+    //   city: savedProfile.city || "",
+    //   profileSummary: savedProfile.profile_summary || "",
+    // }
+
+
+    return {
+      name: initialValues?.name || savedProfile?.name || "",
+      surname: initialValues?.surname || savedProfile?.surname || "",
+      phoneNum: initialValues?.phoneNum || savedProfile?.phone_number || "",
+      email: initialValues?.email || savedProfile?.email || "",
+      city: initialValues?.city || savedProfile?.city || "",
+      profileSummary: initialValues?.profileSummary || savedProfile?.profile_summary || "",
     };
+    
 
-    if(savedProfile){
-      return {
-        name: savedProfile.name ?? byAuth0.name,
-        surname: savedProfile.surname ?? byAuth0.surname,
-        phoneNum: savedProfile.phoneNum ?? "",
-        email: savedProfile.email ?? byAuth0.email,
-        city: savedProfile.city ?? "",
-        profileSummary: savedProfile.profile_summary ?? "",
-      };
-    }
-
-    return byAuth0;
+    // return initialValues;
   }, [user, savedProfile]);
 
 
@@ -91,43 +109,6 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
     email: Boolean(savedProfile?.email),
   }));
 
-  // const [loading, setLoading] = useState(true);
-
-  // useEffect(() => {
-  //   // Dane z Auth0
-  //   const byAuth0: UserFormValues = {
-  //     name: user?.given_name ?? user?.name ?? "",
-  //     surname: user?.family_name ?? "",
-  //     phoneNum: "",
-  //     email: user?.email ?? "",
-  //     city: "",
-  //     profileSummary: "",
-  //   };
-
-  //   // Dane z backendu
-  //   if (savedProfile) {
-  //     const merged: UserFormValues = {
-  //       name: savedProfile.name ?? byAuth0.name,
-  //       surname: savedProfile.surname ?? byAuth0.surname,
-  //       phoneNum: savedProfile.phoneNum ?? "",
-  //       email: savedProfile.email ?? byAuth0.email,
-  //       city: savedProfile.city ?? "",
-  //       profileSummary: savedProfile.profileSummary ?? "",
-  //     };
-
-  //     setInitialValues(merged);
-  //     setLocked({
-  //       name: Boolean(savedProfile.name),
-  //       surname: Boolean(savedProfile.surname),
-  //       email: Boolean(savedProfile.email),
-  //     });
-  //   } else {
-  //     setInitialValues(byAuth0);
-  //     setLocked({ name: false, surname: false, email: false });
-  //   }
-
-  //   setLoading(false);
-  // }, [user, savedProfile]);
 
   const handleSubmit = async (
     values: UserFormValues,
@@ -138,42 +119,7 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
     try {
       setSubmitting(true);
 
-      const payload = {
-        email: values.email,
-        phoneNumber: values.phoneNum,
-        name: values.name,
-        surname: values.surname,
-        city: values.city,
-        profileSummary: values.profileSummary,
-        abilities: [],
-        certificates: [],
-        education: [],
-        links: [],
-        workExperience: [],
-        languages: [],
-      };
-
-      console.log("[UserForm] SENDING PAYLOAD:", payload);
-
-      const res = await fetch("/api/user/create", {
-        method: "POST",
-        credentials: "include",
-        cache: "no-store",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      console.log("[UserForm] fetch returned status", res.status);
-
-      if (!res.ok) {
-        const err = await res.text();
-        throw new Error(err || `Server returned ${res.status}`);
-      }
-
-      const data = await res.json();
-      console.log("[UserForm] SUCCESS:", data);
+      onNext(values)
 
       // Blokujemy już zapisane wartości
       setLocked({
@@ -182,7 +128,7 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
         email: true,
       });
 
-      alert("Dane zapisane pomyślnie.");
+      // alert("Dane zapisane pomyślnie.");
     } catch (err: any) {
       console.error("Submit error:", err);
       alert("Wystąpił błąd podczas zapisu: " + (err?.message ?? "unknown"));
@@ -191,23 +137,16 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
     }
   };
 
-  // if (loading) {
-  //   return (
-  //     <div className="flex items-center justify-center p-8 text-muted">
-  //       Ładowanie formularza...
-  //     </div>
-  //   );
-  // }
-
-  // console.log(locked)
-
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
-      <h2 className="text-2xl font-semibold mb-6 text-foreground">Edycja profilu</h2>
+      <h2 className="text-2xl font-semibold mb-6 text-foreground">Dane osobowe</h2>
+      <p className="text-muted mb-6">
+        Dodaj informacje o swoich danych osobowych.
+      </p>
 
       <Formik
-        initialValues={initialValues}
+        initialValues={initialFormValues}
         enableReinitialize={true}
         validationSchema={userValidator}
         validateOnChange={false}
@@ -315,21 +254,18 @@ export default function UserForm({ user, savedProfile = null }: UserFormProps) {
               />
             </div>
 
-            <div className="flex gap-4 pt-4">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-6 py-3 bg-primary hover:bg-primary_hover text-white rounded-lg font-semibold transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-              >
-                {isSubmitting ? "Zapisuję..." : "Zapisz"}
-              </button>
-
+            <div className="flex gap-4 justify-between pt-4">
               <button
                 type="reset"
                 className="px-6 py-3 bg-secondary border border-border text-foreground hover:bg-border rounded-lg font-medium transition-colors duration-200 cursor-pointer"
               >
                 Resetuj
               </button>
+
+              <NextButton
+                prompt={isSubmitting ? "Zapisuje..." : "Dalej"}
+                isSubmitting={isSubmitting}
+              />
             </div>
           </Form>
         )}
