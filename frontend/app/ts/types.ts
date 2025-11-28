@@ -71,6 +71,15 @@ export interface AbilitiesFormValues {
   abilities: Abilities[];
 }
 
+// Typy dla linków
+export interface Links {
+  link: string;
+}
+
+export interface LinksFormValues {
+  links: Links[];
+}
+
 // Pełny profil użytkownika
 export interface FullProfilePayload extends UserFormValues {
   education: Education[];

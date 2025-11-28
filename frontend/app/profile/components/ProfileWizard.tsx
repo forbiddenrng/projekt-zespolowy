@@ -4,12 +4,14 @@ import React, { useState } from "react";
 import UserForm from "./UserForm";
 import EducationForm from "./UserEducation";
 import WorkExpForm from "./UserWorkExperience";
-import UserAbilities from "./UserAbilities"; // <--- komponent umiejętności (dostosuj ścieżkę jeśli potrzebne)
+import UserAbilities from "./UserAbilities";
+import UserLink from "./UserLink";
 import type {
   UserFormValues,
   Education,
   WorkExp,
   Abilities,
+  Links,
 } from "@/app/ts/types";
 
 interface ProfileWizardProps {
@@ -24,13 +26,20 @@ interface ProfileWizardProps {
 }
 
 // Rozszerzone kroki: dodajemy 'abilities' (umiejętności)
-type WizardStep = "user" | "education" | "work" | "abilities" | "summary";
+type WizardStep =
+  | "user"
+  | "education"
+  | "work"
+  | "abilities"
+  | "links"
+  | "summary";
 
 interface WizardData {
   userInfo: UserFormValues | null;
   education: Education[];
   workExperience: WorkExp[];
-  abilities: Abilities[]; // nowa sekcja
+  abilities: Abilities[];
+  links: Links[];
 }
 
 export default function ProfileWizard({
@@ -43,6 +52,7 @@ export default function ProfileWizard({
     education: savedProfile?.education || [],
     workExperience: savedProfile?.workExperience || [],
     abilities: savedProfile?.abilities || [],
+    links: savedProfile?.links || [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -51,6 +61,7 @@ export default function ProfileWizard({
     { key: "education", label: "Edukacja" },
     { key: "work", label: "Doświadczenie" },
     { key: "abilities", label: "Umiejętności" },
+    { key: "links", label: "Linki" },
     { key: "summary", label: "Podsumowanie" },
   ];
 
@@ -63,16 +74,21 @@ export default function ProfileWizard({
 
   const handleEducationNext = (education: Education[]) => {
     setWizardData((prev) => ({ ...prev, education }));
-    setCurrentStep("work"); // po edukacji idziemy do doświadczenia
+    setCurrentStep("work");
   };
 
   const handleWorkNext = (workExperience: WorkExp[]) => {
     setWizardData((prev) => ({ ...prev, workExperience }));
-    setCurrentStep("abilities"); // po doświadczeniu idziemy do umiejętności
+    setCurrentStep("abilities");
   };
 
   const handleAbilitiesNext = (abilities: Abilities[]) => {
     setWizardData((prev) => ({ ...prev, abilities }));
+    setCurrentStep("links");
+  };
+
+  const handleLinksNext = (links: Links[]) => {
+    setWizardData((prev) => ({ ...prev, links }));
     setCurrentStep("summary");
   };
 
@@ -92,7 +108,7 @@ export default function ProfileWizard({
         education: wizardData.education,
         abilities: wizardData.abilities,
         certificates: [],
-        links: [],
+        links: wizardData.links,
         workExperience: wizardData.workExperience,
         languages: [],
       };
@@ -201,10 +217,18 @@ export default function ProfileWizard({
         />
       )}
 
+      {currentStep === "links" && (
+        <UserLink
+          initialLinks={wizardData.links}
+          onBack={() => setCurrentStep("abilities")}
+          onNext={handleLinksNext}
+        />
+      )}
+
       {currentStep === "summary" && (
         <SummaryStep
           data={wizardData}
-          onBack={() => setCurrentStep("abilities")}
+          onBack={() => setCurrentStep("links")}
           onSubmit={handleFinalSubmit}
           isSubmitting={isSubmitting}
         />
@@ -334,6 +358,22 @@ function SummaryStep({
               className="text-sm bg-border px-3 py-1 rounded-full text-foreground"
             >
               {ab.name}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-6 p-4 bg-secondary rounded-lg">
+        <h3 className="font-medium text-foreground mb-3">
+          Linki ({data.links.length})
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {data.links.map((lin, i) => (
+            <span
+              key={i}
+              className="text-sm bg-border px-3 py-1 rounded-full text-foreground"
+            >
+              {lin.link}
             </span>
           ))}
         </div>
