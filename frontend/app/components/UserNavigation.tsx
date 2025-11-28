@@ -1,30 +1,32 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import LogoutButton from './LogoutButton';
-import ThemeToggle from './ThemeToggle';
-import Logo from './Logo';
-import { NavigationProps, NavItemProps } from '../ts/types';
-import { 
-  FiHome, 
-  FiUser, 
-  FiFileText, 
-  FiCheckCircle, 
-  FiBriefcase, 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import LogoutButton from "./LogoutButton";
+import ThemeToggle from "./ThemeToggle";
+import Logo from "./Logo";
+import { NavigationProps, NavItemProps } from "../ts/types";
+import {
+  FiHome,
+  FiUser,
+  FiFileText,
+  FiCheckCircle,
+  FiBriefcase,
   FiFolder,
-  FiLogOut, 
-} from 'react-icons/fi';
+  FiLogOut,
+  FiBookOpen,
+} from "react-icons/fi";
 
 function NavItem({ href, icon, label, isActive }: NavItemProps) {
   return (
-    <Link 
+    <Link
       href={href}
       className={`
         flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200
-        ${isActive 
-          ? 'bg-primary text-white shadow-md' 
-          : 'text-muted hover:text-foreground hover:bg-secondary'
+        ${
+          isActive
+            ? "bg-primary text-white shadow-md"
+            : "text-muted hover:text-foreground hover:bg-secondary"
         }
       `}
     >
@@ -38,12 +40,13 @@ export default function UserNavigation({ user }: NavigationProps) {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/dashboard', icon: <FiHome />, label: 'Panel główny' },
-    { href: '/profile', icon: <FiUser />, label: 'Dane użytkownika' },
-    { href: '/generate', icon: <FiFileText />, label: 'Generowanie dokumentu' },
-    { href: '/evaluate', icon: <FiCheckCircle />, label: 'Ocena dokumentów' },
-    { href: '/jobs', icon: <FiBriefcase />, label: 'Oferty pracy' },
-    { href: '/workspace', icon: <FiFolder />, label: 'Workspace' },
+    { href: "/dashboard", icon: <FiHome />, label: "Panel główny" },
+    { href: "/profile", icon: <FiUser />, label: "Dane użytkownika" },
+    { href: "/generate", icon: <FiFileText />, label: "Generowanie dokumentu" },
+    { href: "/evaluate", icon: <FiCheckCircle />, label: "Ocena dokumentów" },
+    { href: "/jobs", icon: <FiBriefcase />, label: "Oferty pracy" },
+    { href: "/workspace", icon: <FiFolder />, label: "Workspace" },
+    { href: "/handbook", icon: <FiBookOpen />, label: "Poradnik" },
   ];
 
   return (
@@ -60,14 +63,16 @@ export default function UserNavigation({ user }: NavigationProps) {
         <div className="p-6 border-b border-card_border">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-lg shadow-lg">
-              {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
+              {user.name?.charAt(0).toUpperCase() ||
+                user.email?.charAt(0).toUpperCase() ||
+                "U"}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-foreground truncate">
-                {user.name || 'User'}
+                {user.name || "User"}
               </p>
               <p className="text-sm text-muted truncate">
-                {user.email || 'email@example.com'}
+                {user.email || "email@example.com"}
               </p>
             </div>
           </div>
@@ -92,7 +97,7 @@ export default function UserNavigation({ user }: NavigationProps) {
       {/* Bottom Actions */}
       <div className="p-4 border-t border-card_border space-y-2">
         <div>
-          <ThemeToggle/>
+          <ThemeToggle />
         </div>
 
         {/* Logout Button */}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import UserForm from "./UserForm";
 import EducationForm from "./UserEducation";
 import WorkExpForm from "./UserWorkExperience";
@@ -157,40 +157,80 @@ export default function ProfileWizard({
     }
   };
 
+  // --- REF + auto-scroll dla kropek ---
+  const stepsContainerRef = useRef<HTMLDivElement | null>(null);
+  const stepRefs = useRef<Array<HTMLDivElement | null>>([]);
+
+  // Gdy zmieni się currentStepIndex, przewiń tak, aby aktywny step był wycentrowany.
+  useEffect(() => {
+    const el = stepRefs.current[currentStepIndex];
+    if (el) {
+      // scrollIntoView wewnątrz kontenera (inline center)
+      el.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  }, [currentStepIndex]);
+
   return (
     <div className="space-y-8">
-      {/* Pasek postępu */}
+      {/* Pasek postępu (auto-centrowanie aktywnego stepu, bez widocznego scrollbara) */}
       <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-2">
-          {steps.map((step, index) => (
-            <React.Fragment key={step.key}>
-              <div className="flex flex-col items-center">
+        <div
+          ref={stepsContainerRef}
+          className="wizard-steps overflow-x-auto -mx-2 px-2"
+          style={{
+            // ukrywamy pasek przewijania na większości przeglądarek
+            msOverflowStyle: "none",
+            scrollbarWidth: "none",
+          }}
+        >
+          {/* CSS do ukrycia webkit-scrollbar */}
+          <style>{`
+.wizard-steps::-webkit-scrollbar { display: none; }
+`}</style>
+
+          <div className="flex items-center justify-start mb-2 gap-6 min-w-max">
+            {steps.map((step, index) => (
+              <React.Fragment key={step.key}>
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-colors ${
-                    index <= currentStepIndex
-                      ? "bg-primary text-white"
-                      : "bg-secondary text-muted border border-border"
-                  }`}
+                  ref={(el) => {
+                    stepRefs.current[index] = el;
+                  }}
+                  className="flex flex-col items-center w-20 text-center"
                 >
-                  {index + 1}
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold shrink-0 transition-colors ${
+                      index <= currentStepIndex
+                        ? "bg-primary text-white"
+                        : "bg-secondary text-muted border border-border"
+                    }`}
+                  >
+                    {index + 1}
+                  </div>
+                  <span
+                    className={`text-xs mt-1 leading-tight ${
+                      index <= currentStepIndex
+                        ? "text-foreground"
+                        : "text-muted"
+                    }`}
+                  >
+                    {step.label}
+                  </span>
                 </div>
-                <span
-                  className={`text-sm mt-2 ${
-                    index <= currentStepIndex ? "text-foreground" : "text-muted"
-                  }`}
-                >
-                  {step.label}
-                </span>
-              </div>
-              {index < steps.length - 1 && (
-                <div
-                  className={`flex-1 h-1 mx-4 rounded ${
-                    index < currentStepIndex ? "bg-primary" : "bg-border"
-                  }`}
-                />
-              )}
-            </React.Fragment>
-          ))}
+
+                {index < steps.length - 1 && (
+                  <div
+                    className={`h-[2px] w-10 rounded shrink-0 ${
+                      index < currentStepIndex ? "bg-primary" : "bg-border"
+                    }`}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
       </div>
 
