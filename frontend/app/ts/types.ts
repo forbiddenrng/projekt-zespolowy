@@ -17,3 +17,86 @@ export interface NavItemProps {
   label: string;
   isActive: boolean;
 }
+
+export interface UserFormValues {
+  name: string;
+  surname: string;
+  phoneNum: string;
+  email: string;
+  city: string;
+  profileSummary: string;
+}
+
+export interface SavedProfile {
+  name?: string | null;
+  surname?: string | null;
+  phone_number?: string | null;
+  email?: string | null;
+  city?: string | null;
+  profile_summary?: string | null;
+}
+
+// Nowe typy dla edukacji
+export interface Education {
+  schoolName: string;
+  major: string;
+  degree: string;
+  beginDate: string; // ISO format
+  endDate?: string; // ISO format, opcjonalne
+}
+
+export interface EducationFormValues {
+  education: Education[];
+}
+
+//Typy dla doświadczenia zawodowego
+export interface WorkExp {
+  companyName: string;
+  position: string;
+  beginDate: string; // ISO format
+  endDate?: string; // ISO format, opcjonalne
+  description: string;
+}
+
+export interface WorkExpFormValues {
+  workExp: WorkExp[];
+}
+
+// Typy dla umiejętności
+export interface Abilities {
+  name: string;
+}
+
+export interface AbilitiesFormValues {
+  abilities: Abilities[];
+}
+
+// Typy dla linków
+export interface Links {
+  linkString: string;
+}
+
+export interface LinksFormValues {
+  links: Links[];
+}
+
+// Typy dla certyfikatów
+export interface Certyficates {
+  name: string;
+  issuer: string;
+  certyficationDate: string; //ISO format
+}
+
+export interface CertyficatesFormValues {
+  certyficates: Certyficates[];
+}
+
+// Pełny profil użytkownika
+export interface FullProfilePayload extends UserFormValues {
+  education: Education[];
+  abilities: string[];
+  certificates: string[];
+  links: string[];
+  workExperience: any[];
+  languages: any[];
+}

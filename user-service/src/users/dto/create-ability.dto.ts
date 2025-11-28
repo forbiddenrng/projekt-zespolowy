@@ -9,7 +9,7 @@ export class CreateAbilityDto {
   userId: string;
 
   @IsString()
-  @MinLength(10)
+  @MinLength(3)
   name: string;
 }
 
