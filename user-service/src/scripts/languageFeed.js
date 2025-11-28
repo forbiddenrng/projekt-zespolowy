@@ -5,7 +5,7 @@ const {PrismaClient} = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
-const languagesData = Object.keys(languages).map(langCode => ({name: languages[langCode]}));
+const languagesData = Object.keys(languages).map(langCode => ({name: languages[langCode], code: langCode}));
 
 async function createLanguages(){
   try {

@@ -533,6 +533,11 @@ Powiązane pliki/symbole (otwórz w edytorze):
   - Odpowiedź: SuccessResponse ze statusCode 200 i tablicą obiektów (z dołączonym `language`).
   - Powiązane: [`UsersService.listLanguagesForCurrentUser`](user-service/src/users/users.service.ts)
 
+- GET /users/languages/all
+  - Opis: Zwraca listę wszystkich języków z bazy danych.
+  - Odpowiedź: SuccessResponse ze statusCode 200 i tablicą obiektów.
+  - Powiązane: [`UsersService.getAllLanguages`](user-service/src/users/users.service.ts)
+
 - GET /users/:id/languages
   - Opis: Publiczne pobranie wpisów języków użytkownika po auth0Id (dla innych serwisów).
   - Path param: `:id` — auth0_id (np. `auth0|123`) (URL-encode pipe -> `%7C`)

@@ -23,6 +23,12 @@ export class LanguagesController {
     return this.usersService.listLanguagesForCurrentUser(reqUserId);
   }
 
+  //GET /users/languages/all
+  @Get('languages/all')
+  findAll(@Req() req: any){
+    return this.usersService.getAllLanguages();
+  }
+
   // GET /users/:id/languages (public by auth0Id)
   @Get(':id/languages')
   findByAuth0Id(@Param('id') id: string) {
