@@ -80,6 +80,17 @@ export interface LinksFormValues {
   links: Links[];
 }
 
+// Typy dla certyfikatów
+export interface Certyficates {
+  name: string;
+  issuer: string;
+  certyficationDate: string; //ISO format
+}
+
+export interface CertyficatesFormValues {
+  certyficates: Certyficates[];
+}
+
 // Pełny profil użytkownika
 export interface FullProfilePayload extends UserFormValues {
   education: Education[];

@@ -6,12 +6,14 @@ import EducationForm from "./UserEducation";
 import WorkExpForm from "./UserWorkExperience";
 import UserAbilities from "./UserAbilities";
 import UserLink from "./UserLink";
+import UserCertyficates from "./UserCertyficates";
 import type {
   UserFormValues,
   Education,
   WorkExp,
   Abilities,
   Links,
+  Certyficates,
 } from "@/app/ts/types";
 
 interface ProfileWizardProps {
@@ -32,6 +34,7 @@ type WizardStep =
   | "work"
   | "abilities"
   | "links"
+  | "certyficates"
   | "summary";
 
 interface WizardData {
@@ -40,6 +43,7 @@ interface WizardData {
   workExperience: WorkExp[];
   abilities: Abilities[];
   links: Links[];
+  certyficates: Certyficates[];
 }
 
 export default function ProfileWizard({
@@ -53,6 +57,7 @@ export default function ProfileWizard({
     workExperience: savedProfile?.workExperience || [],
     abilities: savedProfile?.abilities || [],
     links: savedProfile?.links || [],
+    certyficates: savedProfile?.certyfivates || [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,6 +67,7 @@ export default function ProfileWizard({
     { key: "work", label: "Doświadczenie" },
     { key: "abilities", label: "Umiejętności" },
     { key: "links", label: "Linki" },
+    { key: "certyficates", label: "Certyfikaty" },
     { key: "summary", label: "Podsumowanie" },
   ];
 
@@ -89,6 +95,11 @@ export default function ProfileWizard({
 
   const handleLinksNext = (links: Links[]) => {
     setWizardData((prev) => ({ ...prev, links }));
+    setCurrentStep("certyficates");
+  };
+
+  const handleCertyficatesNext = (certyficates: Certyficates[]) => {
+    setWizardData((prev) => ({ ...prev, certyficates }));
     setCurrentStep("summary");
   };
 
@@ -107,7 +118,7 @@ export default function ProfileWizard({
         profileSummary: wizardData.userInfo.profileSummary,
         education: wizardData.education,
         abilities: wizardData.abilities,
-        certificates: [],
+        certificates: wizardData.certyficates,
         links: wizardData.links,
         workExperience: wizardData.workExperience,
         languages: [],
@@ -225,10 +236,18 @@ export default function ProfileWizard({
         />
       )}
 
+      {currentStep === "certyficates" && (
+        <UserCertyficates
+          initialCertyficates={wizardData.certyficates}
+          onBack={() => setCurrentStep("links")}
+          onNext={handleCertyficatesNext}
+        />
+      )}
+
       {currentStep === "summary" && (
         <SummaryStep
           data={wizardData}
-          onBack={() => setCurrentStep("links")}
+          onBack={() => setCurrentStep("certyficates")}
           onSubmit={handleFinalSubmit}
           isSubmitting={isSubmitting}
         />
@@ -363,6 +382,7 @@ function SummaryStep({
         </div>
       </div>
 
+      {/* Linki */}
       <div className="mb-6 p-4 bg-secondary rounded-lg">
         <h3 className="font-medium text-foreground mb-3">
           Linki ({data.links.length})
@@ -377,6 +397,25 @@ function SummaryStep({
             </span>
           ))}
         </div>
+      </div>
+
+      {/* Certyfikaty */}
+      <div className="mb-6 p-4 bg-secondary rounded-lg">
+        <h3 className="font-medium text-foreground mb-3">
+          Certyfikaty ({data.certyficates.length})
+        </h3>
+        {data.certyficates.map((cert, index) => (
+          <div
+            key={index}
+            className="mb-3 pb-3 border-b border-border last:border-0"
+          >
+            <p className="font-medium text-foreground">{cert.name}</p>
+            <p className="text-sm text-muted">{cert.issuer}</p>
+            <p className="text-xs text-muted">
+              {new Date(cert.certyficationDate).toLocaleDateString("pl-PL")} –{" "}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* Przyciski */}

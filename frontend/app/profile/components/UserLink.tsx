@@ -31,6 +31,12 @@ export default function LinksForm({
   onBack,
   onNext,
 }: LinksFormProps) {
+  // Upewnij się, że każdy element ma zawsze property 'link' (nawet jeśli undefined w savedProfile)
+  const normalizedInitialLinks: Links[] =
+    initialLinks?.length > 0
+      ? initialLinks.map((l) => ({ link: (l && l.link) ?? "" }))
+      : [{ ...emptyLinks }];
+
   const handleSubmit = (
     values: LinksFormValues,
     helpers: FormikHelpers<LinksFormValues>
@@ -45,12 +51,12 @@ export default function LinksForm({
     <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
       <h2 className="text-2xl font-semibold mb-6 text-foreground">Linki</h2>
       <p className="text-muted mb-6">
-        Dodaj swoje linki. Możesz dodać wiele pozycji.
+        Dodaj swoje linki (np. LinkedIn, GitHub). Możesz dodać wiele pozycji.
       </p>
 
       <Formik
         initialValues={{
-          links: initialLinks.length > 0 ? initialLinks : [{ ...emptyLinks }],
+          links: normalizedInitialLinks,
         }}
         enableReinitialize={true}
         validationSchema={linksFormValidator}
@@ -70,14 +76,14 @@ export default function LinksForm({
                     >
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-medium text-foreground">
-                          Linki #{index + 1}
+                          Link #{index + 1}
                         </h3>
                         {values.links.length > 1 && (
                           <button
                             type="button"
                             onClick={() => remove(index)}
                             className="text-error hover:text-red-400 transition-colors p-1"
-                            aria-label="Usuń umiejętność"
+                            aria-label="Usuń link"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -97,19 +103,19 @@ export default function LinksForm({
 
                       <div>
                         <label
-                          htmlFor={`abilities.${index}.name`}
+                          htmlFor={`links.${index}.link`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
                           Link
                         </label>
                         <Field
-                          id={`abilities.${index}.name`}
-                          name={`abilities.${index}.name`}
-                          placeholder="np. Linkedin, GitHub"
+                          id={`links.${index}.link`}
+                          name={`links.${index}.link`}
+                          placeholder="np. https://github.com/twoj-uzytkownik"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
-                          name={`abilities.${index}.name`}
+                          name={`links.${index}.link`}
                           component="p"
                           className="mt-1 text-sm text-error"
                         />
@@ -134,7 +140,7 @@ export default function LinksForm({
                         clipRule="evenodd"
                       />
                     </svg>
-                    Dodaj kolejną umiejętność
+                    Dodaj kolejny link
                   </button>
 
                   {typeof errors.links === "string" && (
