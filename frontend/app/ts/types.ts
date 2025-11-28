@@ -73,7 +73,7 @@ export interface AbilitiesFormValues {
 
 // Typy dla linków
 export interface Links {
-  link: string;
+  linkString: string;
 }
 
 export interface LinksFormValues {

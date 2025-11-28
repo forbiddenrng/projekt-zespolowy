@@ -393,7 +393,7 @@ function SummaryStep({
               key={i}
               className="text-sm bg-border px-3 py-1 rounded-full text-foreground"
             >
-              {lin.link}
+              {lin.linkString}
             </span>
           ))}
         </div>

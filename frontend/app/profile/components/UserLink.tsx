@@ -15,11 +15,11 @@ interface LinksFormProps {
 }
 
 const emptyLinks: Links = {
-  link: "",
+  linkString: "",
 };
 
 const linksSchema = Yup.object({
-  link: Yup.string().required("Link jest wymagany"),
+  linkString: Yup.string().required("Link jest wymagany"),
 });
 
 const linksFormValidator = Yup.object({
@@ -34,7 +34,7 @@ export default function LinksForm({
   // Upewnij się, że każdy element ma zawsze property 'link' (nawet jeśli undefined w savedProfile)
   const normalizedInitialLinks: Links[] =
     initialLinks?.length > 0
-      ? initialLinks.map((l) => ({ link: (l && l.link) ?? "" }))
+      ? initialLinks.map((l) => ({ linkString: (l && l.linkString) ?? "" }))
       : [{ ...emptyLinks }];
 
   const handleSubmit = (
@@ -103,19 +103,19 @@ export default function LinksForm({
 
                       <div>
                         <label
-                          htmlFor={`links.${index}.link`}
+                          htmlFor={`links.${index}.linkString`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
                           Link
                         </label>
                         <Field
-                          id={`links.${index}.link`}
-                          name={`links.${index}.link`}
+                          id={`links.${index}.linkString`}
+                          name={`links.${index}.linkString`}
                           placeholder="np. https://github.com/twoj-uzytkownik"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
-                          name={`links.${index}.link`}
+                          name={`links.${index}.linkString`}
                           component="p"
                           className="mt-1 text-sm text-error"
                         />
