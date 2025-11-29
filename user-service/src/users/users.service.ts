@@ -906,6 +906,20 @@ export class UsersService {
   // ----- Languages (user_languages) related methods -----
   // ------------------------------------------------------
 
+
+  //get all languages
+  async getAllLanguages(){
+    const languages = await this.databaseService.languages.findMany({
+      orderBy: {code: 'asc'}
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Languages fetched',
+      data: languages
+    }
+  }
+
   // list languages for current user (req.userId parsed from x-user)
   async listLanguagesForCurrentUser(reqUserId: string | undefined) {
     if (!reqUserId) throw new BadRequestException('User id not provided');

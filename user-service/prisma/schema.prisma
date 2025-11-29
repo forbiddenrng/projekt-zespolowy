@@ -68,6 +68,7 @@ model Work_Experience{
 model Languages{
   id Int @id @default(autoincrement())
   name String @db.VarChar(50)
+  code String @db.VarChar(5)
 
   user_languages User_Languages[]
 }
