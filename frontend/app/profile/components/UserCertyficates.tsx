@@ -13,11 +13,11 @@ interface CertyficatesFormProps {
   onBack: () => void;
   onNext: (certyficates: Certyficates[]) => void;
 }
-
+//certyficationDate
 const emptyCertyficates: Certyficates = {
   name: "",
   issuer: "",
-  certyficationDate: "",
+  certificationDate: "",
 };
 
 /**
@@ -28,7 +28,7 @@ const emptyCertyficates: Certyficates = {
 const certyficatesSchema = Yup.object({
   name: Yup.string().nullable(),
   issuer: Yup.string().nullable(),
-  certyficationDate: Yup.string()
+  certificationDate: Yup.string()
     .nullable()
     .test("is-valid-date-or-empty", "Niepoprawny format daty", (value) => {
       if (!value) return true; // puste pole jest OK
@@ -66,7 +66,7 @@ export default function CertyficatesForm({
       ? initialCertyficates.map((cert) => ({
           name: cert?.name ?? "",
           issuer: cert?.issuer ?? "",
-          certyficationDate: formatDateForInput(cert?.certyficationDate),
+          certificationDate: formatDateForInput(cert?.certificationDate),
         }))
       : [];
 
@@ -86,15 +86,15 @@ export default function CertyficatesForm({
     const nonEmpty = (cert: Certyficates) =>
       (cert.name && cert.name.trim() !== "") ||
       (cert.issuer && cert.issuer.trim() !== "") ||
-      (cert.certyficationDate && cert.certyficationDate.trim() !== "");
+      (cert.certificationDate && cert.certificationDate.trim() !== "");
 
     const formattedCertyfication: Certyficates[] = values.certyficates
       .filter(nonEmpty)
       .map((cert) => {
         // konwertuj datę tylko jeśli jest poprawna; w przeciwnym razie zostaw pusty string
         let isoDate = "";
-        if (cert.certyficationDate) {
-          const d = new Date(cert.certyficationDate);
+        if (cert.certificationDate) {
+          const d = new Date(cert.certificationDate);
           if (!isNaN(d.getTime())) {
             isoDate = d.toISOString();
           } else {
@@ -105,7 +105,7 @@ export default function CertyficatesForm({
         return {
           name: cert.name?.trim() ?? "",
           issuer: cert.issuer?.trim() ?? "",
-          certyficationDate: isoDate,
+          certificationDate: isoDate,
         };
       });
 
@@ -220,19 +220,19 @@ export default function CertyficatesForm({
                       {/* Data otrzymania */}
                       <div>
                         <label
-                          htmlFor={`certyficates.${index}.certyficationDate`}
+                          htmlFor={`certyficates.${index}.certificationDate`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
                           Data otrzymania (opcjonalne)
                         </label>
                         <Field
                           type="date"
-                          id={`certyficates.${index}.certyficationDate`}
-                          name={`certyficates.${index}.certyficationDate`}
+                          id={`certyficates.${index}.certificationDate`}
+                          name={`certyficates.${index}.certificationDate`}
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
-                          name={`certyficates.${index}.certyficationDate`}
+                          name={`certyficates.${index}.certificationDate`}
                           component="p"
                           className="mt-1 text-sm text-error"
                         />

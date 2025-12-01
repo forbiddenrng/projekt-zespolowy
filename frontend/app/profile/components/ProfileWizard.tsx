@@ -7,6 +7,7 @@ import WorkExpForm from "./UserWorkExperience";
 import UserAbilities from "./UserAbilities";
 import UserLink from "./UserLink";
 import UserCertyficates from "./UserCertyficates";
+import UserLanguages from "./UserLanguage";
 import type {
   UserFormValues,
   Education,
@@ -14,6 +15,7 @@ import type {
   Abilities,
   Links,
   Certyficates,
+  UserLanguage,
 } from "@/app/ts/types";
 
 interface ProfileWizardProps {
@@ -33,6 +35,7 @@ type WizardStep =
   | "education"
   | "work"
   | "abilities"
+  | "languages"
   | "links"
   | "certyficates"
   | "summary";
@@ -42,6 +45,7 @@ interface WizardData {
   education: Education[];
   workExperience: WorkExp[];
   abilities: Abilities[];
+  languages: UserLanguage[];
   links: Links[];
   certyficates: Certyficates[];
 }
@@ -56,6 +60,7 @@ export default function ProfileWizard({
     education: savedProfile?.education || [],
     workExperience: savedProfile?.workExperience || [],
     abilities: savedProfile?.abilities || [],
+    languages: savedProfile?.languages || [],
     links: savedProfile?.links || [],
     certyficates: savedProfile?.certyfivates || [],
   });
@@ -66,6 +71,7 @@ export default function ProfileWizard({
     { key: "education", label: "Edukacja" },
     { key: "work", label: "Doświadczenie" },
     { key: "abilities", label: "Umiejętności" },
+    { key: "languages", label: "Języki" },
     { key: "links", label: "Linki" },
     { key: "certyficates", label: "Certyfikaty" },
     { key: "summary", label: "Podsumowanie" },
@@ -90,6 +96,11 @@ export default function ProfileWizard({
 
   const handleAbilitiesNext = (abilities: Abilities[]) => {
     setWizardData((prev) => ({ ...prev, abilities }));
+    setCurrentStep("languages");
+  };
+
+  const handleLanguagesNext = (languages: UserLanguage[]) => {
+    setWizardData((prev) => ({ ...prev, languages }));
     setCurrentStep("links");
   };
 
@@ -121,7 +132,7 @@ export default function ProfileWizard({
         certificates: wizardData.certyficates,
         links: wizardData.links,
         workExperience: wizardData.workExperience,
-        languages: [],
+        languages: wizardData.languages,
       };
 
       console.log("[ProfileWizard] SENDING PAYLOAD:", payload);
@@ -265,6 +276,14 @@ export default function ProfileWizard({
           initialAbilities={wizardData.abilities}
           onBack={() => setCurrentStep("work")}
           onNext={handleAbilitiesNext}
+        />
+      )}
+
+      {currentStep === "languages" && (
+        <UserLanguages
+          initialLanguages={wizardData.languages}
+          onBack={() => setCurrentStep("abilities")}
+          onNext={handleLanguagesNext}
         />
       )}
 
@@ -422,6 +441,23 @@ function SummaryStep({
         </div>
       </div>
 
+      {/* Języki */}
+      <div className="mb-6 p-4 bg-secondary rounded-lg">
+        <h3 className="font-medium text-foreground mb-3">
+          Języki ({data.languages.length})
+        </h3>
+        <div className="space-y-2">
+          {data.languages.map((l, i) => (
+            <div key={i} className="flex items-center justify-between">
+              <div>
+                <div className="font-medium text-foreground">{l.name}</div>
+                <div className="text-sm text-muted">{l.level}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Linki */}
       <div className="mb-6 p-4 bg-secondary rounded-lg">
         <h3 className="font-medium text-foreground mb-3">
@@ -452,7 +488,7 @@ function SummaryStep({
             <p className="font-medium text-foreground">{cert.name}</p>
             <p className="text-sm text-muted">{cert.issuer}</p>
             <p className="text-xs text-muted">
-              {new Date(cert.certyficationDate).toLocaleDateString("pl-PL")} –{" "}
+              {new Date(cert.certificationDate).toLocaleDateString("pl-PL")} –{" "}
             </p>
           </div>
         ))}
