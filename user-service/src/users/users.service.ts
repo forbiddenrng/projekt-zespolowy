@@ -910,7 +910,7 @@ export class UsersService {
   //get all languages
   async getAllLanguages(){
     const languages = await this.databaseService.languages.findMany({
-      orderBy: {code: 'asc'}
+      orderBy: {name: 'asc'}
     });
 
     return {
