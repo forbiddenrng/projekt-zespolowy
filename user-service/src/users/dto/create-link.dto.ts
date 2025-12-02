@@ -11,7 +11,7 @@ export class CreateLinkDto {
   @IsString()
   @MinLength(5)
   @MaxLength(150)
-  @IsUrl()
+  // @IsUrl()
   linkString: string;
 }
 

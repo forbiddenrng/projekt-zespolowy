@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/app/lib/auth0";
-import { jwtDecode } from "jwt-decode";
+// import { jwtDecode } from "jwt-decode";
 
 export const dynamic = "force-dynamic";
 export const fetchCashe = "force-no-store";
@@ -21,15 +21,15 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
         ? accessTokenResp
         : (accessTokenResp as any)?.token ?? null;
 
-    const decoded: any = jwtDecode(token);
-    const userID = encodeURIComponent(decoded.sub);
+    // const decoded: any = jwtDecode(token);
+    // const userID = encodeURIComponent(decoded.sub);
 
     const params = new URLSearchParams();
     params.append("all", "true");
 
     const url = `${
       process.env.GATEWAY_URL
-    }/users/${userID}?${params.toString()}`;
+    }/users/me?${params.toString()}`;
     const gatewayRes = await fetch(url, {
       method: "GET",
       headers: {

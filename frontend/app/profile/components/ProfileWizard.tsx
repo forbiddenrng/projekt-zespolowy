@@ -8,6 +8,7 @@ import UserAbilities from "./UserAbilities";
 import UserLink from "./UserLink";
 import UserCertyficates from "./UserCertyficates";
 import UserLanguages from "./UserLanguage";
+import { redirect } from "next/navigation";
 import type {
   UserFormValues,
   Education,
@@ -170,6 +171,7 @@ export default function ProfileWizard({
       const data = await res.json();
       console.log("[ProfileWizard] SUCCESS:", data);
       alert("Profil zapisany pomyślnie!");
+      redirect("/profile")
     } catch (err: any) {
       console.error("Submit error:", err);
       alert("Wystąpił błąd: " + (err?.message ?? "unknown"));

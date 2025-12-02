@@ -68,7 +68,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
         if (mounted) setUserData(data);
       })
       .catch(() => {
-        if (mounted) setError("Nie udało się pobrać listy języków.");
+        if (mounted) setError("Nie udało się pobrać danych.");
       })
       .finally(() => {
         if (mounted) setLoading(false);
