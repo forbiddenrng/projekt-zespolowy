@@ -26,12 +26,16 @@ const emptyCertyficates: Certyficates = {
  * to sprawdzamy czy jest poprawną datą.
  */
 const certyficatesSchema = Yup.object({
-  name: Yup.string().nullable(),
-  issuer: Yup.string().nullable(),
+  name: Yup.string().required("Nazwa certyfikatu jest wymagana")
+  .min(3, "Nazwa certyfikatu musi mieć co najmniej 3 znaki")
+  .max(100, "Nazwa certyfikatu nie może być dłuższa niż 100 znaków"),
+  issuer: Yup.string().required("Wydawca certyfikatu jest wymagany")
+  .min(3, "Wydawca certyfikatu musi mieć co najmniej 3 znaki")
+  .max(255, "Wydawca certyfikatu nie może być dłuższy niż 255 znaków"),
   certificationDate: Yup.string()
     .nullable()
     .test("is-valid-date-or-empty", "Niepoprawny format daty", (value) => {
-      if (!value) return true; // puste pole jest OK
+      if (!value) return true; 
       const d = new Date(value);
       return !isNaN(d.getTime());
     }),

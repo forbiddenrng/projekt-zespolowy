@@ -23,8 +23,12 @@ const emptyWorkExp: WorkExp = {
 };
 
 const workExpSchema = Yup.object({
-  companyName: Yup.string().required("Nazwa firmy jest wymagana"),
-  position: Yup.string().required("Stanowisko jest wymagane"),
+  companyName: Yup.string().required("Nazwa firmy jest wymagana")
+  .min(3, "Nazwa firmy musi mieć co najmniej 3 znaki")
+  .max(100, "Nazwa firmy nie może być dłuższa niż 100 znaków"),
+  position: Yup.string().required("Stanowisko jest wymagane")
+  .min(3, "Stanowisko musi mieć co najmniej 3 znaki")
+  .max(100, "Stanowisko nie może być dłuższe niż 100 znaków"),
   beginDate: Yup.date()
     .required("Data rozpoczęcia jest wymagana")
     .typeError("Niepoprawny format daty"),
@@ -35,13 +39,14 @@ const workExpSchema = Yup.object({
       Yup.ref("beginDate"),
       "Data zakończenia musi być późniejsza niż rozpoczęcia"
     ),
-  description: Yup.string().required("Opis stanowiska jest wymagany"),
+  description: Yup.string().required("Opis stanowiska jest wymagany")
+  .min(10, "Opis stanowiska musi mieć co najmniej 10 znaków"),
 });
 
 const workExpFormValidator = Yup.object({
   workExp: Yup.array()
     .of(workExpSchema)
-    .min(1, "Dodaj co najmniej jedną pozycję edukacji"),
+    // .min(1, "Dodaj co najmniej jedną pozycję edukacji"),
 });
 
 const formatDateForInput = (dateString: string | undefined): string => {
@@ -119,7 +124,7 @@ export default function WorkExpForm({
                         <h3 className="text-lg font-medium text-foreground">
                           Doświadczenie #{index + 1}
                         </h3>
-                        {values.workExp.length > 1 && (
+                        {(
                           <button
                             type="button"
                             onClick={() => remove(index)}

@@ -1,4 +1,4 @@
-import { IsInt, IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsInt, IsString, IsNotEmpty, IsOptional, MaxLength } from 'class-validator';
 
 export class LanguageDto {
   @IsNotEmpty()
@@ -12,5 +12,6 @@ export class LanguageDto {
 
   @IsNotEmpty()
   @IsString()
+  @MaxLength(6)
   level: string;
 }

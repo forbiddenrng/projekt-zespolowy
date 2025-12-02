@@ -1,5 +1,5 @@
 import { OmitType } from '@nestjs/mapped-types';
-import { IsString, IsNotEmpty, MinLength, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, IsOptional, MaxLength } from 'class-validator';
 
 // used when creating link from a separate request
 export class CreateLinkDto {
@@ -10,6 +10,7 @@ export class CreateLinkDto {
 
   @IsString()
   @MinLength(5)
+  @MaxLength(150)
   linkString: string;
 }
 

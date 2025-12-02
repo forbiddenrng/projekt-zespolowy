@@ -19,11 +19,14 @@ const emptyLinks: Links = {
 };
 
 const linksSchema = Yup.object({
-  linkString: Yup.string().required("Link jest wymagany"),
+  linkString: Yup.string()
+  .required("Link jest wymagany")
+    .min(5, "Link musi mieć co najmniej 5 znaków")
+    .max(150, "Link nie może być dłuższy niż 150 znaków"),
 });
 
 const linksFormValidator = Yup.object({
-  links: Yup.array().of(linksSchema).min(1, "Dodaj co najmniej jeden link"),
+  links: Yup.array().of(linksSchema)
 });
 
 export default function LinksForm({
@@ -78,7 +81,7 @@ export default function LinksForm({
                         <h3 className="text-lg font-medium text-foreground">
                           Link #{index + 1}
                         </h3>
-                        {values.links.length > 1 && (
+                        {(
                           <button
                             type="button"
                             onClick={() => remove(index)}

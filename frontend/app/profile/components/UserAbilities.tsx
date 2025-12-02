@@ -19,7 +19,9 @@ const emptyAbilities: Abilities = {
 };
 
 const abilitiesSchema = Yup.object({
-  name: Yup.string().required("Nazwa umiejętności jest wymagan"),
+  name: Yup.string().required("Nazwa umiejętności jest wymagan")
+    .min(3, "Umiejętność musi mieć co najmniej 3 znaki")
+    .max(255, "Umiejętność nie może mieć więcej niż 255 znaków"),
 });
 
 const abilitiesFormValidator = Yup.object({

@@ -21,17 +21,23 @@ interface UserFormProps {
 }
 
 const userValidator = Yup.object({
-  name: Yup.string().required("Imię jest wymagane"),
-  surname: Yup.string().required("Nazwisko jest wymagane"),
+  name: Yup.string().required("Imię jest wymagane")
+  .min(2, "Imię musi mieć co najmniej 2 znaki")
+  .max(100, "Imię nie może być dłuższe niż 100 znaków"),
+  surname: Yup.string().required("Nazwisko jest wymagane")
+  .min(2, "Nazwisko musi mieć co najmniej 2 znaki")
+  .max(100, "Nazwisko nie może być dłuższe niż 100 znaków"),
   phoneNum: Yup.string()
     .required("Numer telefonu jest wymagany")
     .min(9, "Numer telefonu musi mieć co najmniej 9 znaków")
-    .max(20, "Numer telefonu nie może być krótszy niż 20 znaków"),
+    .max(20, "Numer telefonu nie może być dłuższy niż 20 znaków"),
   email: Yup.string()
     .email("Niepoprawny email")
     .required("Email jest wymagany"),
-  city: Yup.string().required("Nazwa Miasta jest wymagana"),
-  profileSummary: Yup.string().min(
+  city: Yup.string().required("Nazwa Miasta jest wymagana")
+  .min(2, "Miasto musi mieć co najmniej 2 znaki")
+  .max(100, "Miasto nie może być dłuższe niż 100 znaków"),
+  profileSummary: Yup.string().optional().min(
     20,
     "Opis profilu musi być dłuższy niż 20 znaków"
   ),
@@ -258,6 +264,11 @@ export default function UserForm({
                 name="profileSummary"
                 rows={5}
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-vertical"
+              />
+              <ErrorMessage
+                name="profileSummary"
+                component="p"
+                className="mt-1 text-sm text-error"
               />
             </div>
 

@@ -112,7 +112,7 @@ export default function UserLanguages({
         znajomości.
       </p>
 
-      <div className="mb-4">
+      {/* <div className="mb-4">
         <label className="block text-sm font-medium text-foreground mb-1">
           Szukaj języka
         </label>
@@ -122,7 +122,7 @@ export default function UserLanguages({
           placeholder="wyszukaj po nazwie lub kodzie (np. en, pl)"
           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary transition-all"
         />
-      </div>
+      </div> */}
 
       {loading && (
         <p className="text-sm text-muted mb-4">Ładowanie języków...</p>

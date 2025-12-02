@@ -23,22 +23,39 @@ const emptyEducation: Education = {
 };
 
 const educationSchema = Yup.object({
-  schoolName: Yup.string().required("Nazwa szkoły jest wymagana"),
-  major: Yup.string().required("Kierunek jest wymagany"),
-  degree: Yup.string().required("Stopień jest wymagany"),
+  schoolName: Yup.string().required("Nazwa szkoły jest wymagana")
+  .min(3, "Nazwa szkoły musi mieć co najmniej 3 znaki")
+  .max(100, "Nazwa szkoły nie może być dłuższa niż 100 znaków"),
+  major: Yup.string().required("Kierunek jest wymagany")
+  .min(3, "Kierunek musi mieć co najmniej 3 znaki")
+  .max(100, "Kierunek nie może być dłuższy niż 100 znaków"),
+  degree: Yup.string().required("Stopień jest wymagany")
+  .min(3, "Stopień musi mieć co najmniej 3 znaki")
+  .max(20, "Stopień nie może być dłuższy niż 20 znaków"),
   beginDate: Yup.date()
     .required("Data rozpoczęcia jest wymagana")
-    .typeError("Niepoprawny format daty"),
+    .typeError("Niepoprawny format daty")
+    .test('cant-above-this-date',
+      'Maksymalna data to dzisiaj',
+      (date) =>  {
+        return new Date() > date;
+  }),
   endDate: Yup.date()
     .nullable()
     .typeError("Niepoprawny format daty")
-    .min(Yup.ref("beginDate"), "Data zakończenia musi być późniejsza niż rozpoczęcia"),
+    .min(Yup.ref("beginDate"), "Data zakończenia musi być późniejsza niż rozpoczęcia")
+    .test('cant-above-this-date',
+      'Maksymalna data to dzisiaj',
+      (date) =>  {
+        if (date === undefined || date === null) return true;
+        return new Date() > date;
+  }),
 });
 
 const educationFormValidator = Yup.object({
   education: Yup.array()
     .of(educationSchema)
-    .min(1, "Dodaj co najmniej jedną pozycję edukacji"),
+    // .min(1, "Dodaj co najmniej jedną pozycję edukacji"),
 });
 
 const formatDateForInput = (dateString: string | undefined): string => {
@@ -115,7 +132,7 @@ export default function EducationForm({
         validateOnBlur={false}
         onSubmit={handleSubmit}
       >
-        {({ values, isSubmitting, errors }) => (
+        {({ values, isSubmitting, errors }) =>  (
           <Form className="space-y-6">
             <FieldArray name="education">
               {({ push, remove }) => (
@@ -130,7 +147,7 @@ export default function EducationForm({
                         <h3 className="text-lg font-medium text-foreground">
                           Edukacja #{index + 1}
                         </h3>
-                        {values.education.length > 1 && (
+                        {(
                           <button
                             type="button"
                             onClick={() => remove(index)}

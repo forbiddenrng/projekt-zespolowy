@@ -5,6 +5,7 @@ import {
   IsDateString,
   IsOptional,
   MinLength,
+  MaxLength,
 } from 'class-validator';
 import { MaxNow } from 'src/validators/max-now.validator';
 
@@ -17,10 +18,12 @@ export class CreateWorkExperienceDto {
 
   @IsString()
   @MinLength(3)
+  @MaxLength(100)
   companyName: string;
 
   @IsString()
-  @MinLength(5)
+  @MinLength(3)
+  @MaxLength(100)
   position: string;
 
   @IsDateString()
