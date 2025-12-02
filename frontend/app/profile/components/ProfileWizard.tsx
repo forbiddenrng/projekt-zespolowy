@@ -16,6 +16,7 @@ import type {
   Links,
   Certyficates,
   UserLanguage,
+  Language,
 } from "@/app/ts/types";
 
 interface ProfileWizardProps {
@@ -65,6 +66,15 @@ export default function ProfileWizard({
     certyficates: savedProfile?.certyfivates || [],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [allLanguages, setAllLanguages] = useState<Language[]>([]);
+
+  useEffect(() => {
+    fetch("/api/user/language/get")
+      .then((res) => res.json())
+      .then((json) => setAllLanguages(json.data || []))
+      .catch(() => console.error("Failed to load languages"));
+  }, []);
 
   const steps: { key: WizardStep; label: string }[] = [
     { key: "user", label: "Dane osobowe" },
@@ -306,6 +316,7 @@ export default function ProfileWizard({
       {currentStep === "summary" && (
         <SummaryStep
           data={wizardData}
+          allLanguages={allLanguages}
           onBack={() => setCurrentStep("certyficates")}
           onSubmit={handleFinalSubmit}
           isSubmitting={isSubmitting}
@@ -340,11 +351,13 @@ function UserFormStep({
 // Krok podsumowania
 function SummaryStep({
   data,
+  allLanguages,
   onBack,
   onSubmit,
   isSubmitting,
 }: {
   data: WizardData;
+  allLanguages: Language[];
   onBack: () => void;
   onSubmit: () => void;
   isSubmitting: boolean;
@@ -447,14 +460,19 @@ function SummaryStep({
           Języki ({data.languages.length})
         </h3>
         <div className="space-y-2">
-          {data.languages.map((l, i) => (
-            <div key={i} className="flex items-center justify-between">
-              <div>
-                <div className="font-medium text-foreground">{l.name}</div>
-                <div className="text-sm text-muted">{l.level}</div>
+          {data.languages.map((l, i) => {
+            const language = allLanguages.find((a) => a.id === l.languageId);
+            return (
+              <div key={i} className="flex items-center justify-between">
+                <div>
+                  <div className="font-medium text-foreground">
+                    {language?.name || "Nieznany język"}
+                  </div>
+                  <div className="text-sm text-muted">{l.level}</div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

@@ -34,7 +34,18 @@ const languageSchema = Yup.object({
 const languagesFormValidator = Yup.object({
   languages: Yup.array()
     .of(languageSchema)
-    .min(1, "Dodaj co najmniej jeden język"),
+    .min(1, "Dodaj co najmniej jeden język")
+    .test(
+      "unique-languageId",
+      "Nie możesz wybrać tego samego języka więcej niż raz.",
+      (languages) => {
+        if (!languages) return true;
+        const ids = languages
+          .map((lang) => lang.languageId)
+          .filter((id) => id !== null && id !== undefined);
+        return new Set(ids).size === ids.length;
+      }
+    ),
 });
 
 export default function UserLanguages({
