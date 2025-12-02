@@ -12,6 +12,7 @@ import type {
 import { LanguageLevel } from "@/app/ts/types";
 import BackButton from "./BackButton";
 import NextButton from "./NextButton";
+import DeleteButton from "./DeleteButton";
 
 interface UserLanguagesFormProps {
   initialLanguages?: UserLanguage[];
@@ -57,7 +58,7 @@ export default function UserLanguages({
   const [allLanguages, setAllLanguages] = useState<Language[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  // const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     let mounted = true;
@@ -85,15 +86,15 @@ export default function UserLanguages({
     };
   }, [fetchUrl]);
 
-  const filteredLanguages = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    if (!q) return allLanguages;
-    return allLanguages.filter(
-      (l) =>
-        l.name.toLowerCase().includes(q) ||
-        (l.code ?? "").toLowerCase().includes(q)
-    );
-  }, [allLanguages, searchQuery]);
+  // const filteredLanguages = useMemo(() => {
+  //   const q = searchQuery.trim().toLowerCase();
+  //   if (!q) return allLanguages;
+  //   return allLanguages.filter(
+  //     (l) =>
+  //       l.name.toLowerCase().includes(q) ||
+  //       (l.code ?? "").toLowerCase().includes(q)
+  //   );
+  // }, [allLanguages, searchQuery]);
 
   const handleSubmit = (
     values: UserLanguagesFormValues,
@@ -160,14 +161,10 @@ export default function UserLanguages({
                             Język #{index + 1}
                           </h3>
                           {values.languages.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => remove(index)}
-                              className="text-error hover:text-red-400 transition-colors p-1"
-                              aria-label="Usuń język"
-                            >
-                              ❌
-                            </button>
+                            <DeleteButton
+                              prompt="Usuń język"
+                              remove={() => remove(index)}
+                            />
                           )}
                         </div>
 
@@ -194,7 +191,7 @@ export default function UserLanguages({
                               className="w-full p-3 bg-background border border-border rounded-lg"
                             >
                               <option value="">-- wybierz język --</option>
-                              {filteredLanguages.map((l) => (
+                              {allLanguages.map((l) => (
                                 <option key={l.id} value={l.id}>
                                   {l.name} {l.code ? `(${l.code})` : ""}
                                 </option>
