@@ -84,11 +84,43 @@ export interface LinksFormValues {
 export interface Certyficates {
   name: string;
   issuer: string;
-  certyficationDate: string; //ISO format
+  certificationDate: string; //ISO format
 }
 
 export interface CertyficatesFormValues {
   certyficates: Certyficates[];
+}
+
+// Typy dla jezyków
+// Languages types (add to types.ts)
+export interface Language {
+  id: number;
+  name: string;
+  code?: string;
+}
+
+export enum LanguageLevel {
+  A0 = "A0",
+  A1 = "A1",
+  A2 = "A2",
+  A2_PLUS = "A2+",
+  B1 = "B1",
+  B2 = "B2",
+  B2_PLUS = "B2+",
+  C1 = "C1",
+  C2 = "C2",
+  NATIVE = "Native",
+}
+
+export interface UserLanguage {
+  // opcjonalne id rekordu (np. z bazy)
+  id?: number;
+  languageId: number | null;
+  level: LanguageLevel;
+}
+
+export interface UserLanguagesFormValues {
+  languages: UserLanguage[];
 }
 
 // Pełny profil użytkownika
