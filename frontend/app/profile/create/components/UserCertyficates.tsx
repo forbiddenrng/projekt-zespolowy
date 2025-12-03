@@ -4,18 +4,18 @@ import React from "react";
 import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import type { FormikHelpers } from "formik";
 import * as Yup from "yup";
-import type { Certyficates, CertyficatesFormValues } from "@/app/ts/types";
+import type { Certificate, CertificatesFormValues } from "@/app/ts/types";
 import BackButton from "./BackButton";
 import NextButton from "./NextButton";
 import DeleteButton from "./DeleteButton";
 
-interface CertyficatesFormProps {
-  initialCertyficates?: Certyficates[];
+interface CertificatesFormProps {
+  initialCertificates?: Certificate[];
   onBack: () => void;
-  onNext: (certyficates: Certyficates[]) => void;
+  onNext: (certyficates: Certificate[]) => void;
 }
 //certyficationDate
-const emptyCertyficates: Certyficates = {
+const emptyCertyficates: Certificate = {
   name: "",
   issuer: "",
   certificationDate: "",
@@ -61,39 +61,39 @@ const formatDateForInput = (dateString: string | undefined): string => {
 };
 
 export default function CertyficatesForm({
-  initialCertyficates = [],
+  initialCertificates = [],
   onBack,
   onNext,
-}: CertyficatesFormProps) {
+}: CertificatesFormProps) {
   // Normalizuj wejściowe certyfikaty: zapewnij puste stringi i sformatuj daty
-  const normalizedCertyfication: Certyficates[] =
-    initialCertyficates?.length > 0
-      ? initialCertyficates.map((cert) => ({
+  const normalizedCertification: Certificate[] =
+    initialCertificates?.length > 0
+      ? initialCertificates.map((cert) => ({
           name: cert?.name ?? "",
           issuer: cert?.issuer ?? "",
           certificationDate: formatDateForInput(cert?.certificationDate),
         }))
       : [];
 
-  const initialValues: CertyficatesFormValues = {
+  const initialValues: CertificatesFormValues = {
     // jeśli brak zapisanych certyfikatów, zostaw tablicę pustą (użytkownik nie musi nic dodawać)
     certyficates:
-      normalizedCertyfication.length > 0 ? normalizedCertyfication : [],
+      normalizedCertification.length > 0 ? normalizedCertification : [],
   };
 
   const handleSubmit = (
-    values: CertyficatesFormValues,
-    helpers: FormikHelpers<CertyficatesFormValues>
+    values: CertificatesFormValues,
+    helpers: FormikHelpers<CertificatesFormValues>
   ) => {
     const { setSubmitting } = helpers;
 
     // Filtrujemy puste wpisy (wszystkie pola puste) — nie wysyłamy ich dalej
-    const nonEmpty = (cert: Certyficates) =>
+    const nonEmpty = (cert: Certificate) =>
       (cert.name && cert.name.trim() !== "") ||
       (cert.issuer && cert.issuer.trim() !== "") ||
       (cert.certificationDate && cert.certificationDate.trim() !== "");
 
-    const formattedCertyfication: Certyficates[] = values.certyficates
+    const formattedCertyfication: Certificate[] = values.certyficates
       .filter(nonEmpty)
       .map((cert) => {
         // konwertuj datę tylko jeśli jest poprawna; w przeciwnym razie zostaw pusty string

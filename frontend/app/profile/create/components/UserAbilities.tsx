@@ -4,18 +4,18 @@ import React from "react";
 import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import type { FormikHelpers } from "formik";
 import * as Yup from "yup";
-import type { Abilities, AbilitiesFormValues } from "@/app/ts/types";
+import type { Ability, AbilitiesFormValues } from "@/app/ts/types";
 import BackButton from "./BackButton";
 import NextButton from "./NextButton";
 import DeleteButton from "./DeleteButton";
 
 interface AbilitiesFormProps {
-  initialAbilities?: Abilities[];
+  initialAbilities?: Ability[];
   onBack: () => void;
-  onNext: (abilites: Abilities[]) => void;
+  onNext: (abilites: Ability[]) => void;
 }
 
-const emptyAbilities: Abilities = {
+const emptyAbilities: Ability = {
   name: "",
 };
 

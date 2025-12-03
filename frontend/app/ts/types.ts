@@ -63,12 +63,12 @@ export interface WorkExpFormValues {
 }
 
 // Typy dla umiejętności
-export interface Abilities {
+export interface Ability {
   name: string;
 }
 
 export interface AbilitiesFormValues {
-  abilities: Abilities[];
+  abilities: Ability[];
 }
 
 // Typy dla linków
@@ -81,14 +81,14 @@ export interface LinksFormValues {
 }
 
 // Typy dla certyfikatów
-export interface Certyficates {
+export interface Certificate {
   name: string;
   issuer: string;
   certificationDate: string; //ISO format
 }
 
-export interface CertyficatesFormValues {
-  certyficates: Certyficates[];
+export interface CertificatesFormValues {
+  certyficates: Certificate[];
 }
 
 // Typy dla jezyków
