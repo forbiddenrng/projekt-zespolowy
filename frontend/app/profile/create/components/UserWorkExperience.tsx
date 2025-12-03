@@ -12,7 +12,7 @@ import DeleteButton from "./DeleteButton";
 interface WorkExpFormProps {
   initialWorkExp?: WorkExp[];
   onBack: () => void;
-  onNext: (wrokExp: WorkExp[]) => void;
+  onNext: (workExp: WorkExp[]) => void;
 }
 
 const emptyWorkExp: WorkExp = {

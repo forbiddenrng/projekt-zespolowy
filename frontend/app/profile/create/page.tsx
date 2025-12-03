@@ -1,6 +1,6 @@
 import { auth0 } from "../../lib/auth0";
 import UserNavigation from "../../components/UserNavigation";
-import ProfileWizard from "../components/ProfileWizard";
+import ProfileWizard from "./components/ProfileWizard";
 // import { jwtDecode } from "jwt-decode";
 
 async function fetchProfile() {
