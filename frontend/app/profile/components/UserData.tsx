@@ -126,7 +126,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
       {/* -------------------------------- */}
       {/* DANE OSOBOWE */}
       {/* -------------------------------- */}
-      <Card>
+      <Card editHref="/profile/edit/personal">
         <SectionHeader title="Dane osobowe" icon={<Icons.User />} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -167,7 +167,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
       {/* -------------------------------- */}
       {/* EDUKACJA */}
       {/* -------------------------------- */}
-      <Card>
+      <Card editHref="/profile/edit/education">
         <SectionHeader title="Edukacja" icon={<Icons.Education />} />
 
         {hasEducation ? (
@@ -195,6 +195,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
           <EmptyState
             message="Nie dodałeś jeszcze żadnej edukacji"
             actionLabel="Dodaj edukację"
+            actionHref="/profile/edit/education"
           />
         )}
       </Card>
@@ -202,7 +203,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
       {/* -------------------------------- */}
       {/* DOŚWIADCZENIE */}
       {/* -------------------------------- */}
-      <Card>
+      <Card editHref="/profile/edit/work">
         <SectionHeader title="Doświadczenie zawodowe" icon={<Icons.Work />} />
 
         {hasExperience ? (
@@ -241,6 +242,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
           <EmptyState
             message="Nie dodałeś jeszcze żadnego doświadczenia zawodowego"
             actionLabel="Dodaj doświadczenie"
+            actionHref="/profile/edit/work"
           />
         )}
       </Card>
@@ -248,7 +250,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
       {/* -------------------------------- */}
       {/* UMIEJĘTNOŚCI */}
       {/* -------------------------------- */}
-      <Card>
+      <Card editHref="/profile/edit/abilities">
         <SectionHeader title="Umiejętności" icon={<Icons.Skills />} />
 
         {hasAbilities ? (
@@ -263,6 +265,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
           <EmptyState
             message="Nie dodałeś jeszcze żadnych umiejętności"
             actionLabel="Dodaj umiejętności"
+            actionHref="/profile/edit/abilities"
           />
         )}
       </Card>
@@ -270,7 +273,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
       {/* -------------------------------- */}
       {/* JĘZYKI */}
       {/* -------------------------------- */}
-      <Card>
+      <Card editHref="/profile/edit/languages">
         <SectionHeader title="Języki obce" icon={<Icons.Language />} />
 
         {hasLanguages ? (
@@ -295,6 +298,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
           <EmptyState
             message="Nie dodałeś jeszcze żadnych języków"
             actionLabel="Dodaj języki"
+            actionHref="/profile/edit/languages"
           />
         )}
       </Card>
@@ -302,7 +306,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
       {/* -------------------------------- */}
       {/* LINKI */}
       {/* -------------------------------- */}
-      <Card>
+      <Card editHref="/profile/edit/links">
         <SectionHeader title="Linki" icon={<Icons.Link />} />
 
         {hasLinks ? (
@@ -338,6 +342,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
           <EmptyState
             message="Nie dodałeś jeszcze żadnych linków"
             actionLabel="Dodaj linki"
+            actionHref="/profile/edit/links"
           />
         )}
       </Card>
@@ -345,7 +350,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
       {/* -------------------------------- */}
       {/* CERTYFIKATY */}
       {/* -------------------------------- */}
-      <Card>
+      <Card editHref="/profile/edit/certificates">
         <SectionHeader title="Certyfikaty" icon={<Icons.Certificate />} />
 
         {hasCertificates ? (
@@ -376,6 +381,7 @@ export default function UserData({ fetchUrl = "/api/user/get" }) {
           <EmptyState
             message="Nie dodałeś jeszcze żadnych certyfikatów"
             actionLabel="Dodaj certyfikaty"
+            actionHref="/profile/edit/certificates"
           />
         )}
       </Card>

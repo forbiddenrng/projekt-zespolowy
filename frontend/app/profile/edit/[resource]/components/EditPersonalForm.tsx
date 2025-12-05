@@ -2,78 +2,63 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { UserFormValues, SavedProfile } from "@/app/ts/types";
+import { UserFormValues } from "@/app/ts/types";
 import type { FormikHelpers } from "formik";
-import * as Yup from "yup";
-import NextButton from "./NextButton";
-import { useWizard } from "../context/WizardContext";
+import { userValidator } from "@/app/profile/create/components/UserForm";
+import { useRouter } from "next/navigation";
 
-interface UserFormProps {
-  user: {
-    name?: string;
-    email?: string;
-    family_name?: string;
-    given_name?: string;
-    sub: string;
-  };
-  onNext: () => void;
+interface EditPersonalFormProps {
+  onSuccess?: () => void;
 }
 
-export const userValidator = Yup.object({
-  name: Yup.string().required("Imię jest wymagane")
-  .min(2, "Imię musi mieć co najmniej 2 znaki")
-  .max(100, "Imię nie może być dłuższe niż 100 znaków"),
-  surname: Yup.string().required("Nazwisko jest wymagane")
-  .min(2, "Nazwisko musi mieć co najmniej 2 znaki")
-  .max(100, "Nazwisko nie może być dłuższe niż 100 znaków"),
-  phoneNum: Yup.string()
-    .required("Numer telefonu jest wymagany")
-    .min(9, "Numer telefonu musi mieć co najmniej 9 znaków")
-    .max(20, "Numer telefonu nie może być dłuższy niż 20 znaków"),
-  email: Yup.string()
-    .email("Niepoprawny email")
-    .required("Email jest wymagany"),
-  city: Yup.string().required("Nazwa Miasta jest wymagana")
-  .min(2, "Miasto musi mieć co najmniej 2 znaki")
-  .max(100, "Miasto nie może być dłuższe niż 100 znaków"),
-  profileSummary: Yup.string().optional().min(
-    20,
-    "Opis profilu musi być dłuższy niż 20 znaków"
-  ),
-});
-
-
-const emptyFormValues: UserFormValues  = { 
+const emptyFormValues: UserFormValues = {
   name: "",
   surname: "",
-  phoneNum:  "",
+  phoneNum: "",
   email: "",
-  city:  "",
+  city: "",
   profileSummary: "",
-}
+};
 
-/**
- * user - loaded from session
- * savedProfile - fetched from user-service
- * initialValues - values saved from form
- * Form values loading: initialValues (values already saved in form) -> savedProfile -> default values (empty string)
- */
-export default function UserForm({
-  user,
-  onNext,
-}: UserFormProps) {
-  const {updateUserInfo, wizardData} = useWizard();
+export default function EditPersonalForm({
+  onSuccess,
+}: EditPersonalFormProps) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [formData, setFormData] = useState<UserFormValues>(emptyFormValues);
 
-  const initialFormValues = useMemo<UserFormValues>(() => {
-    return {
-      name: wizardData.userInfo?.name || user?.name || user?.given_name || "",
-      surname: wizardData.userInfo?.surname || user?.family_name || "",
-      phoneNum:  wizardData.userInfo?.phoneNum || "",
-      email: wizardData.userInfo?.email || user?.email || "",
-      city:  wizardData.userInfo?.city || "",
-      profileSummary: wizardData.userInfo?.profileSummary || "",
+  // Wczytaj dane z API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch("/api/user/get");
+        if (!res.ok) throw new Error("Nie udało się pobrać danych");
+
+        const json = await res.json();
+        const data = json?.data;
+
+        if (data) {
+          setFormData({
+            name: data.name || "",
+            surname: data.surname || "",
+            phoneNum: data.phone_number || "",
+            email: data.email || "",
+            city: data.city || "",
+            profileSummary: data.profile_summary || "",
+          });
+        }
+      } catch (err: any) {
+        setError(err?.message || "Błąd podczas wczytywania danych");
+      } finally {
+        setLoading(false);
+      }
     };
-  }, [user]);
+
+    fetchData();
+  }, []);
 
   const handleSubmit = async (
     values: UserFormValues,
@@ -83,28 +68,69 @@ export default function UserForm({
 
     try {
       setSubmitting(true);
-      updateUserInfo(values);
-      onNext();
+      setError(null);
 
+      // this body to be changed
+      const res = await fetch("/api/user/profile?resource=personal", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: values.name,
+          surname: values.surname,
+          phone_number: values.phoneNum,
+          email: values.email,
+          city: values.city,
+          profile_summary: values.profileSummary,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Błąd podczas zapisywania danych");
+
+      setSuccessMessage("Dane zostały pomyślnie zaktualizowane!");
+      onSuccess?.();
+
+      // Przekieruj po 1.5 sekund
+      setTimeout(() => {
+        router.push("/profile");
+      }, 1500);
     } catch (err: any) {
-      console.error("Submit error:", err);
-      alert("Wystąpił błąd podczas zapisu: " + (err?.message ?? "unknown"));
+      setError(err?.message || "Błąd podczas zapisywania danych");
     } finally {
       setSubmitting(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
+        <p className="text-muted">Ładowanie...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
+    <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
       <h2 className="text-2xl font-semibold mb-6 text-foreground">
-        Dane osobowe
+        Edytuj dane osobowe
       </h2>
       <p className="text-muted mb-6">
-        Dodaj informacje o swoich danych osobowych.
+        Zmień swoje informacje osobowe.
       </p>
 
+      {error && (
+        <div className="mb-6 p-4 bg-error/10 border border-error text-error rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="mb-6 p-4 bg-success/10 border border-success text-success rounded-lg">
+          {successMessage}
+        </div>
+      )}
+
       <Formik
-        initialValues={initialFormValues}
+        initialValues={formData}
         enableReinitialize={true}
         validationSchema={userValidator}
         validateOnChange={false}
@@ -126,7 +152,7 @@ export default function UserForm({
                 name="name"
                 placeholder="Jan"
                 aria-label="Imię"
-                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
+                className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
                 name="name"
@@ -148,7 +174,7 @@ export default function UserForm({
                 name="surname"
                 placeholder="Kowalski"
                 aria-label="Nazwisko"
-                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
+                className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
                 name="surname"
@@ -193,7 +219,7 @@ export default function UserForm({
                 type="email"
                 placeholder="email@przyklad.pl"
                 aria-label="Email"
-                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
+                className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
                 name="email"
@@ -249,16 +275,19 @@ export default function UserForm({
             <div className="flex gap-4 justify-between pt-4">
               <button
                 type="button"
-                onClick={() => resetForm({ values: emptyFormValues })}
+                onClick={() => router.back()}
                 className="px-6 py-3 bg-secondary border border-border text-foreground hover:bg-border rounded-lg font-medium transition-colors duration-200 cursor-pointer"
               >
-                Resetuj
+                Cofnij
               </button>
 
-              <NextButton
-                prompt={isSubmitting ? "Zapisuje..." : "Dalej"}
-                isSubmitting={isSubmitting}
-              />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-medium transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? "Zapisuje..." : "Zapisz"}
+              </button>
             </div>
           </Form>
         )}
