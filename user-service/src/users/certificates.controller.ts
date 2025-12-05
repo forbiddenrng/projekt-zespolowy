@@ -1,16 +1,6 @@
-import {
-  Controller,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Req,
-  Get,
-} from '@nestjs/common';
+import { Controller, Body, Param, Req, Get, Put } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CertificateDto } from './dto/create-certificate.dto';
-import { UpdateCertificateDto } from './dto/update-certificate.dto';
+import { BulkCertificatesDto } from './dto/bulk-certificate.dto';
 
 @Controller('users')
 export class CertificatesController {
@@ -29,28 +19,10 @@ export class CertificatesController {
     return this.usersService.listCertificatesByAuth0Id(id);
   }
 
-  // POST /users/certificates
-  @Post('certificates')
-  create(@Req() req: any, @Body() dto: CertificateDto) {
+  // PUT /users/certificates (bulk merge)
+  @Put('certificates')
+  bulkMerge(@Req() req: any, @Body() body: BulkCertificatesDto) {
     const reqUserId = req.userId;
-    return this.usersService.addCertificate(reqUserId, dto);
-  }
-
-  // PATCH /users/certificates/:id
-  @Patch('certificates/:id')
-  update(
-    @Req() req: any,
-    @Param('id') id: string,
-    @Body() dto: UpdateCertificateDto,
-  ) {
-    const reqUserId = req.userId;
-    return this.usersService.updateCertificate(reqUserId, +id, dto);
-  }
-
-  // DELETE /users/certificates/:id
-  @Delete('certificates/:id')
-  remove(@Req() req: any, @Param('id') id: string) {
-    const reqUserId = req.userId;
-    return this.usersService.removeCertificate(reqUserId, +id);
+    return this.usersService.mergeCertificates(reqUserId, body);
   }
 }
