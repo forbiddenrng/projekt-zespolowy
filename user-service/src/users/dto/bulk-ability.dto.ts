@@ -2,7 +2,6 @@ import { IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
   IsString,
-  IsNotEmpty,
   MinLength,
   MaxLength,
   IsOptional,

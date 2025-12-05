@@ -1003,7 +1003,7 @@ export class UsersService {
   }
 
   // merge languages for current user
-  // kanguages is a many-to-many relationship (user_languages table)
+  // languages is a many-to-many relationship (user_languages table)
   async mergeLanguages(reqUserId: string | undefined, dto: BulkLanguagesDto) {
     if (!reqUserId) throw new BadRequestException('User id not provided');
 
@@ -1013,6 +1013,31 @@ export class UsersService {
     if (!user) throw new NotFoundException('User not found');
 
     const languagesList = dto.languages || [];
+
+    // pre-validate duplicates in payload
+    const seen = new Set<number>();
+    for (const item of languagesList) {
+      if (seen.has(item.languageId)) {
+        throw new BadRequestException(
+          `Language ${item.languageId} is provided more than once in payload`,
+        );
+      }
+      seen.add(item.languageId);
+    }
+
+    // batch-fetch languages and validate existence
+    const uniqueLangIds = [...seen];
+    const validLanguages = await this.databaseService.languages.findMany({
+      where: { id: { in: uniqueLangIds } },
+    });
+    const validLangIds = new Set(validLanguages.map((l) => l.id));
+    for (const item of languagesList) {
+      if (!validLangIds.has(item.languageId)) {
+        throw new NotFoundException(
+          `Language with id ${item.languageId} not found`,
+        );
+      }
+    }
 
     const existing = await this.databaseService.user_Languages.findMany({
       where: { user_id: user.id },
@@ -1029,60 +1054,60 @@ export class UsersService {
     const result = await this.databaseService.$transaction(async (prisma) => {
       if (idsToDelete.length > 0) {
         await prisma.user_Languages.deleteMany({
-          where: {
-            id: { in: idsToDelete },
-            user_id: user.id,
-          },
+          where: { id: { in: idsToDelete }, user_id: user.id },
         });
       }
 
-      const operations = languagesList.map(async (item) => {
-        // validate language exists
-        const language = await prisma.languages.findUnique({
-          where: { id: item.languageId },
-        });
-        if (!language) {
-          throw new NotFoundException(
-            `Language with id ${item.languageId} not found`,
-          );
-        }
-
+      const out: typeof existing = [];
+      for (const item of languagesList) {
         if (item.id) {
           const duplicateLanguage = await prisma.user_Languages.findFirst({
             where: {
               user_id: user.id,
               language_id: item.languageId,
-              id: { not: item.id }, // Exclude current record
+              id: { not: item.id },
             },
           });
-
           if (duplicateLanguage) {
             throw new BadRequestException(
               `Language ${item.languageId} is already added for this user`,
             );
           }
 
-          return prisma.user_Languages.update({
-            where: { id: item.id },
-            data: {
-              language_id: item.languageId,
-              level: item.level,
-            },
-            include: { language: true },
-          });
+          out.push(
+            await prisma.user_Languages.update({
+              where: { id: item.id },
+              data: { language_id: item.languageId, level: item.level },
+              include: { language: true },
+            }),
+          );
         } else {
-          return prisma.user_Languages.create({
-            data: {
+          const duplicateLanguage = await prisma.user_Languages.findFirst({
+            where: {
               user_id: user.id,
               language_id: item.languageId,
-              level: item.level,
             },
-            include: { language: true },
           });
-        }
-      });
+          if (duplicateLanguage) {
+            throw new BadRequestException(
+              `Language ${item.languageId} is already added for this user`,
+            );
+          }
 
-      return Promise.all(operations);
+          out.push(
+            await prisma.user_Languages.create({
+              data: {
+                user_id: user.id,
+                language_id: item.languageId,
+                level: item.level,
+              },
+              include: { language: true },
+            }),
+          );
+        }
+      }
+
+      return out;
     });
 
     return {
