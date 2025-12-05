@@ -1,16 +1,6 @@
-import {
-  Controller,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Req,
-  Get,
-} from '@nestjs/common';
+import { Controller, Body, Param, Req, Get, Put } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { EducationDto } from './dto/create-education.dto';
-import { UpdateEducationDto } from './dto/update-education.dto';
+import { BulkEducationDto } from './dto/bulk-education.dto';
 
 @Controller('users')
 export class EducationController {
@@ -29,28 +19,10 @@ export class EducationController {
     return this.usersService.listEducationByAuth0Id(id);
   }
 
-  // POST /users/education
-  @Post('education')
-  create(@Req() req: any, @Body() dto: EducationDto) {
+  // PUT /users/education (bulk merge)
+  @Put('education')
+  bulkMerge(@Req() req: any, @Body() body: BulkEducationDto) {
     const reqUserId = req.userId;
-    return this.usersService.addEducation(reqUserId, dto);
-  }
-
-  // PATCH /users/education/:id
-  @Patch('education/:id')
-  update(
-    @Req() req: any,
-    @Param('id') id: string,
-    @Body() dto: UpdateEducationDto,
-  ) {
-    const reqUserId = req.userId;
-    return this.usersService.updateEducation(reqUserId, +id, dto);
-  }
-
-  // DELETE /users/education/:id
-  @Delete('education/:id')
-  remove(@Req() req: any, @Param('id') id: string) {
-    const reqUserId = req.userId;
-    return this.usersService.removeEducation(reqUserId, +id);
+    return this.usersService.mergeEducation(reqUserId, body);
   }
 }
