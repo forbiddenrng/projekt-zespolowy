@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/app/lib/auth0";
+import { APIClient } from "@/app/lib/apiClient";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -17,31 +18,38 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
         : (accessTokenResp as any)?.token ?? null;
 
     // FORWARD DO GATEWAY (GET)
-    const gatewayRes = await fetch(
-      `${process.env.GATEWAY_URL}/users/languages/all`,
-      {
-        method: "GET",
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      }
-    );
+    // const gatewayRes = await fetch(
+    //   `${process.env.GATEWAY_URL}/users/languages/all`,
+    //   {
+    //     method: "GET",
+    //     headers: {
+    //       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    //     },
+    //   }
+    // );
 
-    const contentType = gatewayRes.headers.get("content-type") ?? "";
-    const text = await gatewayRes.text();
+    const apiClient = new APIClient();
+    const response = await apiClient.getAllLanguages(token);
+
+    // console.log(re)
+
+    // const contentType = gatewayRes.headers.get("content-type") ?? "";
+    // const text = await gatewayRes.text();
 
     // JSON → JSON
-    if (contentType.includes("application/json")) {
-      return NextResponse.json(JSON.parse(text), {
-        status: gatewayRes.status,
-      });
-    }
+    // if (contentType.includes("application/json")) {
+    //   return NextResponse.json(JSON.parse(text), {
+    //     status: gatewayRes.status,
+    //   });
+    // }
+
+    return NextResponse.json(response?.data, {status: response?.status})
 
     // inne typy → tekst
-    return new NextResponse(text, {
-      status: gatewayRes.status,
-      headers: { "Content-Type": contentType || "text/plain" },
-    });
+    // return new NextResponse(text, {
+    //   status: gatewayRes.status,
+    //   headers: { "Content-Type": contentType || "text/plain" },
+    // });
   } catch (err: any) {
     console.error("LANGUAGE GET ERROR:", err);
     return NextResponse.json(

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/app/lib/auth0";
+import { APIClient } from "@/app/lib/apiClient";
 
 export const dynamic = "force-dynamic";
 export const fetchCashe = "force-no-store";
@@ -19,31 +20,37 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
     const params = new URLSearchParams();
     params.append("all", "true");
 
-    const url = `${
-      process.env.GATEWAY_URL
-    }/users/me?${params.toString()}`;
-    const gatewayRes = await fetch(url, {
-      method: "GET",
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
+    const apiClient = new APIClient();
+    const response = await apiClient.getUser(token, params);
 
-    const contentType = gatewayRes.headers.get("content-type") ?? "";
-    const text = await gatewayRes.text();
+    // console.log(response.data)
+
+    // const gatewayRes = await fetch(url, {
+    //   method: "GET",
+    //   headers: {
+    //     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    //   },
+    // });
+
+    // const contentType = gatewayRes.headers.get("content-type") ?? "";
+    // const text = await gatewayRes.text();
 
     // JSON → JSON
-    if (contentType.includes("application/json")) {
-      return NextResponse.json(JSON.parse(text), {
-        status: gatewayRes.status,
-      });
-    }
+    // if (contentType.includes("application/json")) {
+    //   return NextResponse.json(JSON.parse(text), {
+    //     status: gatewayRes.status,
+    //   });
+    // }
+
+    // const data = response.data
+
+    return NextResponse.json(response?.data, {status: response?.status})
 
     // inne typy → tekst
-    return new NextResponse(text, {
-      status: gatewayRes.status,
-      headers: { "Content-Type": contentType || "text/plain" },
-    });
+    // return new NextResponse(text, {
+    //   status: response?.status,
+    //   headers: { "Content-Type": contentType || "text/plain" },
+    // });
   } catch (err: any) {
     console.error("USER PROFILE GET ERROR:", err);
     return NextResponse.json(

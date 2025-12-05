@@ -8,7 +8,7 @@ import UserAbilities from "./UserAbilities";
 import UserLink from "./UserLink";
 import UserCertyficates from "./UserCertificates";
 import UserLanguages from "./UserLanguage";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type {
   UserFormValues,
   Education,
@@ -84,6 +84,8 @@ export default function ProfileWizard({
 
   const currentStepIndex = steps.findIndex((s) => s.key === currentStep);
 
+  const router = useRouter();
+
   const handleFinalSubmit = async () => {
     if (!wizardData.userInfo) return;
 
@@ -119,7 +121,8 @@ export default function ProfileWizard({
       }
 
       await res.json();
-      redirect("/profile")
+      
+      router.push("/profile");
     } catch (err: any) {
       console.error("Submit error:", err);
     } finally {
