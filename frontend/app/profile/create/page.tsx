@@ -55,7 +55,7 @@ export default async function Profile() {
   console.log("---saved profile---");
   console.log(savedProfile);
 
-  return <ProfileWizard user={user} savedProfile={savedProfile} />
+  return <ProfileWizard user={user}/>
   // return (
   //   <div className="min-h-screen bg-background pt-5">
   //     {/* <UserNavigation user={user} /> */}

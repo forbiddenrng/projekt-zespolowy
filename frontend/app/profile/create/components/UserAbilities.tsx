@@ -8,11 +8,12 @@ import type { Ability, AbilitiesFormValues } from "@/app/ts/types";
 import BackButton from "./BackButton";
 import NextButton from "./NextButton";
 import DeleteButton from "./DeleteButton";
+import { useWizard } from "../context/WizardContext";
 
 interface AbilitiesFormProps {
-  initialAbilities?: Ability[];
+  // initialAbilities?: Ability[];
   onBack: () => void;
-  onNext: (abilites: Ability[]) => void;
+  onNext: () => void;
 }
 
 const emptyAbilities: Ability = {
@@ -32,17 +33,25 @@ const abilitiesFormValidator = Yup.object({
 });
 
 export default function AbilitiesForm({
-  initialAbilities = [],
+  // initialAbilities = [],
   onBack,
   onNext,
 }: AbilitiesFormProps) {
+  const {updateAbilities, wizardData} = useWizard();
+
+  const initialValues: AbilitiesFormValues = {
+    abilities: wizardData.abilities
+      // wizardData.abilities.length > 0 ? wizardData.abilities : [{ ...wizardData.abilities }],
+  };
+
   const handleSubmit = (
     values: AbilitiesFormValues,
     helpers: FormikHelpers<AbilitiesFormValues>
   ) => {
     const { setSubmitting } = helpers;
 
-    onNext(values.abilities);
+    updateAbilities(values.abilities)
+    onNext();
     setSubmitting(false);
   };
 
@@ -56,12 +65,7 @@ export default function AbilitiesForm({
       </p>
 
       <Formik
-        initialValues={{
-          abilities:
-            initialAbilities.length > 0
-              ? initialAbilities
-              : [{ ...emptyAbilities }],
-        }}
+        initialValues={initialValues}
         enableReinitialize={true}
         validationSchema={abilitiesFormValidator}
         validateOnChange={false}

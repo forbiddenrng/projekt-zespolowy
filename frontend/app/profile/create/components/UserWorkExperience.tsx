@@ -8,11 +8,12 @@ import type { WorkExp, WorkExpFormValues } from "@/app/ts/types";
 import BackButton from "./BackButton";
 import NextButton from "./NextButton";
 import DeleteButton from "./DeleteButton";
+import { useWizard } from "../context/WizardContext";
 
 interface WorkExpFormProps {
-  initialWorkExp?: WorkExp[];
+  // initialWorkExp?: WorkExp[];
   onBack: () => void;
-  onNext: (workExp: WorkExp[]) => void;
+  onNext: () => void;
 }
 
 const emptyWorkExp: WorkExp = {
@@ -62,11 +63,13 @@ const formatDateForInput = (dateString: string | undefined): string => {
 };
 
 export default function WorkExpForm({
-  initialWorkExp = [],
+  // initialWorkExp = [],
   onBack,
   onNext,
 }: WorkExpFormProps) {
-  const normalizedWorkExp = initialWorkExp.map((work) => ({
+
+  const {updateWorkExperience, wizardData} = useWizard();
+  const normalizedWorkExp = wizardData.workExperience.map((work) => ({
     ...work,
     beginDate: formatDateForInput(work.beginDate),
     endDate: formatDateForInput(work.endDate),
@@ -88,7 +91,9 @@ export default function WorkExpForm({
       beginDate: new Date(work.beginDate).toISOString(),
       endDate: work.endDate ? new Date(work.endDate).toISOString() : undefined,
     }));
-    onNext(formattedWorkExp);
+    
+    updateWorkExperience(formattedWorkExp);
+    onNext();
     setSubmitting(false);
   };
 

@@ -13,12 +13,13 @@ import type {
   UserFormValues,
   Education,
   WorkExp,
-  Abilities,
+  Ability,
   Links,
-  Certyficates,
+  Certificate,
   UserLanguage,
   Language,
 } from "@/app/ts/types";
+import { useWizard } from "../context/WizardContext";
 
 interface ProfileWizardProps {
   user: {
@@ -28,10 +29,9 @@ interface ProfileWizardProps {
     given_name?: string;
     sub: string;
   };
-  savedProfile?: any;
+  // savedProfile?: any;
 }
 
-// Rozszerzone kroki: dodajemy 'abilities' (umiejętności)
 type WizardStep =
   | "user"
   | "education"
@@ -39,33 +39,35 @@ type WizardStep =
   | "abilities"
   | "languages"
   | "links"
-  | "certyficates"
+  | "certificates"
   | "summary";
 
 interface WizardData {
   userInfo: UserFormValues | null;
   education: Education[];
   workExperience: WorkExp[];
-  abilities: Abilities[];
+  abilities: Ability[];
   languages: UserLanguage[];
   links: Links[];
-  certyficates: Certyficates[];
+  certificates: Certificate[];
 }
 
 export default function ProfileWizard({
   user,
-  savedProfile,
+  // savedProfile,
 }: ProfileWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>("user");
-  const [wizardData, setWizardData] = useState<WizardData>({
-    userInfo: null,
-    education: savedProfile?.education || [],
-    workExperience: savedProfile?.workExperience || [],
-    abilities: savedProfile?.abilities || [],
-    languages: savedProfile?.languages || [],
-    links: savedProfile?.links || [],
-    certyficates: savedProfile?.certyfivates || [],
-  });
+  // const [wizardData, setWizardData] = useState<WizardData>({
+  //   userInfo: null,
+  //   education: savedProfile?.education || [],
+  //   workExperience: savedProfile?.workExperience || [],
+  //   abilities: savedProfile?.abilities || [],
+  //   languages: savedProfile?.languages || [],
+  //   links: savedProfile?.links || [],
+  //   certificates: savedProfile?.certificates || [],
+  // });
+  const {wizardData} = useWizard();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [allLanguages, setAllLanguages] = useState<Language[]>([]);
@@ -84,46 +86,46 @@ export default function ProfileWizard({
     { key: "abilities", label: "Umiejętności" },
     { key: "languages", label: "Języki" },
     { key: "links", label: "Linki" },
-    { key: "certyficates", label: "Certyfikaty" },
+    { key: "certificates", label: "Certyfikaty" },
     { key: "summary", label: "Podsumowanie" },
   ];
 
   const currentStepIndex = steps.findIndex((s) => s.key === currentStep);
 
-  const handleUserFormNext = (values: UserFormValues) => {
-    setWizardData((prev) => ({ ...prev, userInfo: values }));
-    setCurrentStep("education");
-  };
+  // const handleUserFormNext = (values: UserFormValues) => {
+  //   setWizardData((prev) => ({ ...prev, userInfo: values }));
+  //   setCurrentStep("education");
+  // };
 
-  const handleEducationNext = (education: Education[]) => {
-    setWizardData((prev) => ({ ...prev, education }));
-    setCurrentStep("work");
-  };
+  // const handleEducationNext = (education: Education[]) => {
+  //   setWizardData((prev) => ({ ...prev, education }));
+  //   setCurrentStep("work");
+  // };
 
-  const handleWorkNext = (workExperience: WorkExp[]) => {
-    setWizardData((prev) => ({ ...prev, workExperience }));
-    setCurrentStep("abilities");
-  };
+  // const handleWorkNext = (workExperience: WorkExp[]) => {
+  //   setWizardData((prev) => ({ ...prev, workExperience }));
+  //   setCurrentStep("abilities");
+  // };
 
-  const handleAbilitiesNext = (abilities: Abilities[]) => {
-    setWizardData((prev) => ({ ...prev, abilities }));
-    setCurrentStep("languages");
-  };
+  // const handleAbilitiesNext = (abilities: Ability[]) => {
+  //   setWizardData((prev) => ({ ...prev, abilities }));
+  //   setCurrentStep("languages");
+  // };
 
-  const handleLanguagesNext = (languages: UserLanguage[]) => {
-    setWizardData((prev) => ({ ...prev, languages }));
-    setCurrentStep("links");
-  };
+  // const handleLanguagesNext = (languages: UserLanguage[]) => {
+  //   setWizardData((prev) => ({ ...prev, languages }));
+  //   setCurrentStep("links");
+  // };
 
-  const handleLinksNext = (links: Links[]) => {
-    setWizardData((prev) => ({ ...prev, links }));
-    setCurrentStep("certyficates");
-  };
+  // const handleLinksNext = (links: Links[]) => {
+  //   setWizardData((prev) => ({ ...prev, links }));
+  //   setCurrentStep("certificates");
+  // };
 
-  const handleCertyficatesNext = (certyficates: Certyficates[]) => {
-    setWizardData((prev) => ({ ...prev, certyficates }));
-    setCurrentStep("summary");
-  };
+  // const handleCertyficatesNext = (certyficates: Certificate[]) => {
+  //   setWizardData((prev) => ({ ...prev, certyficates }));
+  //   setCurrentStep("summary");
+  // };
 
   const handleFinalSubmit = async () => {
     if (!wizardData.userInfo) return;
@@ -140,7 +142,7 @@ export default function ProfileWizard({
         profileSummary: wizardData.userInfo.profileSummary,
         education: wizardData.education,
         abilities: wizardData.abilities,
-        certificates: wizardData.certyficates,
+        certificates: wizardData.certificates,
         links: wizardData.links,
         workExperience: wizardData.workExperience,
         languages: wizardData.languages,
@@ -259,59 +261,59 @@ export default function ProfileWizard({
 
       {/* Zawartość kroków */}
       {currentStep === "user" && (
-        <UserFormStep
+        <UserForm
           user={user}
-          savedProfile={savedProfile}
-          initialValues={wizardData.userInfo || savedProfile}
-          onNext={handleUserFormNext}
+          // savedProfile={savedProfile}
+          // initialValues={wizardData.userInfo || savedProfile}
+          onNext={() => setCurrentStep("education")}
         />
       )}
 
       {currentStep === "education" && (
         <EducationForm
-          initialEducation={wizardData.education}
+          // initialEducation={wizardData.education}
           onBack={() => setCurrentStep("user")}
-          onNext={handleEducationNext}
+          onNext={() => setCurrentStep("work")}
         />
       )}
 
       {currentStep === "work" && (
         <WorkExpForm
-          initialWorkExp={wizardData.workExperience}
+          // initialWorkExp={wizardData.workExperience}
           onBack={() => setCurrentStep("education")}
-          onNext={handleWorkNext}
+          onNext={() => setCurrentStep("abilities")}
         />
       )}
 
       {currentStep === "abilities" && (
         <UserAbilities
-          initialAbilities={wizardData.abilities}
+          // initialAbilities={wizardData.abilities}
           onBack={() => setCurrentStep("work")}
-          onNext={handleAbilitiesNext}
+          onNext={() => setCurrentStep("languages")}
         />
       )}
 
       {currentStep === "languages" && (
         <UserLanguages
-          initialLanguages={wizardData.languages}
+          allLanguages={allLanguages}
           onBack={() => setCurrentStep("abilities")}
-          onNext={handleLanguagesNext}
+          onNext={() => setCurrentStep("links")}
         />
       )}
 
       {currentStep === "links" && (
         <UserLink
-          initialLinks={wizardData.links}
+          // initialLinks={wizardData.links}
           onBack={() => setCurrentStep("abilities")}
-          onNext={handleLinksNext}
+          onNext={() => setCurrentStep("certificates")}
         />
       )}
 
-      {currentStep === "certyficates" && (
+      {currentStep === "certificates" && (
         <UserCertyficates
-          initialCertyficates={wizardData.certyficates}
+          // initialCertificates={wizardData.certificates}
           onBack={() => setCurrentStep("links")}
-          onNext={handleCertyficatesNext}
+          onNext={() => setCurrentStep("summary")}
         />
       )}
 
@@ -319,7 +321,7 @@ export default function ProfileWizard({
         <SummaryStep
           data={wizardData}
           allLanguages={allLanguages}
-          onBack={() => setCurrentStep("certyficates")}
+          onBack={() => setCurrentStep("certificates")}
           onSubmit={handleFinalSubmit}
           isSubmitting={isSubmitting}
         />
@@ -331,20 +333,14 @@ export default function ProfileWizard({
 // Zmodyfikowany UserForm dla wizarda
 function UserFormStep({
   user,
-  savedProfile,
-  initialValues,
   onNext,
 }: {
   user: any;
-  savedProfile: any;
-  initialValues: UserFormValues;
-  onNext: (values: UserFormValues) => void;
+  onNext: () => void;
 }) {
   return (
     <UserForm
       user={user}
-      savedProfile={savedProfile}
-      initialValues={initialValues}
       onNext={onNext}
     />
   );
@@ -498,9 +494,9 @@ function SummaryStep({
       {/* Certyfikaty */}
       <div className="mb-6 p-4 bg-secondary rounded-lg">
         <h3 className="font-medium text-foreground mb-3">
-          Certyfikaty ({data.certyficates.length})
+          Certyfikaty ({data.certificates.length})
         </h3>
-        {data.certyficates.map((cert, index) => (
+        {data.certificates.map((cert, index) => (
           <div
             key={index}
             className="mb-3 pb-3 border-b border-border last:border-0"

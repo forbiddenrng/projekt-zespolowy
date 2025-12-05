@@ -13,12 +13,14 @@ import { LanguageLevel } from "@/app/ts/types";
 import BackButton from "./BackButton";
 import NextButton from "./NextButton";
 import DeleteButton from "./DeleteButton";
+import { useWizard } from "../context/WizardContext";
 
 interface UserLanguagesFormProps {
-  initialLanguages?: UserLanguage[];
+  // initialLanguages?: UserLanguage[];
   onBack: () => void;
-  onNext: (languages: UserLanguage[]) => void;
-  fetchUrl?: string;
+  onNext: () => void;
+  allLanguages: Language[];
+  // fetchUrl?: string;
 }
 
 const emptyUserLanguage = (): UserLanguage => ({
@@ -50,58 +52,30 @@ const languagesFormValidator = Yup.object({
 });
 
 export default function UserLanguages({
-  initialLanguages = [],
   onBack,
   onNext,
-  fetchUrl = "/api/user/language/get",
+  allLanguages
 }: UserLanguagesFormProps) {
-  const [allLanguages, setAllLanguages] = useState<Language[]>([]);
+
+  // const [allLanguages, setAllLanguages] = useState<Language[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    let mounted = true;
-    setLoading(true);
-    setError(null);
+  const {updateLanguages, wizardData} = useWizard();
 
-    fetch(fetchUrl)
-      .then(async (res) => {
-        if (!res.ok) throw new Error(`Fetch error: ${res.status}`);
-        const json = await res.json();
-        const data = json?.data ?? [];
-        if (!Array.isArray(data)) throw new Error("Invalid data format");
-
-        if (mounted) setAllLanguages(data);
-      })
-      .catch(() => {
-        if (mounted) setError("Nie udało się pobrać listy języków.");
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, [fetchUrl]);
-
-  // const filteredLanguages = useMemo(() => {
-  //   const q = searchQuery.trim().toLowerCase();
-  //   if (!q) return allLanguages;
-  //   return allLanguages.filter(
-  //     (l) =>
-  //       l.name.toLowerCase().includes(q) ||
-  //       (l.code ?? "").toLowerCase().includes(q)
-  //   );
-  // }, [allLanguages, searchQuery]);
+  const initialValues: UserLanguagesFormValues = {
+    languages: wizardData.languages
+  }
 
   const handleSubmit = (
     values: UserLanguagesFormValues,
     helpers: FormikHelpers<UserLanguagesFormValues>
   ) => {
     const { setSubmitting } = helpers;
-    onNext(values.languages);
+
+    updateLanguages(values.languages);
+    onNext();
     setSubmitting(false);
   };
 
@@ -113,17 +87,6 @@ export default function UserLanguages({
         znajomości.
       </p>
 
-      {/* <div className="mb-4">
-        <label className="block text-sm font-medium text-foreground mb-1">
-          Szukaj języka
-        </label>
-        <input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="wyszukaj po nazwie lub kodzie (np. en, pl)"
-          className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary transition-all"
-        />
-      </div> */}
 
       {loading && (
         <p className="text-sm text-muted mb-4">Ładowanie języków...</p>
@@ -131,12 +94,7 @@ export default function UserLanguages({
       {error && <p className="text-sm text-error mb-4">{error}</p>}
 
       <Formik
-        initialValues={{
-          languages:
-            initialLanguages.length > 0
-              ? initialLanguages
-              : [{ ...emptyUserLanguage() }],
-        }}
+        initialValues={initialValues}
         enableReinitialize={true}
         validationSchema={languagesFormValidator}
         validateOnChange={false}

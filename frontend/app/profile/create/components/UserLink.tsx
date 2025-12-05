@@ -8,11 +8,12 @@ import type { Links, LinksFormValues } from "@/app/ts/types";
 import BackButton from "./BackButton";
 import NextButton from "./NextButton";
 import DeleteButton from "./DeleteButton";
+import { useWizard } from "../context/WizardContext";
 
 interface LinksFormProps {
-  initialLinks?: Links[];
+  // initialLinks?: Links[];
   onBack: () => void;
-  onNext: (links: Links[]) => void;
+  onNext: () => void;
 }
 
 const emptyLinks: Links = {
@@ -31,15 +32,20 @@ const linksFormValidator = Yup.object({
 });
 
 export default function LinksForm({
-  initialLinks = [],
   onBack,
   onNext,
 }: LinksFormProps) {
   // Upewnij się, że każdy element ma zawsze property 'link' (nawet jeśli undefined w savedProfile)
-  const normalizedInitialLinks: Links[] =
-    initialLinks?.length > 0
-      ? initialLinks.map((l) => ({ linkString: (l && l.linkString) ?? "" }))
-      : [{ ...emptyLinks }];
+  const {updateLinks, wizardData} = useWizard();
+
+  const initialLinks: LinksFormValues = {
+    links: wizardData.links
+  }
+
+  // const normalizedInitialLinks: Links[] =
+  //   initialLinks?.length > 0
+  //     ? initialLinks.map((l) => ({ linkString: (l && l.linkString) ?? "" }))
+  //     : [{ ...emptyLinks }];
 
   const handleSubmit = (
     values: LinksFormValues,
@@ -47,7 +53,8 @@ export default function LinksForm({
   ) => {
     const { setSubmitting } = helpers;
 
-    onNext(values.links);
+    updateLinks(values.links);
+    onNext();
     setSubmitting(false);
   };
 
@@ -59,9 +66,7 @@ export default function LinksForm({
       </p>
 
       <Formik
-        initialValues={{
-          links: normalizedInitialLinks,
-        }}
+        initialValues={initialLinks}
         enableReinitialize={true}
         validationSchema={linksFormValidator}
         validateOnChange={false}

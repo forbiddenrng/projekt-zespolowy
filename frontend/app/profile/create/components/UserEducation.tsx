@@ -8,11 +8,12 @@ import type { Education, EducationFormValues } from "@/app/ts/types";
 import BackButton from "./BackButton";
 import NextButton from "./NextButton";
 import DeleteButton from "./DeleteButton";
+import { useWizard } from "../context/WizardContext";
 
 interface EducationFormProps {
-  initialEducation?: Education[];
+  // initialEducation?: Education[];
   onBack: () => void;
-  onNext: (education: Education[]) => void;
+  onNext: () => void;
 }
 
 const emptyEducation: Education = {
@@ -83,12 +84,14 @@ const degreeOptions = [
 ];
 
 export default function EducationForm({
-  initialEducation = [],
+  // initialEducation = [],
   onBack,
   onNext,
 }: EducationFormProps) {
 
-  const normalizedEducation = initialEducation.map(edu => ({
+  const {updateEducation, wizardData} = useWizard();
+
+  const normalizedEducation = wizardData.education.map(edu => ({
     ...edu,
     beginDate: formatDateForInput(edu.beginDate),
     endDate: formatDateForInput(edu.endDate)
@@ -114,7 +117,8 @@ export default function EducationForm({
       endDate: edu.endDate ? new Date(edu.endDate).toISOString() : undefined,
     }));
 
-    onNext(formattedEducation);
+    updateEducation(formattedEducation);
+    onNext();
     setSubmitting(false);
   };
 

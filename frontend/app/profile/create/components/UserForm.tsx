@@ -6,6 +6,7 @@ import { UserFormValues, SavedProfile } from "@/app/ts/types";
 import type { FormikHelpers } from "formik";
 import * as Yup from "yup";
 import NextButton from "./NextButton";
+import { useWizard } from "../context/WizardContext";
 
 interface UserFormProps {
   user: {
@@ -15,9 +16,9 @@ interface UserFormProps {
     given_name?: string;
     sub: string;
   };
-  savedProfile: SavedProfile | null;
-  initialValues: UserFormValues;
-  onNext: (values: UserFormValues) => void;
+  // savedProfile: SavedProfile | null;
+  // initialValues: UserFormValues;
+  onNext: () => void;
 }
 
 const userValidator = Yup.object({
@@ -43,6 +44,16 @@ const userValidator = Yup.object({
   ),
 });
 
+
+const emptyFormValues: UserFormValues  = { 
+  name: "",
+  surname: "",
+  phoneNum:  "",
+  email: "",
+  city:  "",
+  profileSummary: "",
+}
+
 /**
  * user - loaded from session
  * savedProfile - fetched from user-service
@@ -51,38 +62,41 @@ const userValidator = Yup.object({
  */
 export default function UserForm({
   user,
-  savedProfile = null,
-  initialValues,
+  // savedProfile = null,
+  // initialValues,
   onNext,
 }: UserFormProps) {
+  const {updateUserInfo, wizardData} = useWizard();
+
   const initialFormValues = useMemo<UserFormValues>(() => {
     return {
-      name: initialValues?.name || savedProfile?.name || "",
-      surname: initialValues?.surname || savedProfile?.surname || "",
-      phoneNum: initialValues?.phoneNum || savedProfile?.phone_number || "",
-      email: initialValues?.email || savedProfile?.email || "",
-      city: initialValues?.city || savedProfile?.city || "",
-      profileSummary:
-        initialValues?.profileSummary || savedProfile?.profile_summary || "",
+      name: user?.name || user?.given_name || "",
+      surname: user?.family_name || "",
+      phoneNum:  "",
+      email: user?.email || "",
+      city:  "",
+      profileSummary: "",
     };
-  }, [user, savedProfile]);
+  }, [user]);
 
-  const savedProfileValues = useMemo<UserFormValues>(() => {
-    return {
-      name: savedProfile?.name || "",
-      surname: savedProfile?.surname || "",
-      phoneNum: savedProfile?.phone_number || "",
-      email: savedProfile?.email || "",
-      city: savedProfile?.city || "",
-      profileSummary: savedProfile?.profile_summary || "",
-    };
-  }, [savedProfile]);
+  // const 
 
-  const [locked, setLocked] = useState(() => ({
-    name: Boolean(savedProfile?.name),
-    surname: Boolean(savedProfile?.surname),
-    email: Boolean(savedProfile?.email),
-  }));
+  // const savedProfileValues = useMemo<UserFormValues>(() => {
+  //   return {
+  //     name: savedProfile?.name || "",
+  //     surname: savedProfile?.surname || "",
+  //     phoneNum: savedProfile?.phone_number || "",
+  //     email: savedProfile?.email || "",
+  //     city: savedProfile?.city || "",
+  //     profileSummary: savedProfile?.profile_summary || "",
+  //   };
+  // }, [savedProfile]);
+
+  // const [locked, setLocked] = useState(() => ({
+  //   name: Boolean(savedProfile?.name),
+  //   surname: Boolean(savedProfile?.surname),
+  //   email: Boolean(savedProfile?.email),
+  // }));
 
   const handleSubmit = async (
     values: UserFormValues,
@@ -92,17 +106,9 @@ export default function UserForm({
 
     try {
       setSubmitting(true);
+      updateUserInfo(values);
+      onNext();
 
-      onNext(values);
-
-      // Blokujemy już zapisane wartości
-      setLocked({
-        name: true,
-        surname: true,
-        email: true,
-      });
-
-      // alert("Dane zapisane pomyślnie.");
     } catch (err: any) {
       console.error("Submit error:", err);
       alert("Wystąpił błąd podczas zapisu: " + (err?.message ?? "unknown"));
@@ -143,10 +149,7 @@ export default function UserForm({
                 name="name"
                 placeholder="Jan"
                 aria-label="Imię"
-                readOnly={locked.name}
-                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${
-                  locked.name ? "opacity-60 cursor-not-allowed" : ""
-                }`}
+                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
               />
               <ErrorMessage
                 name="name"
@@ -168,10 +171,7 @@ export default function UserForm({
                 name="surname"
                 placeholder="Kowalski"
                 aria-label="Nazwisko"
-                readOnly={locked.surname}
-                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${
-                  locked.surname ? "opacity-60 cursor-not-allowed" : ""
-                }`}
+                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
               />
               <ErrorMessage
                 name="surname"
@@ -216,10 +216,7 @@ export default function UserForm({
                 type="email"
                 placeholder="email@przyklad.pl"
                 aria-label="Email"
-                readOnly={locked.email}
-                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all ${
-                  locked.email ? "opacity-60 cursor-not-allowed" : ""
-                }`}
+                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
               />
               <ErrorMessage
                 name="email"
@@ -275,7 +272,7 @@ export default function UserForm({
             <div className="flex gap-4 justify-between pt-4">
               <button
                 type="button"
-                onClick={() => resetForm({ values: savedProfileValues })}
+                onClick={() => resetForm({ values: emptyFormValues })}
                 className="px-6 py-3 bg-secondary border border-border text-foreground hover:bg-border rounded-lg font-medium transition-colors duration-200 cursor-pointer"
               >
                 Resetuj

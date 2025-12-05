@@ -8,11 +8,11 @@ import type { Certificate, CertificatesFormValues } from "@/app/ts/types";
 import BackButton from "./BackButton";
 import NextButton from "./NextButton";
 import DeleteButton from "./DeleteButton";
+import { useWizard } from "../context/WizardContext";
 
 interface CertificatesFormProps {
-  initialCertificates?: Certificate[];
   onBack: () => void;
-  onNext: (certyficates: Certificate[]) => void;
+  onNext: () => void;
 }
 //certyficationDate
 const emptyCertyficates: Certificate = {
@@ -61,25 +61,32 @@ const formatDateForInput = (dateString: string | undefined): string => {
 };
 
 export default function CertyficatesForm({
-  initialCertificates = [],
   onBack,
   onNext,
 }: CertificatesFormProps) {
   // Normalizuj wejściowe certyfikaty: zapewnij puste stringi i sformatuj daty
-  const normalizedCertification: Certificate[] =
-    initialCertificates?.length > 0
-      ? initialCertificates.map((cert) => ({
-          name: cert?.name ?? "",
-          issuer: cert?.issuer ?? "",
-          certificationDate: formatDateForInput(cert?.certificationDate),
-        }))
-      : [];
+  // const normalizedCertification: Certificate[] =
+  //   initialCertificates?.length > 0
+  //     ? initialCertificates.map((cert) => ({
+  //         name: cert?.name ?? "",
+  //         issuer: cert?.issuer ?? "",
+  //         certificationDate: formatDateForInput(cert?.certificationDate),
+  //       }))
+  //     : [];
 
-  const initialValues: CertificatesFormValues = {
-    // jeśli brak zapisanych certyfikatów, zostaw tablicę pustą (użytkownik nie musi nic dodawać)
-    certyficates:
-      normalizedCertification.length > 0 ? normalizedCertification : [],
-  };
+  const {updateCertificates, wizardData} = useWizard();
+  const initialCertificates: CertificatesFormValues = {
+    certyficates: wizardData.certificates.map((cert)=> ({
+      ...cert,
+      certificationDate: formatDateForInput(cert.certificationDate)
+    }) )
+  }
+
+  // const initialValues: CertificatesFormValues = {
+  //   // jeśli brak zapisanych certyfikatów, zostaw tablicę pustą (użytkownik nie musi nic dodawać)
+  //   certyficates:
+  //     normalizedCertification.length > 0 ? normalizedCertification : [],
+  // };
 
   const handleSubmit = (
     values: CertificatesFormValues,
@@ -114,7 +121,8 @@ export default function CertyficatesForm({
         };
       });
 
-    onNext(formattedCertyfication);
+    updateCertificates(values.certyficates);
+    onNext();
     setSubmitting(false);
   };
 
@@ -129,7 +137,7 @@ export default function CertyficatesForm({
       </p>
 
       <Formik
-        initialValues={initialValues}
+        initialValues={initialCertificates}
         enableReinitialize={true}
         validationSchema={certyficatesFormValidator}
         validateOnChange={false}
