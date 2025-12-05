@@ -11,7 +11,6 @@ import DeleteButton from "./DeleteButton";
 import { useWizard } from "../context/WizardContext";
 
 interface WorkExpFormProps {
-  // initialWorkExp?: WorkExp[];
   onBack: () => void;
   onNext: () => void;
 }
@@ -33,7 +32,11 @@ const workExpSchema = Yup.object({
   .max(100, "Stanowisko nie może być dłuższe niż 100 znaków"),
   beginDate: Yup.date()
     .required("Data rozpoczęcia jest wymagana")
-    .typeError("Niepoprawny format daty"),
+    .typeError("Niepoprawny format daty")
+    .test('is-valid-date', "Data nie może być późniejsza niż dzisiaj", (value) => {
+      if (!value) return true;
+      return new Date(value) < new Date();
+    }),
   endDate: Yup.date()
     .nullable()
     .typeError("Niepoprawny format daty")
@@ -48,7 +51,6 @@ const workExpSchema = Yup.object({
 const workExpFormValidator = Yup.object({
   workExp: Yup.array()
     .of(workExpSchema)
-    // .min(1, "Dodaj co najmniej jedną pozycję edukacji"),
 });
 
 const formatDateForInput = (dateString: string | undefined): string => {
@@ -63,7 +65,6 @@ const formatDateForInput = (dateString: string | undefined): string => {
 };
 
 export default function WorkExpForm({
-  // initialWorkExp = [],
   onBack,
   onNext,
 }: WorkExpFormProps) {
@@ -132,7 +133,6 @@ export default function WorkExpForm({
                         </h3>
                         <DeleteButton
                           prompt="Usuń doświadczenie"
-                          // index={index}
                           remove={() => remove(index)}
                         />
                       </div>

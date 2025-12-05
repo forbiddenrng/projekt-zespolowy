@@ -11,7 +11,6 @@ import DeleteButton from "./DeleteButton";
 import { useWizard } from "../context/WizardContext";
 
 interface EducationFormProps {
-  // initialEducation?: Education[];
   onBack: () => void;
   onNext: () => void;
 }
@@ -57,7 +56,6 @@ const educationSchema = Yup.object({
 const educationFormValidator = Yup.object({
   education: Yup.array()
     .of(educationSchema)
-    // .min(1, "Dodaj co najmniej jedną pozycję edukacji"),
 });
 
 const formatDateForInput = (dateString: string | undefined): string => {
@@ -84,7 +82,6 @@ const degreeOptions = [
 ];
 
 export default function EducationForm({
-  // initialEducation = [],
   onBack,
   onNext,
 }: EducationFormProps) {
@@ -100,9 +97,6 @@ export default function EducationForm({
   const initialValues: EducationFormValues = {
     education: normalizedEducation.length > 0 ? normalizedEducation : [{ ...emptyEducation }],
   };
-
-  // console.log("init edu")
-  // console.log(initialValues)
 
   const handleSubmit = (
     values: EducationFormValues,

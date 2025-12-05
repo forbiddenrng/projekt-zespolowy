@@ -14,8 +14,8 @@ interface CertificatesFormProps {
   onBack: () => void;
   onNext: () => void;
 }
-//certyficationDate
-const emptyCertyficates: Certificate = {
+
+const emptyCertificates: Certificate = {
   name: "",
   issuer: "",
   certificationDate: "",
@@ -26,7 +26,7 @@ const emptyCertyficates: Certificate = {
  * Data dopuszcza puste stringi/undefined, ale jeśli jest wartością,
  * to sprawdzamy czy jest poprawną datą.
  */
-const certyficatesSchema = Yup.object({
+const certificatesSchema = Yup.object({
   name: Yup.string().required("Nazwa certyfikatu jest wymagana")
   .min(3, "Nazwa certyfikatu musi mieć co najmniej 3 znaki")
   .max(100, "Nazwa certyfikatu nie może być dłuższa niż 100 znaków"),
@@ -34,19 +34,22 @@ const certyficatesSchema = Yup.object({
   .min(3, "Wydawca certyfikatu musi mieć co najmniej 3 znaki")
   .max(255, "Wydawca certyfikatu nie może być dłuższy niż 255 znaków"),
   certificationDate: Yup.string()
-    .nullable()
     .test("is-valid-date-or-empty", "Niepoprawny format daty", (value) => {
-      if (!value) return true; 
+      if (!value) return false; 
       const d = new Date(value);
       return !isNaN(d.getTime());
-    }),
+    })
+    .test('is-valid-date', "Data nie może być późniejsza niż dzisiaj", (value) => {
+      if (!value) return true;
+      return new Date(value) < new Date();
+    })
 });
 
 /**
  * Tablica certyfikatów nie jest już wymagana (użytkownik może pozostawić pustą)
  */
-const certyficatesFormValidator = Yup.object({
-  certyficates: Yup.array().of(certyficatesSchema),
+const certificatesFormValidator = Yup.object({
+  certificates: Yup.array().of(certificatesSchema),
 });
 
 const formatDateForInput = (dateString: string | undefined): string => {
@@ -60,33 +63,18 @@ const formatDateForInput = (dateString: string | undefined): string => {
   }
 };
 
-export default function CertyficatesForm({
+export default function certificatesForm({
   onBack,
   onNext,
 }: CertificatesFormProps) {
-  // Normalizuj wejściowe certyfikaty: zapewnij puste stringi i sformatuj daty
-  // const normalizedCertification: Certificate[] =
-  //   initialCertificates?.length > 0
-  //     ? initialCertificates.map((cert) => ({
-  //         name: cert?.name ?? "",
-  //         issuer: cert?.issuer ?? "",
-  //         certificationDate: formatDateForInput(cert?.certificationDate),
-  //       }))
-  //     : [];
 
   const {updateCertificates, wizardData} = useWizard();
   const initialCertificates: CertificatesFormValues = {
-    certyficates: wizardData.certificates.map((cert)=> ({
+    certificates: wizardData.certificates.map((cert)=> ({
       ...cert,
       certificationDate: formatDateForInput(cert.certificationDate)
     }) )
   }
-
-  // const initialValues: CertificatesFormValues = {
-  //   // jeśli brak zapisanych certyfikatów, zostaw tablicę pustą (użytkownik nie musi nic dodawać)
-  //   certyficates:
-  //     normalizedCertification.length > 0 ? normalizedCertification : [],
-  // };
 
   const handleSubmit = (
     values: CertificatesFormValues,
@@ -100,7 +88,7 @@ export default function CertyficatesForm({
       (cert.issuer && cert.issuer.trim() !== "") ||
       (cert.certificationDate && cert.certificationDate.trim() !== "");
 
-    const formattedCertyfication: Certificate[] = values.certyficates
+    const formattedCertification: Certificate[] = values.certificates
       .filter(nonEmpty)
       .map((cert) => {
         // konwertuj datę tylko jeśli jest poprawna; w przeciwnym razie zostaw pusty string
@@ -121,7 +109,8 @@ export default function CertyficatesForm({
         };
       });
 
-    updateCertificates(values.certyficates);
+    console.log(formattedCertification)
+    updateCertificates(formattedCertification);
     onNext();
     setSubmitting(false);
   };
@@ -139,24 +128,24 @@ export default function CertyficatesForm({
       <Formik
         initialValues={initialCertificates}
         enableReinitialize={true}
-        validationSchema={certyficatesFormValidator}
+        validationSchema={certificatesFormValidator}
         validateOnChange={false}
         validateOnBlur={false}
         onSubmit={handleSubmit}
       >
         {({ values, isSubmitting, errors }) => (
           <Form className="space-y-6">
-            <FieldArray name="certyficates">
+            <FieldArray name="certificates">
               {({ push, remove }) => (
                 <div className="space-y-6">
-                  {values.certyficates.length === 0 && (
+                  {values.certificates.length === 0 && (
                     <div className="p-4 bg-secondary border border-border rounded-lg text-sm text-muted">
                       Nie dodałeś żadnych certyfikatów. Możesz dodać je klikając
                       przycisk poniżej lub przejść dalej.
                     </div>
                   )}
 
-                  {values.certyficates.map((_, index) => (
+                  {values.certificates.map((_, index) => (
                     <div
                       key={index}
                       className="p-5 bg-secondary border border-border rounded-lg space-y-4 relative"
@@ -174,19 +163,19 @@ export default function CertyficatesForm({
                       {/* Nazwa certyfikatu */}
                       <div>
                         <label
-                          htmlFor={`certyficates.${index}.name`}
+                          htmlFor={`certificates.${index}.name`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
                           Nazwa certyfikatu
                         </label>
                         <Field
-                          id={`certyficates.${index}.name`}
-                          name={`certyficates.${index}.name`}
+                          id={`certificates.${index}.name`}
+                          name={`certificates.${index}.name`}
                           placeholder="np. AWS Certified Developer"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
-                          name={`certyficates.${index}.name`}
+                          name={`certificates.${index}.name`}
                           component="p"
                           className="mt-1 text-sm text-error"
                         />
@@ -195,19 +184,19 @@ export default function CertyficatesForm({
                       {/* Wydawca */}
                       <div>
                         <label
-                          htmlFor={`certyficates.${index}.issuer`}
+                          htmlFor={`certificates.${index}.issuer`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
                           Wydawca
                         </label>
                         <Field
-                          id={`certyficates.${index}.issuer`}
-                          name={`certyficates.${index}.issuer`}
+                          id={`certificates.${index}.issuer`}
+                          name={`certificates.${index}.issuer`}
                           placeholder="np. Amazon Web Services"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
-                          name={`certyficates.${index}.issuer`}
+                          name={`certificates.${index}.issuer`}
                           component="p"
                           className="mt-1 text-sm text-error"
                         />
@@ -216,19 +205,19 @@ export default function CertyficatesForm({
                       {/* Data otrzymania */}
                       <div>
                         <label
-                          htmlFor={`certyficates.${index}.certificationDate`}
+                          htmlFor={`certificates.${index}.certificationDate`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Data otrzymania (opcjonalne)
+                          Data otrzymania
                         </label>
                         <Field
                           type="date"
-                          id={`certyficates.${index}.certificationDate`}
-                          name={`certyficates.${index}.certificationDate`}
+                          id={`certificates.${index}.certificationDate`}
+                          name={`certificates.${index}.certificationDate`}
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
-                          name={`certyficates.${index}.certificationDate`}
+                          name={`certificates.${index}.certificationDate`}
                           component="p"
                           className="mt-1 text-sm text-error"
                         />
@@ -239,7 +228,7 @@ export default function CertyficatesForm({
                   {/* Przycisk dodawania */}
                   <button
                     type="button"
-                    onClick={() => push({ ...emptyCertyficates })}
+                    onClick={() => push({ ...emptyCertificates })}
                     className="w-full p-3 border-2 border-dashed border-border rounded-lg text-muted hover:text-foreground hover:border-primary transition-all flex items-center justify-center gap-2"
                   >
                     <svg
@@ -258,8 +247,8 @@ export default function CertyficatesForm({
                   </button>
 
                   {/* Błąd walidacji tablicy */}
-                  {typeof errors.certyficates === "string" && (
-                    <p className="text-sm text-error">{errors.certyficates}</p>
+                  {typeof errors.certificates === "string" && (
+                    <p className="text-sm text-error">{errors.certificates}</p>
                   )}
                 </div>
               )}

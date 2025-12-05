@@ -11,7 +11,6 @@ import DeleteButton from "./DeleteButton";
 import { useWizard } from "../context/WizardContext";
 
 interface AbilitiesFormProps {
-  // initialAbilities?: Ability[];
   onBack: () => void;
   onNext: () => void;
 }
@@ -33,7 +32,6 @@ const abilitiesFormValidator = Yup.object({
 });
 
 export default function AbilitiesForm({
-  // initialAbilities = [],
   onBack,
   onNext,
 }: AbilitiesFormProps) {
@@ -41,7 +39,6 @@ export default function AbilitiesForm({
 
   const initialValues: AbilitiesFormValues = {
     abilities: wizardData.abilities
-      // wizardData.abilities.length > 0 ? wizardData.abilities : [{ ...wizardData.abilities }],
   };
 
   const handleSubmit = (
@@ -89,7 +86,6 @@ export default function AbilitiesForm({
                         {values.abilities.length > 1 && (
                           <DeleteButton
                             prompt="Usuń umiejętność"
-                            // index={index}
                             remove={() => remove(index)}
                           />
                         )}

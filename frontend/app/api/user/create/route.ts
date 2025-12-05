@@ -6,14 +6,10 @@ export const fetchCache = "force-no-store";
 
 export const POST = auth0.withApiAuthRequired(async (req: Request) => {
   try {
-    console.log(">>> /api/user/create HIT");
-
     // pobierz aktualną sesję
     const session = await auth0.getSession();
-    console.log("SESSION:", session ? "OK" : "NULL");
 
     const body = await req.json();
-    console.log("BODY RECEIVED:", body);
 
     // TOKEN DO GATEWAY
     const accessTokenResp = await auth0.getAccessToken({
@@ -24,8 +20,6 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
       typeof accessTokenResp === "string"
         ? accessTokenResp
         : (accessTokenResp as any)?.token ?? null;
-
-    console.log("TOKEN:", token ? "OK" : "MISSING");
 
     // FORWARD DO GATEWAY
     const gatewayRes = await fetch(`${process.env.GATEWAY_URL}/users`, {
@@ -39,8 +33,6 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
 
     const contentType = gatewayRes.headers.get("content-type") ?? "";
     const text = await gatewayRes.text();
-
-    console.log("GATEWAY RESPONSE:", gatewayRes.status, text);
 
     if (contentType.includes("application/json")) {
       return NextResponse.json(JSON.parse(text), {

@@ -1,10 +1,6 @@
 import { auth0 } from "../lib/auth0";
-import UserNavigation from "../components/UserNavigation";
-import WelcomePage from "../components/WelcomePage";
 import UserData from "./components/UserData";
 import NoProfileFound from "./components/NoProfileFound";
-// import { jwtDecode } from "jwt-decode";
-// import { redirect } from "next/navigation";
 
 async function fetchProfile() {
   const accessTokenResp = await auth0.getAccessToken({
@@ -15,9 +11,6 @@ async function fetchProfile() {
     typeof accessTokenResp === "string"
       ? accessTokenResp
       : (accessTokenResp as any)?.token ?? null;
-
-  // const decoded: any = jwtDecode(token);
-  // const userID = encodeURIComponent(decoded.sub);
 
   const backendUrl = `${process.env.GATEWAY_URL}/users/me`;
   const gatewayRes = await fetch(backendUrl, {
@@ -44,8 +37,6 @@ export default async function Profile() {
   }
 
   if (!savedProfile) return <NoProfileFound/>
-
-  
   
   return (
     <UserData />

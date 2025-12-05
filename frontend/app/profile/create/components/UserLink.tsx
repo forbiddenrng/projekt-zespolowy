@@ -11,7 +11,6 @@ import DeleteButton from "./DeleteButton";
 import { useWizard } from "../context/WizardContext";
 
 interface LinksFormProps {
-  // initialLinks?: Links[];
   onBack: () => void;
   onNext: () => void;
 }
@@ -35,17 +34,12 @@ export default function LinksForm({
   onBack,
   onNext,
 }: LinksFormProps) {
-  // Upewnij się, że każdy element ma zawsze property 'link' (nawet jeśli undefined w savedProfile)
   const {updateLinks, wizardData} = useWizard();
 
   const initialLinks: LinksFormValues = {
     links: wizardData.links
   }
 
-  // const normalizedInitialLinks: Links[] =
-  //   initialLinks?.length > 0
-  //     ? initialLinks.map((l) => ({ linkString: (l && l.linkString) ?? "" }))
-  //     : [{ ...emptyLinks }];
 
   const handleSubmit = (
     values: LinksFormValues,

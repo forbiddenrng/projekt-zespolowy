@@ -16,11 +16,9 @@ import DeleteButton from "./DeleteButton";
 import { useWizard } from "../context/WizardContext";
 
 interface UserLanguagesFormProps {
-  // initialLanguages?: UserLanguage[];
   onBack: () => void;
   onNext: () => void;
   allLanguages: Language[];
-  // fetchUrl?: string;
 }
 
 const emptyUserLanguage = (): UserLanguage => ({
@@ -57,10 +55,8 @@ export default function UserLanguages({
   allLanguages
 }: UserLanguagesFormProps) {
 
-  // const [allLanguages, setAllLanguages] = useState<Language[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // const [searchQuery, setSearchQuery] = useState("");
 
   const {updateLanguages, wizardData} = useWizard();
 

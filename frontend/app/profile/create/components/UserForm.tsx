@@ -16,8 +16,6 @@ interface UserFormProps {
     given_name?: string;
     sub: string;
   };
-  // savedProfile: SavedProfile | null;
-  // initialValues: UserFormValues;
   onNext: () => void;
 }
 
@@ -62,41 +60,20 @@ const emptyFormValues: UserFormValues  = {
  */
 export default function UserForm({
   user,
-  // savedProfile = null,
-  // initialValues,
   onNext,
 }: UserFormProps) {
   const {updateUserInfo, wizardData} = useWizard();
 
   const initialFormValues = useMemo<UserFormValues>(() => {
     return {
-      name: user?.name || user?.given_name || "",
-      surname: user?.family_name || "",
-      phoneNum:  "",
-      email: user?.email || "",
-      city:  "",
-      profileSummary: "",
+      name: wizardData.userInfo?.name || user?.name || user?.given_name || "",
+      surname: wizardData.userInfo?.surname || user?.family_name || "",
+      phoneNum:  wizardData.userInfo?.phoneNum || "",
+      email: wizardData.userInfo?.email || user?.email || "",
+      city:  wizardData.userInfo?.city || "",
+      profileSummary: wizardData.userInfo?.profileSummary || "",
     };
   }, [user]);
-
-  // const 
-
-  // const savedProfileValues = useMemo<UserFormValues>(() => {
-  //   return {
-  //     name: savedProfile?.name || "",
-  //     surname: savedProfile?.surname || "",
-  //     phoneNum: savedProfile?.phone_number || "",
-  //     email: savedProfile?.email || "",
-  //     city: savedProfile?.city || "",
-  //     profileSummary: savedProfile?.profile_summary || "",
-  //   };
-  // }, [savedProfile]);
-
-  // const [locked, setLocked] = useState(() => ({
-  //   name: Boolean(savedProfile?.name),
-  //   surname: Boolean(savedProfile?.surname),
-  //   email: Boolean(savedProfile?.email),
-  // }));
 
   const handleSubmit = async (
     values: UserFormValues,

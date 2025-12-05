@@ -32,7 +32,6 @@ interface WizardContextType {
   updateCertificates: (certificates: Certificate[]) => void;
 }
 
-// const WizardContext = createContext<WizardContextType | undefined>(undefined);
 const WizardContext = createContext<WizardContextType | undefined>(undefined);
 
 export function WizardProvider({children}: {children: ReactNode}): React.ReactNode{

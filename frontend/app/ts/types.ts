@@ -88,7 +88,7 @@ export interface Certificate {
 }
 
 export interface CertificatesFormValues {
-  certyficates: Certificate[];
+  certificates: Certificate[];
 }
 
 // Typy dla jezyków

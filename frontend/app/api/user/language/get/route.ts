@@ -6,12 +6,6 @@ export const fetchCache = "force-no-store";
 
 export const GET = auth0.withApiAuthRequired(async (req: Request) => {
   try {
-    console.log(">>> /api/user/language/get HIT");
-
-    // session (opcjonalne, ale jak w twoim przykładzie)
-    const session = await auth0.getSession();
-    console.log("SESSION:", session ? "OK" : "NULL");
-
     // TOKEN DO GATEWAY
     const accessTokenResp = await auth0.getAccessToken({
       audience: process.env.AUTH0_AUDIENCE,
@@ -21,8 +15,6 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
       typeof accessTokenResp === "string"
         ? accessTokenResp
         : (accessTokenResp as any)?.token ?? null;
-
-    console.log("TOKEN:", token ? "OK" : "MISSING");
 
     // FORWARD DO GATEWAY (GET)
     const gatewayRes = await fetch(
@@ -37,8 +29,6 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
 
     const contentType = gatewayRes.headers.get("content-type") ?? "";
     const text = await gatewayRes.text();
-
-    console.log("GATEWAY RESPONSE:", gatewayRes.status, text);
 
     // JSON → JSON
     if (contentType.includes("application/json")) {
