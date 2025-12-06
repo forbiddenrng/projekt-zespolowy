@@ -299,13 +299,19 @@ export class UsersService {
     });
     if (!user) throw new NotFoundException('User not found');
 
-    const data: any = {};
+    const data: Prisma.UserUpdateInput = {};
     if (dto.name !== undefined) data.name = dto.name;
     if (dto.surname !== undefined) data.surname = dto.surname;
     if (dto.phoneNumber !== undefined) data.phone_number = dto.phoneNumber;
     if (dto.city !== undefined) data.city = dto.city;
     if (dto.profileSummary !== undefined)
       data.profile_summary = dto.profileSummary;
+
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestException(
+        'At least one field must be provided for update',
+      );
+    }
 
     const updated = await this.databaseService.user.update({
       where: { auth0_id: reqUserId },
