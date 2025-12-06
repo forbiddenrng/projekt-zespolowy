@@ -300,10 +300,10 @@ export class UsersService {
     if (!user) throw new NotFoundException('User not found');
 
     const data: Prisma.UserUpdateInput = {};
-    if (dto.name !== undefined) data.name = dto.name;
-    if (dto.surname !== undefined) data.surname = dto.surname;
-    if (dto.phoneNumber !== undefined) data.phone_number = dto.phoneNumber;
-    if (dto.city !== undefined) data.city = dto.city;
+    if (dto.name !== undefined && dto.name !== null) data.name = dto.name;
+    if (dto.surname !== undefined && dto.surname !== null) data.surname = dto.surname;
+    if (dto.phoneNumber !== undefined && dto.phoneNumber !== null) data.phone_number = dto.phoneNumber;
+    if (dto.city !== undefined && dto.city !== null) data.city = dto.city;
     if (dto.profileSummary !== undefined)
       data.profile_summary = dto.profileSummary;
 

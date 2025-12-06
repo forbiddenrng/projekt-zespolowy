@@ -78,5 +78,24 @@ export class APIClient {
       throw err;
     }
   }
+
+  
+  // for updating personal info
+  async updateUserInfo(accessToken: string, payload: any){
+    const config: AxiosRequestConfig = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`
+      } 
+    }
+
+    try {
+      const response = await this.client.patch('me', payload, config);
+      return response;
+    } catch(err){
+      console.log(err);
+      throw err;
+    }
+  }
  
 }

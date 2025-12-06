@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
+import axios from "axios";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { UserFormValues } from "@/app/ts/types";
 import type { FormikHelpers } from "formik";
 import { userValidator } from "@/app/profile/create/components/UserForm";
 import { useRouter } from "next/navigation";
+import CancelButton from "./ui/CancelButton";
+import SaveButton from "./ui/SaveButton";
 
 interface EditPersonalFormProps {
   onSuccess?: () => void;
@@ -33,12 +36,11 @@ export default function EditPersonalForm({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
-        const res = await fetch("/api/user/get");
-        if (!res.ok) throw new Error("Nie udało się pobrać danych");
+        const res = await axios.get("/api/user/get");
+        if (res.data?.statusCode !== 200) throw new Error("Nie udało się pobrać danych");
 
-        const json = await res.json();
-        const data = json?.data;
+        // const json = await res.json();
+        const data = res.data?.data;
 
         if (data) {
           setFormData({
@@ -70,31 +72,28 @@ export default function EditPersonalForm({
       setSubmitting(true);
       setError(null);
 
-      // this body to be changed
-      const res = await fetch("/api/user/profile?resource=personal", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: values.name,
-          surname: values.surname,
-          phone_number: values.phoneNum,
-          email: values.email,
-          city: values.city,
-          profile_summary: values.profileSummary,
-        }),
-      });
+      const res = await axios.patch("/api/user/profile?resource=personal", {
+        name: values.name,
+        surname: values.surname,
+        phoneNumber: values.phoneNum,
+        city: values.city,
+        profileSummary: values.profileSummary || null
+      }, {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
 
-      if (!res.ok) throw new Error("Błąd podczas zapisywania danych");
+      if (res.data?.statusCode !== 200) throw new Error("Błąd podczas zapisywania danych");
 
       setSuccessMessage("Dane zostały pomyślnie zaktualizowane!");
-      onSuccess?.();
 
       // Przekieruj po 1.5 sekund
       setTimeout(() => {
         router.push("/profile");
       }, 1500);
     } catch (err: any) {
-      setError(err?.message || "Błąd podczas zapisywania danych");
+      setError("Błąd podczas zapisywania danych");
     } finally {
       setSubmitting(false);
     }
@@ -220,7 +219,7 @@ export default function EditPersonalForm({
                 disabled={true}
                 placeholder="email@przyklad.pl"
                 aria-label="Email"
-                className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="w-full p-3 bg-secondary border border-border rounded-lg text-muted placeholder:text-muted focus:outline-none focus:ring-2 cursor-not-allowed focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
                 name="email"
@@ -274,21 +273,12 @@ export default function EditPersonalForm({
             </div>
 
             <div className="flex gap-4 justify-between pt-4">
-              <button
-                type="button"
+              <CancelButton
                 onClick={() => router.back()}
-                className="px-6 py-3 bg-secondary border border-border text-foreground hover:bg-border rounded-lg font-medium transition-colors duration-200 cursor-pointer"
-              >
-                Cofnij
-              </button>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="px-6 py-3 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-medium transition-colors duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? "Zapisuje..." : "Zapisz"}
-              </button>
+              />
+              <SaveButton
+                isSubmitting={isSubmitting}
+              />
             </div>
           </Form>
         )}
