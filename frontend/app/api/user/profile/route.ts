@@ -45,6 +45,12 @@ export const GET = auth0.withApiAuthRequired(
 );
 
 
+enum APIParams {
+  abilities = "abilities",
+  education = "education",
+  work = "work-experiences"
+}
+
 export const PUT = auth0.withApiAuthRequired(
   async (req: Request): Promise<Response> => {
     try {
@@ -54,15 +60,15 @@ export const PUT = auth0.withApiAuthRequired(
 
       const body = await req.json();
       const url = new URL(req.url);
-      const resource = url.searchParams.get("resource");
+      const resource= url.searchParams.get("resource") as keyof typeof APIParams;
 
       console.log(body)
       console.log(resource)
       
-      if (!resource){
+      if (!APIParams[resource]){
         return NextResponse.json({
-          message: "resource params required"
-        }, {status: 500});
+          message: "Invalid resource parameter"
+        }, {status: 400});
       }
 
       const token =
@@ -71,7 +77,7 @@ export const PUT = auth0.withApiAuthRequired(
           : (accessTokenResp as any)?.token ?? null;
 
       const apiClient = new APIClient();
-      const resposne = await apiClient.updateProfile(resource, token, body);
+      const resposne = await apiClient.updateProfile(APIParams[resource], token, body);
 
       return NextResponse.json(resposne.data, {status: resposne.status})
 

@@ -1,115 +1,166 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import type { FormikHelpers } from "formik";
-import * as Yup from "yup";
-import type { WorkExp, WorkExpFormValues } from "@/app/ts/types";
-import BackButton from "./BackButton";
-import NextButton from "./NextButton";
-import DeleteButton from "./DeleteButton";
-import { useWizard } from "../context/WizardContext";
+import { useRouter } from "next/navigation";
+import { FaTrash } from "react-icons/fa";
+import {
+  emptyWorkExp,
+  workExpFormValidator,
+  formatDateForInput,
+} from "@/app/profile/create/components/UserWorkExperience";
+import CancelButton from "./ui/CancelButton";
+import SaveButton from "./ui/SaveButton";
+import AddPosition from "./ui/AddPosition";
+import type { WorkExp } from "@/app/ts/types";
 
-interface WorkExpFormProps {
-  onBack: () => void;
-  onNext: () => void;
+
+interface EditWorkExp {
+  id?: number;
+  companyName: string;
+  position: string;
+  beginDate: string; // ISO format
+  endDate?: string; // ISO format, opcjonalne
+  description: string;
 }
 
-export const emptyWorkExp: WorkExp = {
-  companyName: "",
-  position: "",
-  beginDate: "",
-  endDate: "",
-  description: "",
-};
+interface EditWorkExperienceFormValues {
+  workExp: EditWorkExp[];
+}
 
-export const workExpSchema = Yup.object({
-  companyName: Yup.string().required("Nazwa firmy jest wymagana")
-  .min(3, "Nazwa firmy musi mieć co najmniej 3 znaki")
-  .max(100, "Nazwa firmy nie może być dłuższa niż 100 znaków"),
-  position: Yup.string().required("Stanowisko jest wymagane")
-  .min(3, "Stanowisko musi mieć co najmniej 3 znaki")
-  .max(100, "Stanowisko nie może być dłuższe niż 100 znaków"),
-  beginDate: Yup.date()
-    .required("Data rozpoczęcia jest wymagana")
-    .typeError("Niepoprawny format daty")
-    .test('is-valid-date', "Data nie może być późniejsza niż dzisiaj", (value) => {
-      if (!value) return true;
-      return new Date(value) < new Date();
-    }),
-  endDate: Yup.date()
-    .nullable()
-    .typeError("Niepoprawny format daty")
-    .min(
-      Yup.ref("beginDate"),
-      "Data zakończenia musi być późniejsza niż rozpoczęcia"
-    ),
-  description: Yup.string().required("Opis stanowiska jest wymagany")
-  .min(10, "Opis stanowiska musi mieć co najmniej 10 znaków"),
-});
+export default function EditWorkExperienceForm() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [formData, setFormData] = useState<EditWorkExperienceFormValues>({
+    workExp: [{ ...emptyWorkExp }],
+  });
 
-export const workExpFormValidator = Yup.object({
-  workExp: Yup.array()
-    .of(workExpSchema)
-});
+  // Wczytaj dane z API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/api/user/get?resource=work");
+        const data = response.data?.data;
 
-export const formatDateForInput = (dateString: string | undefined): string => {
-  if (!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "";
-    return date.toISOString().split("T")[0];
-  } catch {
-    return "";
-  }
-};
+        if (data?.work_experiences && data.work_experiences.length > 0) {
+          const normalizedWorkExp = data.work_experiences.map(
+            (work: {
+              id?: number;
+              company_name: string;
+              position: string;
+              begin_date: string;
+              end_date?: string;
+              description: string;
+            }) => ({
+              id: work.id,
+              companyName: work.company_name,
+              position: work.position,
+              beginDate: formatDateForInput(work.begin_date),
+              endDate: formatDateForInput(work.end_date),
+              description: work.description,
+            })
+          );
 
-export default function WorkExpForm({
-  onBack,
-  onNext,
-}: WorkExpFormProps) {
+          setFormData({
+            workExp: normalizedWorkExp,
+          });
+        } else {
+          setFormData({
+            workExp: [{ ...emptyWorkExp }],
+          });
+        }
+      } catch (err: any) {
+        setError("Błąd podczas wczytywania danych");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const {updateWorkExperience, wizardData} = useWizard();
-  const normalizedWorkExp = wizardData.workExperience.map((work) => ({
-    ...work,
-    beginDate: formatDateForInput(work.beginDate),
-    endDate: formatDateForInput(work.endDate),
-  }));
+    fetchData();
+  }, []);
 
-  const initialValues: WorkExpFormValues = {
-    workExp:
-      normalizedWorkExp.length > 0 ? normalizedWorkExp : [{ ...emptyWorkExp }],
-  };
-
-  const handleSubmit = (
-    values: WorkExpFormValues,
-    helpers: FormikHelpers<WorkExpFormValues>
+  const handleSubmit = async (
+    values: EditWorkExperienceFormValues,
+    helpers: FormikHelpers<EditWorkExperienceFormValues>
   ) => {
     const { setSubmitting } = helpers;
 
-    const formattedWorkExp = values.workExp.map((work) => ({
-      ...work,
-      beginDate: new Date(work.beginDate).toISOString(),
-      endDate: work.endDate ? new Date(work.endDate).toISOString() : undefined,
-    }));
-    
-    updateWorkExperience(formattedWorkExp);
-    onNext();
-    setSubmitting(false);
+    try {
+      setSubmitting(true);
+      setError(null);
+
+      // Przekształć daty do formatu ISO i zmień nazwy pól na backend format
+      const payload = values.workExp.map((work) => ({
+        id: work.id,
+        companyName: work.companyName,
+        position: work.position,
+        beginDate: new Date(work.beginDate).toISOString(),
+        endDate: work.endDate
+          ? new Date(work.endDate).toISOString()
+          : undefined,
+        description: work.description,
+      }));
+
+      const res = await axios.put("/api/user/profile?resource=work", {
+        workExperiences: payload,
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (res.data?.statusCode !== 200)
+        throw new Error("Błąd podczas zapisywania danych");
+
+      setSuccessMessage("Doświadczenie zawodowe zostało pomyślnie zaktualizowane!");
+
+      // Przekieruj po 1.5 sekund
+      setTimeout(() => {
+        router.push("/profile");
+      }, 1500);
+    } catch (err: any) {
+      setError("Błąd podczas zapisywania danych");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
+        <p className="text-muted">Ładowanie...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
+    <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
       <h2 className="text-2xl font-semibold mb-6 text-foreground">
-        Doświadczenie Zawodowe
+        Edytuj doświadczenie zawodowe
       </h2>
       <p className="text-muted mb-6">
-        Dodaj informacje o swoim doświadczeniu zawodowym. Możesz dodać wiele
+        Zmień swoje doświadczenie zawodowe. Możesz dodać lub usunąć wiele
         pozycji.
       </p>
 
+      {error && (
+        <div className="mb-6 p-4 bg-error/10 border border-error text-error rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="mb-6 p-4 bg-success/10 border border-success text-success rounded-lg">
+          {successMessage}
+        </div>
+      )}
+
       <Formik
-        initialValues={initialValues}
+        initialValues={formData}
         enableReinitialize={true}
         validationSchema={workExpFormValidator}
         validateOnChange={false}
@@ -131,10 +182,16 @@ export default function WorkExpForm({
                         <h3 className="text-lg font-medium text-foreground">
                           Doświadczenie #{index + 1}
                         </h3>
-                        <DeleteButton
-                          prompt="Usuń doświadczenie"
-                          remove={() => remove(index)}
-                        />
+                        {values.workExp.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => remove(index)}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-error/10 hover:bg-error/20 text-error transition-colors cursor-pointer duration-200"
+                            title="Usuń doświadczenie"
+                          >
+                            <FaTrash />
+                          </button>
+                        )}
                       </div>
 
                       {/* Nazwa firmy */}
@@ -251,25 +308,10 @@ export default function WorkExpForm({
                   ))}
 
                   {/* Przycisk dodawania */}
-                  <button
-                    type="button"
+                  <AddPosition
                     onClick={() => push({ ...emptyWorkExp })}
-                    className="w-full p-3 border-2 border-dashed border-border rounded-lg text-muted hover:text-foreground hover:border-primary transition-all flex items-center justify-center gap-2"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Dodaj kolejne doświadczenie
-                  </button>
+                    prompt="Dodaj kolejne doświadczenie"
+                  />
 
                   {/* Błąd walidacji tablicy */}
                   {typeof errors.workExp === "string" && (
@@ -281,9 +323,8 @@ export default function WorkExpForm({
 
             {/* Przyciski nawigacji */}
             <div className="flex justify-between gap-4 pt-6 border-t border-border">
-              <BackButton prompt={"Wstecz"} onBack={onBack} />
-
-              <NextButton prompt={"Dalej"} isSubmitting={isSubmitting} />
+              <CancelButton onClick={() => router.back()} />
+              <SaveButton isSubmitting={isSubmitting} />
             </div>
           </Form>
         )}

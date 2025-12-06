@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import EditPersonalForm from "./components/EditPersonalForm";
 import EditAbilitiesForm from "./components/EditAbilitiesForm";
 import EditEducationForm from "./components/EditEducationForm";
+import EditWorkExperienceForm from "./components/EditWorkExperience";
 
 export default function EditPage() {
   const params = useParams();
@@ -29,8 +30,8 @@ export default function EditPage() {
         return <EditPersonalForm />;
       case "education":
         return <EditEducationForm />;
-      // case "experience":
-      //   return <EditExperienceForm />;
+      case "work":
+        return <EditWorkExperienceForm />;
       case "abilities":
         return <EditAbilitiesForm />;
       // case "languages":

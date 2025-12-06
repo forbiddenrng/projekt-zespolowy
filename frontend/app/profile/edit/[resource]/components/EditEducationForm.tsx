@@ -74,7 +74,7 @@ export default function EditEducationForm() {
           });
         }
       } catch (err: any) {
-        setError(err?.message || "Błąd podczas wczytywania danych");
+        setError("Błąd podczas wczytywania danych");
       } finally {
         setLoading(false);
       }
