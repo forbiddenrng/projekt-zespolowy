@@ -1,20 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import type { FormikHelpers } from "formik";
-import * as Yup from "yup";
-import type { AbilitiesFormValues } from "@/app/ts/types";
+
 import { useRouter } from "next/navigation";
 import { FaTrash } from "react-icons/fa";
 import {emptyAbilities, abilitiesSchema, abilitiesFormValidator} from "@/app/profile/create/components/UserAbilities"
 import CancelButton from "./ui/CancelButton";
 import SaveButton from "./ui/SaveButton";
 import AddPosition from "./ui/AddPosition";
-
-interface EditAbilitiesFormProps {
-  onSuccess?: () => void;
-}
 
 interface EditAbility {
   id?: number;
@@ -25,9 +21,7 @@ interface EditAbilitiesFormValues {
   abilities: EditAbility[];
 }
 
-export default function EditAbilitiesForm({
-  onSuccess,
-}: EditAbilitiesFormProps) {
+export default function EditAbilitiesForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,12 +34,15 @@ export default function EditAbilitiesForm({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
-        const res = await fetch("/api/user/get?resource=abilities");
-        if (!res.ok) throw new Error("Nie udało się pobrać danych");
+        // const res = await fetch("/api/user/get?resource=abilities");
+        // if (!res.ok) throw new Error("Nie udało się pobrać danych");
 
-        const json = await res.json();
-        const data = json?.data;
+        const response = await axios.get("/api/user/get?resource=abilities")
+        // console.log(response);
+        const data = response.data?.data;
+
+        // const json = await res.json();
+        // const data = json?.data;
 
         if (data?.abilities && data.abilities.length > 0) {
           setFormData({
@@ -81,29 +78,23 @@ export default function EditAbilitiesForm({
 
       const payload = values.abilities;
 
-
-      console.log("----UPDATE-PAYLOAD----")
-      console.log(payload)
-
-      // const res = await fetch("/api/user/profile?resource=abilities", {
-      //   method: "PUT",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({
-      //     abilities: values.abilities,
-      //   }),
-      // });
-
-      // if (!res.ok) throw new Error("Błąd podczas zapisywania danych");
+      const res = await axios.put("/api/user/profile?resource=abilities", {
+        abilities: payload
+      }, {
+        headers: {
+          "Content-Type": "application/json"
+        }
+      })
+      if (res.data?.statusCode !== 200) throw new Error("Błąd podczas zapisywania danych");
 
       setSuccessMessage("Umiejętności zostały pomyślnie zaktualizowane!");
-      // onSuccess?.();
 
       // Przekieruj po 1.5 sekund
-      // setTimeout(() => {
-      //   router.push("/profile");
-      // }, 1500);
+      setTimeout(() => {
+        router.push("/profile");
+      }, 1500);
     } catch (err: any) {
-      setError(err?.message || "Błąd podczas zapisywania danych");
+      setError("Błąd podczas zapisywania danych");
     } finally {
       setSubmitting(false);
     }
