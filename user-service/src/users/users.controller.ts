@@ -13,6 +13,7 @@ import {
 import { UsersService } from './users.service';
 import { Prisma } from '@prisma/client';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { FindOneQueryParams } from 'src/ts/types';
 
 /** Response structure
@@ -116,12 +117,10 @@ export class UsersController {
     } as FindOneQueryParams);
   }
 
-  @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateUserDto: Prisma.UserUpdateInput,
-  ) {
-    return this.usersService.update(+id, updateUserDto);
+  // PATCH /users/me - update current user profile
+  @Patch('me')
+  updateCurrentUser(@Req() req: any, @Body() dto: UpdateUserDto) {
+    return this.usersService.updateCurrentUserProfile(req.userId, dto);
   }
 
   @Delete(':id')
