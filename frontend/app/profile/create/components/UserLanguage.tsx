@@ -21,7 +21,7 @@ interface UserLanguagesFormProps {
   allLanguages: Language[];
 }
 
-const emptyUserLanguage = (): UserLanguage => ({
+export const emptyUserLanguage = (): UserLanguage => ({
   id: undefined,
   languageId: null,
   level: LanguageLevel.A1,
@@ -32,7 +32,7 @@ const languageSchema = Yup.object({
   level: Yup.mixed<LanguageLevel>().required("Wybierz poziom"),
 });
 
-const languagesFormValidator = Yup.object({
+export const languagesFormValidator = Yup.object({
   languages: Yup.array()
     .of(languageSchema)
     .min(1, "Dodaj co najmniej jeden język")

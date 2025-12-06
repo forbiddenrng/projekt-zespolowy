@@ -15,7 +15,7 @@ interface CertificatesFormProps {
   onNext: () => void;
 }
 
-const emptyCertificates: Certificate = {
+export const emptyCertificates: Certificate = {
   name: "",
   issuer: "",
   certificationDate: "",
@@ -26,7 +26,7 @@ const emptyCertificates: Certificate = {
  * Data dopuszcza puste stringi/undefined, ale jeśli jest wartością,
  * to sprawdzamy czy jest poprawną datą.
  */
-const certificatesSchema = Yup.object({
+export const certificatesSchema = Yup.object({
   name: Yup.string().required("Nazwa certyfikatu jest wymagana")
   .min(3, "Nazwa certyfikatu musi mieć co najmniej 3 znaki")
   .max(100, "Nazwa certyfikatu nie może być dłuższa niż 100 znaków"),
@@ -48,11 +48,11 @@ const certificatesSchema = Yup.object({
 /**
  * Tablica certyfikatów nie jest już wymagana (użytkownik może pozostawić pustą)
  */
-const certificatesFormValidator = Yup.object({
+export const certificatesFormValidator = Yup.object({
   certificates: Yup.array().of(certificatesSchema),
 });
 
-const formatDateForInput = (dateString: string | undefined): string => {
+export const formatDateForInput = (dateString: string | undefined): string => {
   if (!dateString) return "";
   try {
     const date = new Date(dateString);

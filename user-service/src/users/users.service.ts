@@ -184,8 +184,10 @@ export class UsersService {
     if (languages === 'true' || all === 'true') {
       findQuery.user_languages = {
         select: {
-          language: true,
-        },
+          id: true,
+          level: true,
+          language: true
+        }
       };
     }
 
@@ -1012,7 +1014,12 @@ export class UsersService {
     const items = await this.databaseService.user_Languages.findMany({
       where: { user_id: user.id },
       orderBy: { id: 'desc' },
-      include: { language: true },
+      select: {
+        id: true,
+        level: true,
+        language: true
+      }
+      // include: { language: true },
     });
 
     return {
@@ -1036,7 +1043,12 @@ export class UsersService {
     const items = await this.databaseService.user_Languages.findMany({
       where: { user_id: user.id },
       orderBy: { id: 'desc' },
-      include: { language: true },
+      select: {
+        id: true,
+        level: true,
+        language: true
+      }
+      // include: { language: true },
     });
 
     return {

@@ -5,6 +5,8 @@ import EditPersonalForm from "./components/EditPersonalForm";
 import EditAbilitiesForm from "./components/EditAbilitiesForm";
 import EditEducationForm from "./components/EditEducationForm";
 import EditWorkExperienceForm from "./components/EditWorkExperience";
+import EditCertificatesForm from "./components/EditCertificates";
+import EditLanguagesForm from "./components/EditLanguagesForm";
 
 export default function EditPage() {
   const params = useParams();
@@ -34,12 +36,12 @@ export default function EditPage() {
         return <EditWorkExperienceForm />;
       case "abilities":
         return <EditAbilitiesForm />;
-      // case "languages":
-      //   return <EditLanguagesForm />;
+      case "languages":
+        return <EditLanguagesForm />;
       // case "links":
       //   return <EditLinksForm />;
-      // case "certificates":
-      //   return <EditCertificatesForm />;
+      case "certificates":
+        return <EditCertificatesForm />;
       default:
         return (
           <div className="max-w-4xl mx-auto p-6 bg-card-background border border-card-border rounded-lg">

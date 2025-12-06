@@ -48,7 +48,7 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
     // }
 
     // const data = response.data
-
+    console.log(response.data.user_languages)
     return NextResponse.json(response?.data, {status: response?.status})
 
     // inne typy → tekst

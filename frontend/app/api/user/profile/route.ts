@@ -48,7 +48,9 @@ export const GET = auth0.withApiAuthRequired(
 enum APIParams {
   abilities = "abilities",
   education = "education",
-  work = "work-experiences"
+  work = "work-experiences",
+  certificates = "certificates",
+  languages = "languages"
 }
 
 export const PUT = auth0.withApiAuthRequired(
