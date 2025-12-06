@@ -15,18 +15,18 @@ interface LinksFormProps {
   onNext: () => void;
 }
 
-const emptyLinks: Links = {
+export const emptyLinks: Links = {
   linkString: "",
 };
 
-const linksSchema = Yup.object({
+export const linksSchema = Yup.object({
   linkString: Yup.string()
   .required("Link jest wymagany")
     .min(5, "Link musi mieć co najmniej 5 znaków")
     .max(150, "Link nie może być dłuższy niż 150 znaków"),
 });
 
-const linksFormValidator = Yup.object({
+export const linksFormValidator = Yup.object({
   links: Yup.array().of(linksSchema)
 });
 

@@ -50,7 +50,8 @@ enum APIParams {
   education = "education",
   work = "work-experiences",
   certificates = "certificates",
-  languages = "languages"
+  languages = "languages",
+  links = "links"
 }
 
 export const PUT = auth0.withApiAuthRequired(

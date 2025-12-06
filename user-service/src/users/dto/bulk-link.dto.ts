@@ -1,4 +1,4 @@
-import { IsArray, ValidateNested } from 'class-validator';
+import { IsArray, Matches, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
   IsString,
@@ -17,7 +17,9 @@ export class LinkItemDto {
 
   @IsString()
   @IsNotEmpty()
-  @IsUrl()
+  @Matches(/^https?:\/\/.+/, {
+    message: 'Link must start with http:// or https://',
+  })
   @MinLength(5)
   @MaxLength(150)
   linkString: string;

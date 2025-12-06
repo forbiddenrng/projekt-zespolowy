@@ -4,9 +4,10 @@ import { useParams } from "next/navigation";
 import EditPersonalForm from "./components/EditPersonalForm";
 import EditAbilitiesForm from "./components/EditAbilitiesForm";
 import EditEducationForm from "./components/EditEducationForm";
-import EditWorkExperienceForm from "./components/EditWorkExperience";
-import EditCertificatesForm from "./components/EditCertificates";
+import EditWorkExperienceForm from "./components/EditWorkExperienceForm";
+import EditCertificatesForm from "./components/EditCertificatesForm";
 import EditLanguagesForm from "./components/EditLanguagesForm";
+import EditLinksForm from "./components/EditLinksForm";
 
 export default function EditPage() {
   const params = useParams();
@@ -38,8 +39,8 @@ export default function EditPage() {
         return <EditAbilitiesForm />;
       case "languages":
         return <EditLanguagesForm />;
-      // case "links":
-      //   return <EditLinksForm />;
+      case "links":
+        return <EditLinksForm />;
       case "certificates":
         return <EditCertificatesForm />;
       default:
