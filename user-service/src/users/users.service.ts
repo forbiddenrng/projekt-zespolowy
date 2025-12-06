@@ -5,20 +5,20 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { AbilityDto } from './dto/create-ability.dto';
-import { UpdateAbilityDto } from './dto/update-ability.dto';
-import { CertificateDto } from './dto/create-certificate.dto';
-import { UpdateCertificateDto } from './dto/update-certificate.dto';
-import { EducationDto } from './dto/create-education.dto';
-import { UpdateEducationDto } from './dto/update-education.dto';
-import { LinkDto } from './dto/create-link.dto';
-import { UpdateLinkDto } from './dto/update-link.dto';
-import { WorkExperienceDto } from './dto/create-work-experience.dto';
-import { UpdateWorkExperienceDto } from './dto/update-work-experience.dto';
-import { LanguageDto } from './dto/create-language.dto';
-import { UpdateLanguageDto } from './dto/update-language.dto';
 import { FindOneQueryParams } from 'src/ts/types';
+import { CreateUserDto } from './dto/create-user.dto';
+import { LinkDto } from './dto/create-link.dto';
+import { EducationDto } from './dto/create-education.dto';
+import { CertificateDto } from './dto/create-certificate.dto';
+import { AbilityDto } from './dto/create-ability.dto';
+import { WorkExperienceDto } from './dto/create-work-experience.dto';
+import { LanguageDto } from './dto/create-language.dto';
+import { BulkEducationDto } from './dto/bulk-education.dto';
+import { BulkWorkExperienceDto } from './dto/bulk-work-experience.dto';
+import { BulkCertificatesDto } from './dto/bulk-certificate.dto';
+import { BulkLanguagesDto } from './dto/bulk-language.dto';
+import { BulkLinksDto } from './dto/bulk-link.dto';
+import { BulkAbilitiesDto } from './dto/bulk-ability.dto';
 
 @Injectable()
 export class UsersService {
@@ -355,86 +355,86 @@ export class UsersService {
     };
   }
 
-  async addWorkExperience(
+  // merge work experience records for current user
+  async mergeWorkExperiences(
     reqUserId: string | undefined,
-    dto: WorkExperienceDto,
+    dto: BulkWorkExperienceDto,
   ) {
     if (!reqUserId) throw new BadRequestException('User id not provided');
+
     const user = await this.databaseService.user.findUnique({
       where: { auth0_id: reqUserId },
     });
     if (!user) throw new NotFoundException('User not found');
 
-    const created = await this.databaseService.work_Experience.create({
-      data: {
-        user_id: user.id,
-        company_name: dto.companyName,
-        position: dto.position,
-        description: dto.description,
-        begin_date: new Date(dto.beginDate),
-        end_date: dto.endDate ? new Date(dto.endDate) : undefined,
+    const workExpList = dto.workExperiences || [];
+
+    const existing = await this.databaseService.work_Experience.findMany({
+      where: { user_id: user.id },
+    });
+
+    const existingIds = existing.map((e) => e.id);
+    const providedIds = workExpList
+      .filter((item) => item.id !== undefined)
+      .map((item) => item.id);
+
+    const idsToDelete = existingIds.filter((id) => !providedIds.includes(id));
+
+    const result = await this.databaseService.$transaction(async (prisma) => {
+      if (idsToDelete.length > 0) {
+        await prisma.work_Experience.deleteMany({
+          where: {
+            id: { in: idsToDelete },
+            user_id: user.id,
+          },
+        });
+      }
+
+      const operations = workExpList.map((item) => {
+        if (item.id) {
+          const existingRecord = existing.find((e) => e.id === item.id);
+          if (!existingRecord) {
+            throw new NotFoundException(
+              `Work experience record with id ${item.id} not found for this user`,
+            );
+          }
+
+          return prisma.work_Experience.update({
+            where: { id: item.id },
+            data: {
+              company_name: item.companyName,
+              position: item.position,
+              description: item.description,
+              begin_date: new Date(item.beginDate),
+              end_date: item.endDate ? new Date(item.endDate) : null,
+            },
+          });
+        } else {
+          return prisma.work_Experience.create({
+            data: {
+              user_id: user.id,
+              company_name: item.companyName,
+              position: item.position,
+              description: item.description,
+              begin_date: new Date(item.beginDate),
+              end_date: item.endDate ? new Date(item.endDate) : undefined,
+            },
+          });
+        }
+      });
+
+      return Promise.all(operations);
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Work experiences synchronized',
+      data: result,
+      metadata: {
+        created: result.filter((r) => !existingIds.includes(r.id)).length,
+        updated: result.filter((r) => existingIds.includes(r.id)).length,
+        deleted: idsToDelete.length,
       },
-    });
-
-    return { statusCode: 201, message: 'Work experience added', data: created };
-  }
-
-  async updateWorkExperience(
-    reqUserId: string | undefined,
-    id: number,
-    dto: UpdateWorkExperienceDto,
-  ) {
-    if (!reqUserId) throw new BadRequestException('User id not provided');
-    const user = await this.databaseService.user.findUnique({
-      where: { auth0_id: reqUserId },
-    });
-    if (!user) throw new NotFoundException('User not found');
-
-    const existing = await this.databaseService.work_Experience.findUnique({
-      where: { id },
-    });
-    if (!existing || existing.user_id !== user.id)
-      throw new NotFoundException('Work experience not found for this user');
-
-    const data: any = {};
-    if (dto.companyName !== undefined) data.company_name = dto.companyName;
-    if (dto.position !== undefined) data.position = dto.position;
-    if (dto.description !== undefined) data.description = dto.description;
-    if (dto.beginDate !== undefined) data.begin_date = new Date(dto.beginDate);
-    if (dto.endDate !== undefined)
-      data.end_date = dto.endDate ? new Date(dto.endDate) : null;
-
-    const updated = await this.databaseService.work_Experience.update({
-      where: { id },
-      data,
-    });
-    return {
-      statusCode: 200,
-      message: 'Work experience updated',
-      data: updated,
-    };
-  }
-
-  async removeWorkExperience(reqUserId: string | undefined, id: number) {
-    if (!reqUserId) throw new BadRequestException('User id not provided');
-    const user = await this.databaseService.user.findUnique({
-      where: { auth0_id: reqUserId },
-    });
-    if (!user) throw new NotFoundException('User not found');
-
-    const existing = await this.databaseService.work_Experience.findUnique({
-      where: { id },
-    });
-    if (!existing || existing.user_id !== user.id)
-      throw new NotFoundException('Work experience not found for this user');
-
-    const deleted = await this.databaseService.work_Experience.delete({
-      where: { id },
-    });
-    return {
-      statusCode: 200,
-      message: 'Work experience deleted',
-      data: deleted,
     };
   }
 
@@ -485,78 +485,94 @@ export class UsersService {
     };
   }
 
-  async addEducation(reqUserId: string | undefined, dto: EducationDto) {
+  /*
+   * merge education records for current user
+   * - items with id: UPDATE
+   * - items without id: CREATE
+   * - items not in list: DELETE
+   */
+  async mergeEducation(reqUserId: string | undefined, dto: BulkEducationDto) {
     if (!reqUserId) throw new BadRequestException('User id not provided');
+
     const user = await this.databaseService.user.findUnique({
       where: { auth0_id: reqUserId },
     });
     if (!user) throw new NotFoundException('User not found');
 
-    const created = await this.databaseService.education.create({
-      data: {
-        user_id: user.id,
-        school_name: dto.schoolName,
-        major: dto.major,
-        degree: dto.degree,
-        begin_date: new Date(dto.beginDate),
-        end_date: dto.endDate ? new Date(dto.endDate) : undefined,
+    const educationList = dto.education || [];
+
+    const existing = await this.databaseService.education.findMany({
+      where: { user_id: user.id },
+    });
+
+    const existingIds = existing.map((e) => e.id);
+    const providedIds = educationList
+      .filter((item) => item.id !== undefined)
+      .map((item) => item.id);
+
+    const idsToDelete = existingIds.filter((id) => !providedIds.includes(id));
+
+    const result = await this.databaseService.$transaction(async (prisma) => {
+      // 1. DELETE records not in the list
+      if (idsToDelete.length > 0) {
+        await prisma.education.deleteMany({
+          where: {
+            id: { in: idsToDelete },
+            user_id: user.id,
+          },
+        });
+      }
+
+      // 2. CREATE or UPDATE records
+      const operations = educationList.map((item) => {
+        if (item.id) {
+          // verify ownership
+          const existingRecord = existing.find((e) => e.id === item.id);
+          if (!existingRecord) {
+            throw new NotFoundException(
+              `Education record with id ${item.id} not found for this user`,
+            );
+          }
+
+          // UPDATE
+          return prisma.education.update({
+            where: { id: item.id },
+            data: {
+              school_name: item.schoolName,
+              major: item.major,
+              degree: item.degree,
+              begin_date: new Date(item.beginDate),
+              end_date: item.endDate ? new Date(item.endDate) : null,
+            },
+          });
+        } else {
+          // CREATE
+          return prisma.education.create({
+            data: {
+              user_id: user.id,
+              school_name: item.schoolName,
+              major: item.major,
+              degree: item.degree,
+              begin_date: new Date(item.beginDate),
+              end_date: item.endDate ? new Date(item.endDate) : undefined,
+            },
+          });
+        }
+      });
+
+      return Promise.all(operations);
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Education records synchronized',
+      data: result,
+      metadata: {
+        created: result.filter((r) => !existingIds.includes(r.id)).length,
+        updated: result.filter((r) => existingIds.includes(r.id)).length,
+        deleted: idsToDelete.length,
       },
-    });
-
-    return { statusCode: 201, message: 'Education added', data: created };
-  }
-
-  async updateEducation(
-    reqUserId: string | undefined,
-    id: number,
-    dto: UpdateEducationDto,
-  ) {
-    if (!reqUserId) throw new BadRequestException('User id not provided');
-    const user = await this.databaseService.user.findUnique({
-      where: { auth0_id: reqUserId },
-    });
-    if (!user) throw new NotFoundException('User not found');
-
-    const existing = await this.databaseService.education.findUnique({
-      where: { id },
-    });
-    if (!existing || existing.user_id !== user.id)
-      throw new NotFoundException('Education record not found for this user');
-
-    const data: any = {};
-    if (dto.schoolName !== undefined) data.school_name = dto.schoolName;
-    if (dto.major !== undefined) data.major = dto.major;
-    if (dto.degree !== undefined) data.degree = dto.degree;
-    if (dto.beginDate !== undefined) data.begin_date = new Date(dto.beginDate);
-    if (dto.endDate !== undefined)
-      data.end_date = dto.endDate ? new Date(dto.endDate) : null;
-
-    const updated = await this.databaseService.education.update({
-      where: { id },
-      data,
-    });
-
-    return { statusCode: 200, message: 'Education updated', data: updated };
-  }
-
-  async removeEducation(reqUserId: string | undefined, id: number) {
-    if (!reqUserId) throw new BadRequestException('User id not provided');
-    const user = await this.databaseService.user.findUnique({
-      where: { auth0_id: reqUserId },
-    });
-    if (!user) throw new NotFoundException('User not found');
-
-    const existing = await this.databaseService.education.findUnique({
-      where: { id },
-    });
-    if (!existing || existing.user_id !== user.id)
-      throw new NotFoundException('Education record not found for this user');
-
-    const deleted = await this.databaseService.education.delete({
-      where: { id },
-    });
-
-    return { statusCode: 200, message: 'Education deleted', data: deleted };
+    };
   }
 
   // ---------------------------------
@@ -606,69 +622,76 @@ export class UsersService {
     };
   }
 
-  async addLink(reqUserId: string | undefined, dto: LinkDto) {
+  // merge links for current user
+  async mergeLinks(reqUserId: string | undefined, dto: BulkLinksDto) {
     if (!reqUserId) throw new BadRequestException('User id not provided');
+
     const user = await this.databaseService.user.findUnique({
       where: { auth0_id: reqUserId },
     });
     if (!user) throw new NotFoundException('User not found');
 
-    const created = await this.databaseService.link.create({
-      data: {
-        user_id: user.id,
-        linkString: dto.linkString,
+    const linksList = dto.links || [];
+
+    const existing = await this.databaseService.link.findMany({
+      where: { user_id: user.id },
+    });
+
+    const existingIds = existing.map((e) => e.id);
+    const providedIds = linksList
+      .filter((item) => item.id !== undefined)
+      .map((item) => item.id);
+
+    const idsToDelete = existingIds.filter((id) => !providedIds.includes(id));
+
+    const result = await this.databaseService.$transaction(async (prisma) => {
+      if (idsToDelete.length > 0) {
+        await prisma.link.deleteMany({
+          where: {
+            id: { in: idsToDelete },
+            user_id: user.id,
+          },
+        });
+      }
+
+      const operations = linksList.map((item) => {
+        if (item.id) {
+          const existingRecord = existing.find((e) => e.id === item.id);
+          if (!existingRecord) {
+            throw new NotFoundException(
+              `Link record with id ${item.id} not found for this user`,
+            );
+          }
+
+          return prisma.link.update({
+            where: { id: item.id },
+            data: {
+              linkString: item.linkString,
+            },
+          });
+        } else {
+          return prisma.link.create({
+            data: {
+              user_id: user.id,
+              linkString: item.linkString,
+            },
+          });
+        }
+      });
+
+      return Promise.all(operations);
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Links synchronized',
+      data: result,
+      metadata: {
+        created: result.filter((r) => !existingIds.includes(r.id)).length,
+        updated: result.filter((r) => existingIds.includes(r.id)).length,
+        deleted: idsToDelete.length,
       },
-    });
-
-    return { statusCode: 201, message: 'Link added', data: created };
-  }
-
-  async updateLink(
-    reqUserId: string | undefined,
-    id: number,
-    dto: UpdateLinkDto,
-  ) {
-    if (!reqUserId) throw new BadRequestException('User id not provided');
-    const user = await this.databaseService.user.findUnique({
-      where: { auth0_id: reqUserId },
-    });
-    if (!user) throw new NotFoundException('User not found');
-
-    const existing = await this.databaseService.link.findUnique({
-      where: { id },
-    });
-    if (!existing || existing.user_id !== user.id)
-      throw new NotFoundException('Link record not found for this user');
-
-    const data: any = {};
-    if (dto.linkString !== undefined) data.linkString = dto.linkString;
-
-    const updated = await this.databaseService.link.update({
-      where: { id },
-      data,
-    });
-
-    return { statusCode: 200, message: 'Link updated', data: updated };
-  }
-
-  async removeLink(reqUserId: string | undefined, id: number) {
-    if (!reqUserId) throw new BadRequestException('User id not provided');
-    const user = await this.databaseService.user.findUnique({
-      where: { auth0_id: reqUserId },
-    });
-    if (!user) throw new NotFoundException('User not found');
-
-    const existing = await this.databaseService.link.findUnique({
-      where: { id },
-    });
-    if (!existing || existing.user_id !== user.id)
-      throw new NotFoundException('Link record not found for this user');
-
-    const deleted = await this.databaseService.link.delete({
-      where: { id },
-    });
-
-    return { statusCode: 200, message: 'Link deleted', data: deleted };
+    };
   }
 
   // ----------------------------------------
@@ -718,76 +741,83 @@ export class UsersService {
     };
   }
 
-  async addCertificate(reqUserId: string | undefined, dto: CertificateDto) {
-    if (!reqUserId) throw new BadRequestException('User id not provided');
-    const user = await this.databaseService.user.findUnique({
-      where: { auth0_id: reqUserId },
-    });
-
-    if (!user) throw new NotFoundException('User not found');
-    const data: any = {
-      user_id: user.id,
-      name: dto.name,
-      issuer: dto.issuer,
-    };
-
-    data.certification_date = new Date(dto.certificationDate);
-
-    const created = await this.databaseService.certificate.create({ data });
-    return { statusCode: 201, message: 'Certificate added', data: created };
-  }
-
-  async updateCertificate(
+  // merge certificates for current user
+  async mergeCertificates(
     reqUserId: string | undefined,
-    id: number,
-    dto: UpdateCertificateDto,
+    dto: BulkCertificatesDto,
   ) {
     if (!reqUserId) throw new BadRequestException('User id not provided');
+
     const user = await this.databaseService.user.findUnique({
       where: { auth0_id: reqUserId },
     });
     if (!user) throw new NotFoundException('User not found');
 
-    const existing = await this.databaseService.certificate.findUnique({
-      where: { id },
-    });
-    if (!existing || existing.user_id !== user.id)
-      throw new NotFoundException('Certificate record not found for this user');
+    const certificatesList = dto.certificates || [];
 
-    const data: any = {};
-    if (dto.name !== undefined) data.name = dto.name;
-    if (dto.issuer !== undefined) data.issuer = dto.issuer;
-    if (dto.certificationDate !== undefined)
-      data.certification_date = dto.certificationDate
-        ? new Date(dto.certificationDate)
-        : null;
-
-    const updated = await this.databaseService.certificate.update({
-      where: { id },
-      data,
+    const existing = await this.databaseService.certificate.findMany({
+      where: { user_id: user.id },
     });
 
-    return { statusCode: 200, message: 'Certificate updated', data: updated };
-  }
+    const existingIds = existing.map((e) => e.id);
+    const providedIds = certificatesList
+      .filter((item) => item.id !== undefined)
+      .map((item) => item.id);
 
-  async removeCertificate(reqUserId: string | undefined, id: number) {
-    if (!reqUserId) throw new BadRequestException('User id not provided');
-    const user = await this.databaseService.user.findUnique({
-      where: { auth0_id: reqUserId },
+    const idsToDelete = existingIds.filter((id) => !providedIds.includes(id));
+
+    const result = await this.databaseService.$transaction(async (prisma) => {
+      if (idsToDelete.length > 0) {
+        await prisma.certificate.deleteMany({
+          where: {
+            id: { in: idsToDelete },
+            user_id: user.id,
+          },
+        });
+      }
+
+      const operations = certificatesList.map((item) => {
+        if (item.id) {
+          const existingRecord = existing.find((e) => e.id === item.id);
+          if (!existingRecord) {
+            throw new NotFoundException(
+              `Certificate record with id ${item.id} not found for this user`,
+            );
+          }
+
+          return prisma.certificate.update({
+            where: { id: item.id },
+            data: {
+              name: item.name,
+              issuer: item.issuer,
+              certification_date: new Date(item.certificationDate),
+            },
+          });
+        } else {
+          return prisma.certificate.create({
+            data: {
+              user_id: user.id,
+              name: item.name,
+              issuer: item.issuer,
+              certification_date: new Date(item.certificationDate),
+            },
+          });
+        }
+      });
+
+      return Promise.all(operations);
     });
-    if (!user) throw new NotFoundException('User not found');
 
-    const existing = await this.databaseService.certificate.findUnique({
-      where: { id },
-    });
-    if (!existing || existing.user_id !== user.id)
-      throw new NotFoundException('Certificate record not found for this user');
-
-    const deleted = await this.databaseService.certificate.delete({
-      where: { id },
-    });
-
-    return { statusCode: 200, message: 'Certificate deleted', data: deleted };
+    return {
+      statusCode: 200,
+      message: 'Certificates synchronized',
+      data: result,
+      metadata: {
+        created: result.filter((r) => !existingIds.includes(r.id)).length,
+        updated: result.filter((r) => existingIds.includes(r.id)).length,
+        deleted: idsToDelete.length,
+      },
+    };
   }
 
   // --------------------------------------
@@ -837,87 +867,93 @@ export class UsersService {
     };
   }
 
-  async addAbility(reqUserId: string | undefined, dto: AbilityDto) {
+  // merge abilities for current user
+  async mergeAbilities(reqUserId: string | undefined, dto: BulkAbilitiesDto) {
     if (!reqUserId) throw new BadRequestException('User id not provided');
+
     const user = await this.databaseService.user.findUnique({
       where: { auth0_id: reqUserId },
     });
     if (!user) throw new NotFoundException('User not found');
 
-    const created = await this.databaseService.abilities.create({
-      data: {
-        user_id: user.id,
-        name: dto.name,
+    const abilitiesList = dto.abilities || [];
+
+    const existing = await this.databaseService.abilities.findMany({
+      where: { user_id: user.id },
+    });
+
+    const existingIds = existing.map((e) => e.id);
+    const providedIds = abilitiesList
+      .filter((item) => item.id !== undefined)
+      .map((item) => item.id);
+
+    const idsToDelete = existingIds.filter((id) => !providedIds.includes(id));
+
+    const result = await this.databaseService.$transaction(async (prisma) => {
+      if (idsToDelete.length > 0) {
+        await prisma.abilities.deleteMany({
+          where: {
+            id: { in: idsToDelete },
+            user_id: user.id,
+          },
+        });
+      }
+
+      const operations = abilitiesList.map((item) => {
+        if (item.id) {
+          const existingRecord = existing.find((e) => e.id === item.id);
+          if (!existingRecord) {
+            throw new NotFoundException(
+              `Ability record with id ${item.id} not found for this user`,
+            );
+          }
+
+          return prisma.abilities.update({
+            where: { id: item.id },
+            data: {
+              name: item.name,
+            },
+          });
+        } else {
+          return prisma.abilities.create({
+            data: {
+              user_id: user.id,
+              name: item.name,
+            },
+          });
+        }
+      });
+
+      return Promise.all(operations);
+    });
+
+    return {
+      statusCode: 200,
+      message: 'Abilities synchronized',
+      data: result,
+      metadata: {
+        created: result.filter((r) => !existingIds.includes(r.id)).length,
+        updated: result.filter((r) => existingIds.includes(r.id)).length,
+        deleted: idsToDelete.length,
       },
-    });
-
-    return { statusCode: 201, message: 'Ability added', data: created };
-  }
-
-  async updateAbility(
-    reqUserId: string | undefined,
-    id: number,
-    dto: UpdateAbilityDto,
-  ) {
-    if (!reqUserId) throw new BadRequestException('User id not provided');
-    const user = await this.databaseService.user.findUnique({
-      where: { auth0_id: reqUserId },
-    });
-    if (!user) throw new NotFoundException('User not found');
-
-    const existing = await this.databaseService.abilities.findUnique({
-      where: { id },
-    });
-    if (!existing || existing.user_id !== user.id)
-      throw new NotFoundException('Ability record not found for this user');
-
-    const data: any = {};
-    if (dto.name !== undefined) data.name = dto.name;
-
-    const updated = await this.databaseService.abilities.update({
-      where: { id },
-      data,
-    });
-
-    return { statusCode: 200, message: 'Ability updated', data: updated };
-  }
-
-  async removeAbility(reqUserId: string | undefined, id: number) {
-    if (!reqUserId) throw new BadRequestException('User id not provided');
-    const user = await this.databaseService.user.findUnique({
-      where: { auth0_id: reqUserId },
-    });
-    if (!user) throw new NotFoundException('User not found');
-
-    const existing = await this.databaseService.abilities.findUnique({
-      where: { id },
-    });
-    if (!existing || existing.user_id !== user.id)
-      throw new NotFoundException('Ability record not found for this user');
-
-    const deleted = await this.databaseService.abilities.delete({
-      where: { id },
-    });
-
-    return { statusCode: 200, message: 'Ability deleted', data: deleted };
+    };
   }
 
   // ------------------------------------------------------
   // ----- Languages (user_languages) related methods -----
   // ------------------------------------------------------
 
-
-  //get all languages
-  async getAllLanguages(){
+  // get all languages
+  async getAllLanguages() {
     const languages = await this.databaseService.languages.findMany({
-      orderBy: {name: 'asc'}
+      orderBy: { name: 'asc' },
     });
 
     return {
       statusCode: 200,
       message: 'Languages fetched',
-      data: languages
-    }
+      data: languages,
+    };
   }
 
   // list languages for current user (req.userId parsed from x-user)
@@ -966,7 +1002,9 @@ export class UsersService {
     };
   }
 
-  async addLanguage(reqUserId: string | undefined, dto: LanguageDto) {
+  // merge languages for current user
+  // languages is a many-to-many relationship (user_languages table)
+  async mergeLanguages(reqUserId: string | undefined, dto: BulkLanguagesDto) {
     if (!reqUserId) throw new BadRequestException('User id not provided');
 
     const user = await this.databaseService.user.findUnique({
@@ -974,78 +1012,113 @@ export class UsersService {
     });
     if (!user) throw new NotFoundException('User not found');
 
-    const language = await this.databaseService.languages.findUnique({
-      where: { id: dto.languageId },
-    });
-    if (!language) throw new NotFoundException('Language not found');
+    const languagesList = dto.languages || [];
 
-    const created = await this.databaseService.user_Languages.create({
-      data: {
-        user_id: user.id,
-        language_id: dto.languageId,
-        level: dto.level,
-      },
-    });
-
-    return { statusCode: 201, message: 'Language added', data: created };
-  }
-
-  async updateLanguage(
-    reqUserId: string | undefined,
-    id: number,
-    dto: UpdateLanguageDto,
-  ) {
-    if (!reqUserId) throw new BadRequestException('User id not provided');
-
-    const user = await this.databaseService.user.findUnique({
-      where: { auth0_id: reqUserId },
-    });
-    if (!user) throw new NotFoundException('User not found');
-
-    const existing = await this.databaseService.user_Languages.findUnique({
-      where: { id },
-      include: { language: true },
-    });
-    if (!existing || existing.user_id !== user.id)
-      throw new NotFoundException('Language record not found for this user');
-
-    const data: any = {};
-    if (dto.level !== undefined) data.level = dto.level;
-    if (dto.languageId !== undefined) {
-      // validate language exists
-      const lang = await this.databaseService.languages.findUnique({
-        where: { id: dto.languageId },
-      });
-      if (!lang) throw new NotFoundException('Language not found');
-      data.language_id = dto.languageId;
+    // pre-validate duplicates in payload
+    const seen = new Set<number>();
+    for (const item of languagesList) {
+      if (seen.has(item.languageId)) {
+        throw new BadRequestException(
+          `Language ${item.languageId} is provided more than once in payload`,
+        );
+      }
+      seen.add(item.languageId);
     }
 
-    const updated = await this.databaseService.user_Languages.update({
-      where: { id },
-      data,
+    // batch-fetch languages and validate existence
+    const uniqueLangIds = [...seen];
+    const validLanguages = await this.databaseService.languages.findMany({
+      where: { id: { in: uniqueLangIds } },
+    });
+    const validLangIds = new Set(validLanguages.map((l) => l.id));
+    for (const item of languagesList) {
+      if (!validLangIds.has(item.languageId)) {
+        throw new NotFoundException(
+          `Language with id ${item.languageId} not found`,
+        );
+      }
+    }
+
+    const existing = await this.databaseService.user_Languages.findMany({
+      where: { user_id: user.id },
+      include: { language: true },
     });
 
-    return { statusCode: 200, message: 'Language updated', data: updated };
-  }
+    const existingIds = existing.map((e) => e.id);
+    const providedIds = languagesList
+      .filter((item) => item.id !== undefined)
+      .map((item) => item.id);
 
-  async removeLanguage(reqUserId: string | undefined, id: number) {
-    if (!reqUserId) throw new BadRequestException('User id not provided');
+    const idsToDelete = existingIds.filter((id) => !providedIds.includes(id));
 
-    const user = await this.databaseService.user.findUnique({
-      where: { auth0_id: reqUserId },
+    const result = await this.databaseService.$transaction(async (prisma) => {
+      if (idsToDelete.length > 0) {
+        await prisma.user_Languages.deleteMany({
+          where: { id: { in: idsToDelete }, user_id: user.id },
+        });
+      }
+
+      const out: typeof existing = [];
+      for (const item of languagesList) {
+        if (item.id) {
+          const duplicateLanguage = await prisma.user_Languages.findFirst({
+            where: {
+              user_id: user.id,
+              language_id: item.languageId,
+              id: { not: item.id },
+            },
+          });
+          if (duplicateLanguage) {
+            throw new BadRequestException(
+              `Language ${item.languageId} is already added for this user`,
+            );
+          }
+
+          out.push(
+            await prisma.user_Languages.update({
+              where: { id: item.id },
+              data: { language_id: item.languageId, level: item.level },
+              include: { language: true },
+            }),
+          );
+        } else {
+          const duplicateLanguage = await prisma.user_Languages.findFirst({
+            where: {
+              user_id: user.id,
+              language_id: item.languageId,
+            },
+          });
+          if (duplicateLanguage) {
+            throw new BadRequestException(
+              `Language ${item.languageId} is already added for this user`,
+            );
+          }
+
+          out.push(
+            await prisma.user_Languages.create({
+              data: {
+                user_id: user.id,
+                language_id: item.languageId,
+                level: item.level,
+              },
+              include: { language: true },
+            }),
+          );
+        }
+      }
+
+      return out;
     });
-    if (!user) throw new NotFoundException('User not found');
 
-    const existing = await this.databaseService.user_Languages.findUnique({
-      where: { id },
-    });
-    if (!existing || existing.user_id !== user.id)
-      throw new NotFoundException('Language record not found for this user');
-
-    const deleted = await this.databaseService.user_Languages.delete({
-      where: { id },
-    });
-
-    return { statusCode: 200, message: 'Language deleted', data: deleted };
+    return {
+      statusCode: 200,
+      message: 'Languages synchronized',
+      data: result,
+      metadata: {
+        created: result.filter((r) => !existingIds.includes(r.id)).length,
+        updated: result.filter((r) => existingIds.includes(r.id)).length,
+        deleted: idsToDelete.length,
+      },
+    };
   }
 }
