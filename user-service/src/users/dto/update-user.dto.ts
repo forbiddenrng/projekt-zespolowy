@@ -1,20 +1,18 @@
 import {
   IsString,
   IsOptional,
-  IsNotEmpty,
   MinLength,
+  MaxLength,
   IsPhoneNumber,
 } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
   name?: string;
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
   surname?: string;
 
   @IsOptional()
@@ -24,7 +22,8 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
+  @MinLength(2)
+  @MaxLength(100)
   city?: string;
 
   @IsOptional()
