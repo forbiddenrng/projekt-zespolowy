@@ -55,6 +55,9 @@ export const PUT = auth0.withApiAuthRequired(
       const body = await req.json();
       const url = new URL(req.url);
       const resource = url.searchParams.get("resource");
+
+      console.log(body)
+      console.log(resource)
       
       if (!resource){
         return NextResponse.json({

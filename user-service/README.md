@@ -125,7 +125,7 @@ Formaty ogólne:
 
 - Możliwe błędy:
   - 400 BadRequest - brak parsowalnego `x-user` lub walidacja DTO (ValidationPipe) - zobacz [`src/main.ts`](user-service/src/main.ts).
-  - 409 Conflict - Prisma P2002 (unique constraint) → mapowane przez [`PrismaClientExceptionFilter`](user-service/src/prisma-client-exception/prisma-client-exception.filter.ts).
+  - 409 Conflict - Prisma P2002 (unique constraint) -> mapowane przez [`PrismaClientExceptionFilter`](user-service/src/prisma-client-exception/prisma-client-exception.filter.ts).
 
 ### 1a) Aktualizacja profilu użytkownika
 
@@ -157,7 +157,7 @@ Formaty ogólne:
 
 - GET /users/:id
   - Opis: Publiczne pobranie użytkownika po auth0Id (np. `auth0|123`) - identyczne query params jak powyżej.
-  - Kontroler: [`UsersController.findOne`](user-service/src/users/users.controller.ts) → serwis [`UsersService.findOne`](user-service/src/users/users.service.ts).
+  - Kontroler: [`UsersController.findOne`](user-service/src/users/users.controller.ts) -> serwis [`UsersService.findOne`](user-service/src/users/users.service.ts).
 
 - Implementacja zapytań wykorzystuje `buildFindOneQuery` w [`UsersService`](user-service/src/users/users.service.ts) (konstruuje `select` dla Prisma).
 
@@ -181,31 +181,18 @@ Formaty ogólne:
 
 ### 5) Relacje (work-experience, education, links, certificates, abilities, languages)
 
-- Wszystkie endpointy tworzenia/aktualizacji dla relacji używają schematu:
-  - POST /users/<resource> - dla aktualnego użytkownika (nagłówek `x-user` parsowany przez [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts)).
-  - GET /users/<resource> - listuje zasoby aktualnego użytkownika (z nagłówka).
-  - GET /users/:id/<resource> - publiczne listowanie po auth0Id (dla innych serwisów).
-  - PATCH /users/<resource>/:id i DELETE /users/<resource>/:id - operacje nad zasobami przypisanymi do aktualnego użytkownika (weryfikacja user_id w serwisie).
+Schemat dla każdej relacji:
+
+- GET `/users/<resource>` - dla bieżącego użytkownika (x-user)
+- GET `/users/:id/<resource>` - publicznie po auth0Id
+- PUT `/users/<resource>` - bulk merge:
+  - elementy z `id`: UPDATE
+  - elementy bez `id`: CREATE
+  - elementy nieprzesłane: DELETE
+  - pusta lista `[]`: usuwa wszystkie
+- Zwracane `metadata`: `{ created, updated, deleted }`
 
 ### 5a) Work experience (doświadczenie) - endpointy
-
-- POST /users/work-experiences
-  - Opis: Dodaje wpis doświadczenia zawodowego do profilu zalogowanego użytkownika.
-  - Header: x-user: JSON.stringify({ "id": "auth0|..." }) (string) - nagłówek generowany przez gateway ([gateway/index.js](gateway/index.js)).
-  - Body (JSON, zgodne z [`WorkExperienceDto`](user-service/src/users/dto/create-work-experience.dto.ts)):
-    ```json
-    {
-      "companyName": "Firma S.A.",
-      "position": "Senior Developer",
-      "beginDate": "2023-01-01T00:00:00.000Z",
-      "endDate": "2024-01-01T00:00:00.000Z", // opcjonalne
-      "description": "Opis stanowiska..."
-    }
-    ```
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 201 i dodanym obiektem doświadczenia (zwracane pola zgodne z modelem DB).
-  - Powiązane implementacje:
-    - Kontroler: [`WorkExperienceController`](user-service/src/users/work-experience.controller.ts)
-    - Serwis: [`UsersService.addWorkExperience`](user-service/src/users/users.service.ts)
 
 - GET /users/work-experiences
   - Opis: Zwraca listę doświadczeń zalogowanego użytkownika na podstawie nagłówka `x-user`.
@@ -219,26 +206,13 @@ Formaty ogólne:
   - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i tablicą obiektów doświadczenia.
   - Powiązane: [`UsersService.listWorkExperiencesByAuth0Id`](user-service/src/users/users.service.ts)
 
-- PATCH /users/work-experiences/:id
-  - Opis: Aktualizuje istniejący wpis doświadczenia należący do zalogowanego użytkownika.
-  - Header: x-user (jak powyżej)
-  - Path param: :id - identyfikator rekordu doświadczenia (liczba)
-  - Body (JSON, dowolne pola dostępne w [`UpdateWorkExperienceDto`](user-service/src/users/dto/update-work-experience.dto.ts)):
-    ```json
-    {
-      "position": "Lead Developer",
-      "endDate": "2024-12-31T00:00:00.000Z"
-    }
-    ```
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i zaktualizowanym obiektem.
-  - Powiązane: [`UsersService.updateWorkExperience`](user-service/src/users/users.service.ts)
-
-- DELETE /users/work-experiences/:id
-  - Opis: Usuwa wpis doświadczenia należący do zalogowanego użytkownika.
-  - Header: x-user (jak powyżej)
-  - Path param: :id - identyfikator rekordu doświadczenia (liczba)
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i usuniętym obiektem.
-  - Powiązane: [`UsersService.removeWorkExperience`](user-service/src/users/users.service.ts)
+- PUT /users/work-experiences - bulk merge pełnej listy doświadczeń
+  - Header: `x-user`
+  - Body (DTO: [`BulkWorkExperienceDto`](src/users/dto/bulk-work-experience.dto.ts)):
+    - `workExperiences`: tablica obiektów `{ id?, companyName, position, description, beginDate, endDate? }`
+  - Strategia: z `id` -> UPDATE, bez `id` -> CREATE, nieprzesłane -> DELETE, `[]` -> usuń wszystkie
+  - Odpowiedź: `statusCode: 200`, `metadata: { created, updated, deleted }`
+  - Kontroler: [`WorkExperienceController.bulkMerge`](src/users/work-experience.controller.ts) -> Serwis: [`UsersService.mergeWorkExperiences`](src/users/users.service.ts)
 
 Uwaga dotycząca dat i walidacji:
 
@@ -250,37 +224,9 @@ Błędy i zachowanie
 - 404 NotFound - rekord nie istnieje lub nie należy do zalogowanego użytkownika.
 - 409 Conflict - naruszenie unikalności (Prisma P2002), obsługiwane przez [`PrismaClientExceptionFilter`](user-service/src/prisma-client-exception/prisma-client-exception.filter.ts).
 
-Powiązane pliki/symbole:
-
-- [`WorkExperienceController`](user-service/src/users/work-experience.controller.ts)
-- [`WorkExperienceDto`](user-service/src/users/dto/create-work-experience.dto.ts)
-- [`UpdateWorkExperienceDto`](user-service/src/users/dto/update-work-experience.dto.ts)
-- [`UsersService`](user-service/src/users/users.service.ts)
-- [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts)
-- [`UsersModule`](user-service/src/users/users.module.ts)
-- Gateway: [`gateway/index.js`](gateway/index.js)
-
 ---
 
 ### 5b) Education (wykształcenie) - endpointy
-
-- POST /users/education
-  - Opis: Dodaje wpis wykształcenia do profilu zalogowanego użytkownika.
-  - Header: x-user: JSON.stringify({ "id": "auth0|..." }) (string) - nagłówek generowany przez gateway ([gateway/index.js](gateway/index.js)) i parsowany przez [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts).
-  - Body (JSON, zgodne z [`EducationDto`](user-service/src/users/dto/create-education.dto.ts)):
-    ```json
-    {
-      "schoolName": "Uniwersytet X",
-      "major": "Informatyka",
-      "degree": "Inżynier",
-      "beginDate": "2018-10-01T00:00:00.000Z",
-      "endDate": "2022-06-30T00:00:00.000Z" // opcjonalne
-    }
-    ```
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 201 i dodanym obiektem (pola zgodne z modelem DB `Education`).
-  - Powiązane implementacje:
-    - Kontroler: [`EducationController`](user-service/src/users/education.controller.ts)
-    - Serwis: [`UsersService.addEducation`](user-service/src/users/users.service.ts)
 
 - GET /users/education
   - Opis: Zwraca listę wpisów wykształcenia zalogowanego użytkownika (id z nagłówka `x-user`).
@@ -294,26 +240,13 @@ Powiązane pliki/symbole:
   - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i tablicą wpisów.
   - Powiązane: [`UsersService.listEducationByAuth0Id`](user-service/src/users/users.service.ts)
 
-- PATCH /users/education/:id
-  - Opis: Aktualizuje wpis wykształcenia należący do zalogowanego użytkownika.
-  - Header: x-user (jak powyżej)
-  - Path param: :id - identyfikator rekordu Education (liczba)
-  - Body: dowolne pola z [`UpdateEducationDto`](user-service/src/users/dto/update-education.dto.ts):
-    ```json
-    {
-      "degree": "Magister",
-      "endDate": "2023-06-30T00:00:00.000Z"
-    }
-    ```
-  - Odpowiedź: SuccessResponse ze statusCode 200 i zaktualizowanym obiektem.
-  - Powiązane: [`UsersService.updateEducation`](user-service/src/users/users.service.ts)
-
-- DELETE /users/education/:id
-  - Opis: Usuwa wpis wykształcenia należący do zalogowanego użytkownika.
-  - Header: x-user (jak powyżej)
-  - Path param: :id - identyfikator rekordu Education (liczba)
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i usuniętym obiektem.
-  - Powiązane: [`UsersService.removeEducation`](user-service/src/users/users.service.ts)
+- PUT /users/education - bulk merge pełnej listy edukacji
+  - Header: `x-user`
+  - Body (DTO: [`BulkEducationDto`](src/users/dto/bulk-education.dto.ts)):
+    - `education`: tablica `{ id?, schoolName, major, degree, beginDate, endDate? }`
+  - Strategia jak wyżej (UPDATE/CREATE/DELETE)
+  - Odpowiedź: `statusCode: 200`, `metadata: { created, updated, deleted }`
+  - Kontroler: [`EducationController.bulkMerge`](src/users/education.controller.ts) -> Serwis: [`UsersService.mergeEducation`](src/users/users.service.ts)
 
 Uwaga dotycząca dat i walidacji:
 
@@ -325,33 +258,9 @@ Błędy i zachowanie
 - 404 NotFound - rekord nie istnieje lub nie należy do zalogowanego użytkownika.
 - 409 Conflict - naruszenie unikalności (Prisma P2002), obsługiwane przez [`PrismaClientExceptionFilter`](user-service/src/prisma-client-exception/prisma-client-exception.filter.ts).
 
-Powiązane pliki/symbole:
-
-- [`EducationController`](user-service/src/users/education.controller.ts)
-- [`EducationDto`](user-service/src/users/dto/create-education.dto.ts)
-- [`UpdateEducationDto`](user-service/src/users/dto/update-education.dto.ts)
-- [`UsersService`](user-service/src/users/users.service.ts)
-- [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts)
-- [`UsersModule`](user-service/src/users/users.module.ts)
-- Gateway: [`gateway/index.js`](gateway/index.js)
-
 ---
 
 ### 5c) Links - endpointy
-
-- POST /users/links
-  - Opis: Dodaje wpis z linkiem (np. GitHub, LinkedIn) do profilu zalogowanego użytkownika.
-  - Header: `x-user: JSON.stringify({ "id": "auth0|..." })` (string) - nagłówek generowany przez gateway ([gateway/index.js](gateway/index.js)) i parsowany przez [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts).
-  - Body (JSON, zgodne z [`LinkDto`](user-service/src/users/dto/create-link.dto.ts)):
-    ```json
-    {
-      "linkString": "https://github.com/jan"
-    }
-    ```
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 201 i dodanym obiektem `Link`.
-  - Powiązane implementacje:
-    - Kontroler: [`LinksController`](user-service/src/users/links.controller.ts)
-    - Serwis: [`UsersService.addLink`](user-service/src/users/users.service.ts)
 
 - GET /users/links
   - Opis: Zwraca listę linków zalogowanego użytkownika (id z nagłówka `x-user`).
@@ -365,55 +274,21 @@ Powiązane pliki/symbole:
   - Odpowiedź: SuccessResponse ze statusCode 200 i tablicą obiektów.
   - Powiązane: [`UsersService.listLinksByAuth0Id`](user-service/src/users/users.service.ts)
 
-- PATCH /users/links/:id
-  - Opis: Aktualizuje wpis linku należący do zalogowanego użytkownika.
-  - Header: x-user (jak powyżej)
-  - Path param: `:id` - identyfikator rekordu Link (liczba)
-  - Body: `UpdateLinkDto` (np. `{ "linkString": "https://..." }`) - definicja: [`UpdateLinkDto`](user-service/src/users/dto/update-link.dto.ts)
-  - Odpowiedź: SuccessResponse ze statusCode 200 i zaktualizowanym obiektem.
-  - Powiązane: [`UsersService.updateLink`](user-service/src/users/users.service.ts)
-
-- DELETE /users/links/:id
-  - Opis: Usuwa wpis linku należący do zalogowanego użytkownika.
-  - Header: x-user (jak powyżej)
-  - Path param: `:id` - identyfikator rekordu Link (liczba)
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i usuniętym obiektem.
-  - Powiązane: [`UsersService.removeLink`](user-service/src/users/users.service.ts)
+- PUT /users/links - bulk merge pełnej listy linków
+  - Header: `x-user`
+  - Body (DTO: [`BulkLinksDto`](src/users/dto/bulk-link.dto.ts)):
+    - `links`: tablica `{ id?, linkString }`
+  - Strategia jak wyżej (UPDATE/CREATE/DELETE)
+  - Odpowiedź: `statusCode: 200`, `metadata: { created, updated, deleted }`
+  - Kontroler: [`LinksController.bulkMerge`](src/users/links.controller.ts) -> Serwis: [`UsersService.mergeLinks`](src/users/users.service.ts)
 
 Uwagi:
 
 - Pola DTO są walidowane przez klasy w [`user-service/src/users/dto/`](user-service/src/users/dto/). Błędy walidacji zwrócą 400 Bad Request.
-- Wszystkie endpointy tworzenia/aktualizacji pobierają id użytkownika z nagłówka i przypisują rekord do wewnętrznego `user.id` (logika w [`UsersService`](user-service/src/users/users.service.ts)).
-
-Powiązane pliki/symbole (otwórz w edytorze):
-
-- [`LinksController`](user-service/src/users/links.controller.ts)
-- [`LinkDto`](user-service/src/users/dto/create-link.dto.ts)
-- [`UpdateLinkDto`](user-service/src/users/dto/update-link.dto.ts)
-- [`addLink`, `listLinksForCurrentUser`, `listLinksByAuth0Id`, `updateLink`, `removeLink`](user-service/src/users/users.service.ts)
-- [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts) - parsowanie `x-user`
-- [`UsersModule`](user-service/src/users/users.module.ts) - rejestracja kontrolerów
-- Gateway: [`gateway/index.js`](gateway/index.js)
 
 ---
 
 ### 5d) Certificates (certyfikaty) - endpointy
-
-- POST /users/certificates
-  - Opis: Dodaje wpis certyfikatu do profilu zalogowanego użytkownika.
-  - Header: `x-user: JSON.stringify({ "id": "auth0|..." })` (string) - nagłówek generowany przez gateway ([gateway/index.js](gateway/index.js)) i parsowany przez [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts).
-  - Body (JSON, zgodne z [`CertificateDto`](user-service/src/users/dto/create-certificate.dto.ts)):
-    ```json
-    {
-      "name": "Certyfikat X",
-      "issuer": "Issuer Y",
-      "certificationDate": "2022-06-30T00:00:00.000Z"
-    }
-    ```
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 201 i dodanym obiektem `Certificate`.
-  - Powiązane implementacje:
-    - Kontroler: [`CertificatesController`](user-service/src/users/certificates.controller.ts)
-    - Serwis: [`UsersService.addCertificate`](user-service/src/users/users.service.ts)
 
 - GET /users/certificates
   - Opis: Zwraca listę certyfikatów zalogowanego użytkownika (id z nagłówka `x-user`).
@@ -427,20 +302,13 @@ Powiązane pliki/symbole (otwórz w edytorze):
   - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i tablicą wpisów.
   - Powiązane: [`UsersService.listCertificatesByAuth0Id`](user-service/src/users/users.service.ts)
 
-- PATCH /users/certificates/:id
-  - Opis: Aktualizuje wpis certyfikatu należący do zalogowanego użytkownika.
-  - Header: x-user (jak powyżej)
-  - Path param: `:id` - identyfikator rekordu Certificate (liczba)
-  - Body: `UpdateCertificateDto` (np. `{ "issuer": "Nowy Issuer" }`) - definicja: [`UpdateCertificateDto`](user-service/src/users/dto/update-certificate.dto.ts)
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i zaktualizowanym obiektem.
-  - Powiązane: [`UsersService.updateCertificate`](user-service/src/users/users.service.ts)
-
-- DELETE /users/certificates/:id
-  - Opis: Usuwa wpis certyfikatu należący do zalogowanego użytkownika.
-  - Header: x-user (jak powyżej)
-  - Path param: `:id` - identyfikator rekordu Certificate (liczba)
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i usuniętym obiektem.
-  - Powiązane: [`UsersService.removeCertificate`](user-service/src/users/users.service.ts)
+- PUT /users/certificates - bulk merge pełnej listy certyfikatów
+  - Header: `x-user`
+  - Body (DTO: [`BulkCertificatesDto`](src/users/dto/bulk-certificate.dto.ts)):
+    - `certificates`: tablica `{ id?, name, issuer, certificationDate }`
+  - Strategia jak wyżej (UPDATE/CREATE/DELETE)
+  - Odpowiedź: `statusCode: 200`, `metadata: { created, updated, deleted }`
+  - Kontroler: [`CertificatesController.bulkMerge`](src/users/certificates.controller.ts) -> Serwis: [`UsersService.mergeCertificates`](src/users/users.service.ts)
 
 Uwaga dotycząca dat i walidacji:
 
@@ -452,37 +320,9 @@ Błędy i zachowanie:
 - 404 NotFound - rekord nie istnieje lub nie należy do zalogowanego użytkownika.
 - 409 Conflict - naruszenie unikalności (Prisma P2002), obsługiwane przez [`PrismaClientExceptionFilter`](user-service/src/prisma-client-exception/prisma-client-exception.filter.ts).
 
-Powiązane pliki/symbole:
-
-- [`CertificatesController`](user-service/src/users/certificates.controller.ts)
-- [`CertificateDto`](user-service/src/users/dto/create-certificate.dto.ts)
-- [`UpdateCertificateDto`](user-service/src/users/dto/update-certificate.dto.ts)
-- [`UsersService.addCertificate`](user-service/src/users/users.service.ts)
-- [`UsersService.listCertificatesForCurrentUser`](user-service/src/users/users.service.ts)
-- [`UsersService.listCertificatesByAuth0Id`](user-service/src/users/users.service.ts)
-- [`UsersService.updateCertificate`](user-service/src/users/users.service.ts)
-- [`UsersService.removeCertificate`](user-service/src/users/users.service.ts)
-- [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts)
-- [`UsersModule`](user-service/src/users/users.module.ts)
-- Gateway: [`gateway/index.js`](gateway/index.js)
-
 ---
 
 ### 5e) Abilities (umiejętności) - endpointy
-
-- POST /users/abilities
-  - Opis: Dodaje wpis umiejętności (np. "TypeScript") do profilu zalogowanego użytkownika.
-  - Header: `x-user: JSON.stringify({ "id": "auth0|..." })` (string) - nagłówek generowany przez gateway ([gateway/index.js](gateway/index.js)) i parsowany przez [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts).
-  - Body (JSON, zgodne z [`AbilityDto`](user-service/src/users/dto/create-ability.dto.ts)):
-    ```json
-    {
-      "name": "TypeScript"
-    }
-    ```
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 201 i dodanym obiektem `Abilities`.
-  - Powiązane implementacje:
-    - Kontroler: [`AbilitiesController`](user-service/src/users/abilities.controller.ts)
-    - Serwis: [`UsersService.addAbility`](user-service/src/users/users.service.ts)
 
 - GET /users/abilities
   - Opis: Zwraca listę umiejętności zalogowanego użytkownika (id z nagłówka `x-user`).
@@ -496,57 +336,21 @@ Powiązane pliki/symbole:
   - Odpowiedź: SuccessResponse ze statusCode 200 i tablicą obiektów.
   - Powiązane: [`UsersService.listAbilitiesByAuth0Id`](user-service/src/users/users.service.ts)
 
-- PATCH /users/abilities/:id
-  - Opis: Aktualizuje wpis umiejętności należący do zalogowanego użytkownika.
-  - Header: x-user (jak powyżej)
-  - Path param: `:id` - identyfikator rekordu Abilities (liczba)
-  - Body: `UpdateAbilityDto` (np. `{ "name": "Advanced TypeScript" }`) - definicja: [`UpdateAbilityDto`](user-service/src/users/dto/update-ability.dto.ts)
-  - Odpowiedź: SuccessResponse ze statusCode 200 i zaktualizowanym obiektem.
-  - Powiązane: [`UsersService.updateAbility`](user-service/src/users/users.service.ts)
-
-- DELETE /users/abilities/:id
-  - Opis: Usuwa wpis umiejętności należący do zalogowanego użytkownika.
-  - Header: x-user (jak powyżej)
-  - Path param: `:id` - identyfikator rekordu Abilities (liczba)
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 200 i usuniętym obiektem.
-  - Powiązane: [`UsersService.removeAbility`](user-service/src/users/users.service.ts)
+- PUT /users/abilities - bulk merge pełnej listy umiejętności
+  - Header: `x-user`
+  - Body (DTO: [`BulkAbilitiesDto`](src/users/dto/bulk-ability.dto.ts)):
+    - `abilities`: tablica `{ id?, name }`
+  - Strategia jak wyżej (UPDATE/CREATE/DELETE)
+  - Odpowiedź: `statusCode: 200`, `metadata: { created, updated, deleted }`
+  - Kontroler: [`AbilitiesController.bulkMerge`](src/users/abilities.controller.ts) -> Serwis: [`UsersService.mergeAbilities`](src/users/users.service.ts)
 
 Uwagi:
 
 - Pola DTO są walidowane przez klasy w [`user-service/src/users/dto/`](user-service/src/users/dto/). Błędy walidacji zwrócą 400 Bad Request.
 
-Powiązane pliki/symbole (otwórz w edytorze):
-
-- [`AbilitiesController`](user-service/src/users/abilities.controller.ts)
-- [`AbilityDto`](user-service/src/users/dto/create-ability.dto.ts)
-- [`UpdateAbilityDto`](user-service/src/users/dto/update-ability.dto.ts)
-- [`addAbility`](user-service/src/users/users.service.ts)
-- [`listAbilitiesForCurrentUser`](user-service/src/users/users.service.ts)
-- [`listAbilitiesByAuth0Id`](user-service/src/users/users.service.ts)
-- [`updateAbility`](user-service/src/users/users.service.ts)
-- [`removeAbility`](user-service/src/users/users.service.ts)
-- [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts)
-- [`UsersModule`](user-service/src/users/users.module.ts)
-- Gateway: [`gateway/index.js`](gateway/index.js)
-
 ---
 
 ### 5f) Languages (języki) - endpointy
-
-- POST /users/languages
-  - Opis: Dodaje wpis języka do profilu zalogowanego użytkownika (poziom, odniesienie do tabeli Languages).
-  - Header: `x-user: JSON.stringify({ "id": "auth0|..." })` - parsowany przez [`UserFromHeaderMiddleware`](user-service/src/middleware/user-from-header.middleware.ts).
-  - Body (JSON, zgodne z [`LanguageDto`](user-service/src/users/dto/create-language.dto.ts)):
-    ```json
-    {
-      "languageId": 1,
-      "level": "B2"
-    }
-    ```
-  - Odpowiedź (sukces): SuccessResponse ze statusCode 201 i dodanym obiektem (rekord z `user_languages`).
-  - Powiązane implementacje:
-    - Kontroler: [`LanguagesController`](user-service/src/users/languages.controller.ts)
-    - Serwis: [`UsersService.addLanguage`](user-service/src/users/users.service.ts)
 
 - GET /users/languages
   - Opis: Zwraca listę wpisów języków zalogowanego użytkownika (id z nagłówka `x-user`).
@@ -565,20 +369,13 @@ Powiązane pliki/symbole (otwórz w edytorze):
   - Odpowiedź: SuccessResponse ze statusCode 200 i tablicą obiektów (z dołączonym `language`).
   - Powiązane: [`UsersService.listLanguagesByAuth0Id`](user-service/src/users/users.service.ts)
 
-- PATCH /users/languages/:id
-  - Opis: Aktualizuje wpis języka należący do zalogowanego użytkownika (poziom lub zmiana `languageId`).
-  - Header: x-user
-  - Path param: `:id` - identyfikator rekordu `user_languages` (liczba)
-  - Body: `UpdateLanguageDto` (np. `{ "level": "C1" }`) - definicja: [`UpdateLanguageDto`](user-service/src/users/dto/update-language.dto.ts)
-  - Odpowiedź: SuccessResponse ze statusCode 200 i zaktualizowanym obiektem.
-  - Powiązane: [`UsersService.updateLanguage`](user-service/src/users/users.service.ts)
-
-- DELETE /users/languages/:id
-  - Opis: Usuwa wpis języka należący do zalogowanego użytkownika.
-  - Header: x-user
-  - Path param: `:id` - identyfikator rekordu `user_languages` (liczba)
-  - Odpowiedź: SuccessResponse ze statusCode 200 i usuniętym obiektem.
-  - Powiązane: [`UsersService.removeLanguage`](user-service/src/users/users.service.ts)
+- PUT /users/languages - bulk merge pełnej listy języków użytkownika (tabela pośrednia user_languages)
+  - Header: `x-user`
+  - Body (DTO: [`BulkLanguagesDto`](src/users/dto/bulk-language.dto.ts)):
+    - `languages`: tablica `{ id?, languageId, level }`
+  - Strategia jak wyżej (UPDATE/CREATE/DELETE); weryfikacja istnienia `languageId`
+  - Odpowiedź: `statusCode: 200`, `metadata: { created, updated, deleted }`
+  - Kontroler: [`LanguagesController.bulkMerge`](src/users/languages.controller.ts) -> Serwis: [`UsersService.mergeLanguages`](src/users/users.service.ts)
 
 Uwagi:
 

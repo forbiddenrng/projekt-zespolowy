@@ -1,137 +1,173 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import type { FormikHelpers } from "formik";
-import * as Yup from "yup";
-import type { Education, EducationFormValues } from "@/app/ts/types";
-import BackButton from "./BackButton";
-import NextButton from "./NextButton";
-import DeleteButton from "./DeleteButton";
-import { useWizard } from "../context/WizardContext";
+import { useRouter } from "next/navigation";
+import { FaTrash } from "react-icons/fa";
+import {
+  emptyEducation,
+  educationFormValidator,
+  formatDateForInput,
+  degreeOptions,
+} from "@/app/profile/create/components/UserEducation";
+import CancelButton from "./ui/CancelButton";
+import SaveButton from "./ui/SaveButton";
+import AddPosition from "./ui/AddPosition";
 
-interface EducationFormProps {
-  onBack: () => void;
-  onNext: () => void;
+interface EditEducation {
+  id?: number;
+  schoolName: string;
+  major: string;
+  degree: string;
+  beginDate: string; // ISO format
+  endDate?: string; // ISO format, opcjonalne
+
 }
 
-export const emptyEducation: Education = {
-  schoolName: "",
-  major: "",
-  degree: "",
-  beginDate: "",
-  endDate: "",
-};
-
-export const educationSchema = Yup.object({
-  schoolName: Yup.string().required("Nazwa szkoły jest wymagana")
-  .min(3, "Nazwa szkoły musi mieć co najmniej 3 znaki")
-  .max(100, "Nazwa szkoły nie może być dłuższa niż 100 znaków"),
-  major: Yup.string().required("Kierunek jest wymagany")
-  .min(3, "Kierunek musi mieć co najmniej 3 znaki")
-  .max(100, "Kierunek nie może być dłuższy niż 100 znaków"),
-  degree: Yup.string().required("Stopień jest wymagany")
-  .min(3, "Stopień musi mieć co najmniej 3 znaki")
-  .max(20, "Stopień nie może być dłuższy niż 20 znaków"),
-  beginDate: Yup.date()
-    .required("Data rozpoczęcia jest wymagana")
-    .typeError("Niepoprawny format daty")
-    .test('cant-above-this-date',
-      'Maksymalna data to dzisiaj',
-      (date) =>  {
-        return new Date() > date;
-  }),
-  endDate: Yup.date()
-    .nullable()
-    .typeError("Niepoprawny format daty")
-    .min(Yup.ref("beginDate"), "Data zakończenia musi być późniejsza niż rozpoczęcia")
-    .test('cant-above-this-date',
-      'Maksymalna data to dzisiaj',
-      (date) =>  {
-        if (date === undefined || date === null) return true;
-        return new Date() > date;
-  }),
-});
-
-export const educationFormValidator = Yup.object({
-  education: Yup.array()
-    .of(educationSchema)
-});
-
-export const formatDateForInput = (dateString: string | undefined): string => {
-  if(!dateString) return "";
-  try {
-    const date = new Date(dateString);
-    if(isNaN(date.getTime())) return "";
-    return date.toISOString().split("T")[0];
-  } catch {
-    return "";
-  }
+interface EditEducationFormValues {
+  education: EditEducation[];
 }
 
-export const degreeOptions = [
-  { value: "", label: "Wybierz stopień" },
-  { value: "podstawowe", label: "Podstawowe" },
-  { value: "gimnazjalne", label: "Gimnazjalne" },
-  { value: "średnie", label: "Średnie" },
-  { value: "licencjat", label: "Licencjat" },
-  { value: "inżynier", label: "Inżynier" },
-  { value: "magister", label: "Magister" },
-  { value: "doktor", label: "Doktor" },
-  { value: "inne", label: "Inne" },
-];
+export default function EditEducationForm() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [formData, setFormData] = useState<EditEducationFormValues>({
+    education: [{ ...emptyEducation }],
+  });
 
-export default function EducationForm({
-  onBack,
-  onNext,
-}: EducationFormProps) {
+  // Wczytaj dane z API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get("/api/user/get?resource=education");
+        const data = response.data?.data;
 
-  const {updateEducation, wizardData} = useWizard();
+        if (data?.education && data.education.length > 0) {
+          const normalizedEducation = data.education.map(
+            (edu: {
+              id: number;
+              school_name: string;
+              major: string;
+              degree: string;
+              begin_date: string;
+              end_date?: string;
+            }) => ({
+              id: edu.id,
+              schoolName: edu.school_name,
+              major: edu.major,
+              degree: edu.degree,
+              beginDate: formatDateForInput(edu.begin_date),
+              endDate: formatDateForInput(edu.end_date),
+            })
+          );
 
-  const normalizedEducation = wizardData.education.map(edu => ({
-    ...edu,
-    beginDate: formatDateForInput(edu.beginDate),
-    endDate: formatDateForInput(edu.endDate)
-  }));
+          setFormData({
+            education: normalizedEducation,
+          });
+        } else {
+          setFormData({
+            education: [{ ...emptyEducation }],
+          });
+        }
+      } catch (err: any) {
+        setError(err?.message || "Błąd podczas wczytywania danych");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const initialValues: EducationFormValues = {
-    education: normalizedEducation.length > 0 ? normalizedEducation : [{ ...emptyEducation }],
-  };
+    fetchData();
+  }, []);
 
-  const handleSubmit = (
-    values: EducationFormValues,
-    helpers: FormikHelpers<EducationFormValues>
+  const handleSubmit = async (
+    values: EditEducationFormValues,
+    helpers: FormikHelpers<EditEducationFormValues>
   ) => {
     const { setSubmitting } = helpers;
-    
-    // Przekształć daty do formatu ISO
-    const formattedEducation = values.education.map((edu) => ({
-      ...edu,
-      beginDate: new Date(edu.beginDate).toISOString(),
-      endDate: edu.endDate ? new Date(edu.endDate).toISOString() : undefined,
-    }));
 
-    updateEducation(formattedEducation);
-    onNext();
-    setSubmitting(false);
+    try {
+      setSubmitting(true);
+      setError(null);
+
+      // Przekształć daty do formatu ISO i zmień nazwy pól na backend format
+      const payload = values.education.map((edu) => ({
+        id: edu.id,
+        schoolName: edu.schoolName,
+        major: edu.major,
+        degree: edu.degree,
+        beginDate: new Date(edu.beginDate).toISOString(),
+        endDate: edu.endDate
+          ? new Date(edu.endDate).toISOString()
+          : undefined,
+      }));
+
+      const res = await axios.put("/api/user/profile?resource=education", {
+        education: payload,
+      }, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (res.data?.statusCode !== 200)
+        throw new Error("Błąd podczas zapisywania danych");
+
+      setSuccessMessage("Edukacja została pomyślnie zaktualizowana!");
+
+      // Przekieruj po 1.5 sekund
+      setTimeout(() => {
+        router.push("/profile");
+      }, 1500);
+    } catch (err: any) {
+      setError("Błąd podczas zapisywania danych");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
+        <p className="text-muted">Ładowanie...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
-      <h2 className="text-2xl font-semibold mb-6 text-foreground">Edukacja</h2>
+    <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
+      <h2 className="text-2xl font-semibold mb-6 text-foreground">
+        Edytuj edukację
+      </h2>
       <p className="text-muted mb-6">
-        Dodaj informacje o swojej edukacji. Możesz dodać wiele pozycji.
+        Zmień swoje informacje o edukacji. Możesz dodać lub usunąć wiele
+        pozycji.
       </p>
 
+      {error && (
+        <div className="mb-6 p-4 bg-error/10 border border-error text-error rounded-lg">
+          {error}
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="mb-6 p-4 bg-success/10 border border-success text-success rounded-lg">
+          {successMessage}
+        </div>
+      )}
+
       <Formik
-        initialValues={initialValues}
+        initialValues={formData}
         enableReinitialize={true}
         validationSchema={educationFormValidator}
         validateOnChange={false}
         validateOnBlur={false}
         onSubmit={handleSubmit}
       >
-        {({ values, isSubmitting, errors }) =>  (
+        {({ values, isSubmitting, errors }) => (
           <Form className="space-y-6">
             <FieldArray name="education">
               {({ push, remove }) => (
@@ -146,11 +182,16 @@ export default function EducationForm({
                         <h3 className="text-lg font-medium text-foreground">
                           Edukacja #{index + 1}
                         </h3>
-                        <DeleteButton
-                          prompt="Usuń edukację"
-                          // index={index}
-                          remove={() => remove(index)}
-                        />
+                        {values.education.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => remove(index)}
+                            className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-error/10 hover:bg-error/20 text-error transition-colors cursor-pointer duration-200"
+                            title="Usuń edukację"
+                          >
+                            <FaTrash />
+                          </button>
+                        )}
                       </div>
 
                       {/* Nazwa szkoły */}
@@ -271,25 +312,10 @@ export default function EducationForm({
                   ))}
 
                   {/* Przycisk dodawania */}
-                  <button
-                    type="button"
+                  <AddPosition
                     onClick={() => push({ ...emptyEducation })}
-                    className="w-full p-3 border-2 border-dashed border-border rounded-lg text-muted hover:text-foreground hover:border-primary transition-all flex items-center justify-center gap-2"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    Dodaj kolejną edukację
-                  </button>
+                    prompt="Dodaj kolejną edukację"
+                  />
 
                   {/* Błąd walidacji tablicy */}
                   {typeof errors.education === "string" && (
@@ -301,15 +327,8 @@ export default function EducationForm({
 
             {/* Przyciski nawigacji */}
             <div className="flex justify-between gap-4 pt-6 border-t border-border">
-              <BackButton
-                prompt={"Wstecz"}
-                onBack={onBack}
-              />
-
-              <NextButton
-                prompt={"Dalej"}
-                isSubmitting={isSubmitting}
-              />
+              <CancelButton onClick={() => router.back()} />
+              <SaveButton isSubmitting={isSubmitting} />
             </div>
           </Form>
         )}
