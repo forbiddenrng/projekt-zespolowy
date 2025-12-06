@@ -15,17 +15,17 @@ interface AbilitiesFormProps {
   onNext: () => void;
 }
 
-const emptyAbilities: Ability = {
+export const emptyAbilities: Ability = {
   name: "",
 };
 
-const abilitiesSchema = Yup.object({
+export const abilitiesSchema = Yup.object({
   name: Yup.string().required("Nazwa umiejętności jest wymagan")
     .min(3, "Umiejętność musi mieć co najmniej 3 znaki")
     .max(255, "Umiejętność nie może mieć więcej niż 255 znaków"),
 });
 
-const abilitiesFormValidator = Yup.object({
+export const abilitiesFormValidator = Yup.object({
   abilities: Yup.array()
     .of(abilitiesSchema)
     .min(1, "Dodaj co najmniej jedną pozycję umiejętności"),

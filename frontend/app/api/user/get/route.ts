@@ -17,8 +17,13 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
         ? accessTokenResp
         : (accessTokenResp as any)?.token ?? null;
 
+    const url = new URL(req.url);
+    const rotueParam = url.searchParams.get("type") || "all"; // custom URL search params type=resource
+    // resource = all | abilities | certificates | education | languages | links | work
+    // default param is all
+
     const params = new URLSearchParams();
-    params.append("all", "true");
+    params.append(rotueParam, "true");
 
     const apiClient = new APIClient();
     const response = await apiClient.getUser(token, params);

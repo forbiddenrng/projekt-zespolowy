@@ -217,6 +217,7 @@ export default function EditPersonalForm({
                 id="email"
                 name="email"
                 type="email"
+                disabled={true}
                 placeholder="email@przyklad.pl"
                 aria-label="Email"
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
