@@ -7,6 +7,13 @@ import { Prisma } from '@prisma/client';
 import { DatabaseService } from 'src/database/database.service';
 import { FindOneQueryParams } from 'src/ts/types';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { AbilityDto } from './dto/create-ability.dto';
+import { UpdateAbilityDto } from './dto/update-ability.dto';
+import { CertificateDto } from './dto/create-certificate.dto';
+import { UpdateCertificateDto } from './dto/update-certificate.dto';
+import { EducationDto } from './dto/create-education.dto';
+import { UpdateEducationDto } from './dto/update-education.dto';
 import { LinkDto } from './dto/create-link.dto';
 import { EducationDto } from './dto/create-education.dto';
 import { CertificateDto } from './dto/create-certificate.dto';
@@ -287,8 +294,45 @@ export class UsersService {
     };
   }
 
-  async update(id: number, updateUserDto: Prisma.UserUpdateInput) {
-    return `This action updates a #${id} user`;
+  async updateCurrentUserProfile(
+    reqUserId: string | undefined,
+    dto: UpdateUserDto,
+  ) {
+    if (!reqUserId) throw new BadRequestException('User id not provided');
+
+    const user = await this.databaseService.user.findUnique({
+      where: { auth0_id: reqUserId },
+    });
+    if (!user) throw new NotFoundException('User not found');
+
+    const data: any = {};
+    if (dto.name !== undefined) data.name = dto.name;
+    if (dto.surname !== undefined) data.surname = dto.surname;
+    if (dto.phoneNumber !== undefined) data.phone_number = dto.phoneNumber;
+    if (dto.city !== undefined) data.city = dto.city;
+    if (dto.profileSummary !== undefined)
+      data.profile_summary = dto.profileSummary;
+
+    const updated = await this.databaseService.user.update({
+      where: { auth0_id: reqUserId },
+      data,
+      select: {
+        id: true,
+        auth0_id: true,
+        name: true,
+        surname: true,
+        phone_number: true,
+        email: true,
+        city: true,
+        profile_summary: true,
+      },
+    });
+
+    return {
+      statusCode: 200,
+      message: 'User profile updated successfully',
+      data: updated,
+    };
   }
 
   async remove(id: string) {
