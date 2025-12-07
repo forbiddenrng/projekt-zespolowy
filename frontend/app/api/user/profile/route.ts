@@ -78,9 +78,9 @@ export const PUT = auth0.withApiAuthRequired(
           : (accessTokenResp as any)?.token ?? null;
 
       const apiClient = new APIClient();
-      const resposne = await apiClient.updateProfile(APIParams[resource], token, body);
+      const response = await apiClient.updateProfile(APIParams[resource], token, body);
 
-      return NextResponse.json(resposne.data, {status: resposne.status})
+      return NextResponse.json(response.data, {status: response.status})
 
       
     } catch (err: any) {
@@ -93,7 +93,7 @@ export const PUT = auth0.withApiAuthRequired(
       }
       console.error("Unexpected error: ", err);
       return NextResponse.json(
-        { message: "An unexpected error occured. Please try again" },
+        { message: "An unexpected error occurred. Please try again" },
         { status: 500 }
       );
     }
@@ -115,9 +115,9 @@ export const PATCH = auth0.withApiAuthRequired(
           : (accessTokenResp as any)?.token ?? null;
 
       const apiClient = new APIClient();
-      const resposne = await apiClient.updateUserInfo(token, body);
+      const response = await apiClient.updateUserInfo(token, body);
 
-      return NextResponse.json(resposne.data, {status: resposne.status})
+      return NextResponse.json(response.data, {status: response.status})
 
       
     } catch (err: any) {
@@ -129,7 +129,7 @@ export const PATCH = auth0.withApiAuthRequired(
         }
         console.error("Unexpected error: ", err);
         return NextResponse.json(
-          { message: "An unexpected error occured. Please try again" },
+          { message: "An unexpected error occurred. Please try again" },
           { status: 500 }
         );
     }

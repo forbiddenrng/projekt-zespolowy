@@ -1,5 +1,5 @@
-import axios, {AxiosResponse, AxiosRequestConfig, RawAxiosRequestHeaders, AxiosInstance} from "axios";
-import { APIError, parseAxiosError } from "./errors";
+import axios, { AxiosRequestConfig, AxiosInstance} from "axios";
+import {parseAxiosError } from "./errors";
 
 export class APIClient {
   private client: AxiosInstance;

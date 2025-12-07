@@ -51,9 +51,6 @@ export default function EditLanguagesForm() {
         const userRes = await axios.get("/api/user/get?resource=languages");
         const userData = userRes.data?.data;
 
-        console.log("----USER-LANGUAGES----")
-        console.log(userData.user_languages)
-
         if (userData?.user_languages && userData.user_languages.length > 0) {
           const normalizedLanguages = userData.user_languages.map(
             (ul: {
@@ -100,9 +97,6 @@ export default function EditLanguagesForm() {
         languageId: lang.languageId,
         level: lang.level,
       }));
-
-      console.log("--update-payload--")
-      console.log(payload)
 
       const res = await axios.put("/api/user/profile?resource=languages", {
         languages: payload,

@@ -1,5 +1,5 @@
 import { OmitType } from '@nestjs/mapped-types';
-import { IsString, IsNotEmpty, MinLength, IsOptional, MaxLength, IsUrl } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, IsOptional, MaxLength, Matches } from 'class-validator';
 
 // used when creating link from a separate request
 export class CreateLinkDto {
@@ -11,7 +11,9 @@ export class CreateLinkDto {
   @IsString()
   @MinLength(5)
   @MaxLength(150)
-  // @IsUrl()
+  @Matches(/^https?:\/\/.+/, {
+    message: 'Link must start with http:// or https://',
+  })
   linkString: string;
 }
 

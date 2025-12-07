@@ -1,5 +1,3 @@
-import { AxiosError } from "axios";
-
 export class APIError extends Error {
   constructor(
     public statusCode: number,
@@ -53,7 +51,7 @@ export function parseAxiosError(error: any): APIError{
 
   return new APIError(
     500,
-    "An unexpected error occured",
+    "An unexpected error occurred",
     error.message
   )
 }
