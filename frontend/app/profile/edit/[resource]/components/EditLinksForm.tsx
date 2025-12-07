@@ -13,7 +13,6 @@ import {
 import CancelButton from "./ui/CancelButton";
 import SaveButton from "./ui/SaveButton";
 import AddPosition from "./ui/AddPosition";
-import type { Links } from "@/app/ts/types";
 
 interface EditLink{
   id?: number;

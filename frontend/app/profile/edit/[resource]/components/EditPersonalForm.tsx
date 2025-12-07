@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { UserFormValues } from "@/app/ts/types";
@@ -39,7 +39,6 @@ export default function EditPersonalForm({
         const res = await axios.get("/api/user/get");
         if (res.data?.statusCode !== 200) throw new Error("Nie udało się pobrać danych");
 
-        // const json = await res.json();
         const data = res.data?.data;
 
         if (data) {

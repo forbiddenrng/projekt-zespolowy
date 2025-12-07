@@ -13,7 +13,7 @@ import {
 import CancelButton from "./ui/CancelButton";
 import SaveButton from "./ui/SaveButton";
 import AddPosition from "./ui/AddPosition";
-import type { UserLanguage, Language } from "@/app/ts/types";
+import type { Language } from "@/app/ts/types";
 import { LanguageLevel } from "@/app/ts/types";
 
 interface EditLanguage {

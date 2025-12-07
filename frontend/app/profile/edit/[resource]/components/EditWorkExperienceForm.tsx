@@ -14,7 +14,6 @@ import {
 import CancelButton from "./ui/CancelButton";
 import SaveButton from "./ui/SaveButton";
 import AddPosition from "./ui/AddPosition";
-import type { WorkExp } from "@/app/ts/types";
 
 
 interface EditWorkExp {

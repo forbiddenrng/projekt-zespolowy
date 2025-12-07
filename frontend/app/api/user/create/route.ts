@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/app/lib/auth0";
 import { APIClient } from "@/app/lib/apiClient";
+import { APIError } from "@/app/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -25,9 +26,15 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
     return NextResponse.json(response.data, {status: response.status})
 
   } catch (err: any) {
-    console.error("CREATE ERROR:", err);
+    if (err instanceof APIError){
+      return NextResponse.json(
+        {message: err.userMessage, details: err.details},
+        {status: err.statusCode || 500}
+      )
+    }
+    console.error("Unexpected error: ", err);
     return NextResponse.json(
-      { message: err?.message ?? "Unknown error" },
+      { message: "An unexpected error occured. Please try again" },
       { status: 500 }
     );
   }

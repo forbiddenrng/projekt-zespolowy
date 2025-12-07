@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/app/lib/auth0";
 import { APIClient } from "@/app/lib/apiClient";
+import { APIError } from "@/app/lib/errors";
 
 export const GET = auth0.withApiAuthRequired(
   async (_req: Request): Promise<Response> => {
@@ -45,7 +46,7 @@ export const GET = auth0.withApiAuthRequired(
 );
 
 
-enum APIParams {
+export enum APIParams {
   abilities = "abilities",
   education = "education",
   work = "work-experiences",
@@ -64,9 +65,6 @@ export const PUT = auth0.withApiAuthRequired(
       const body = await req.json();
       const url = new URL(req.url);
       const resource= url.searchParams.get("resource") as keyof typeof APIParams;
-
-      console.log(body)
-      console.log(resource)
       
       if (!APIParams[resource]){
         return NextResponse.json({
@@ -86,8 +84,16 @@ export const PUT = auth0.withApiAuthRequired(
 
       
     } catch (err: any) {
+
+      if (err instanceof APIError){
+        return NextResponse.json(
+          {message: err.userMessage, details: err.details},
+          {status: err.statusCode || 500}
+        )
+      }
+      console.error("Unexpected error: ", err);
       return NextResponse.json(
-        { message: err?.message ?? "Unknown error" },
+        { message: "An unexpected error occured. Please try again" },
         { status: 500 }
       );
     }
@@ -102,14 +108,6 @@ export const PATCH = auth0.withApiAuthRequired(
       });
 
       const body = await req.json();
-      // const url = new URL(req.url);
-      // const resource = url.searchParams.get("resource");
-      
-      // if (!resource){
-      //   return NextResponse.json({
-      //     message: "resource params required"
-      //   }, {status: 500});
-      // }
 
       const token =
         typeof accessTokenResp === "string"
@@ -123,10 +121,17 @@ export const PATCH = auth0.withApiAuthRequired(
 
       
     } catch (err: any) {
-      return NextResponse.json(
-        { message: err?.message ?? "Unknown error" },
-        { status: 500 }
-      );
+        if (err instanceof APIError){
+          return NextResponse.json(
+            {message: err.userMessage, details: err.details},
+            {status: err.statusCode || 500}
+          )
+        }
+        console.error("Unexpected error: ", err);
+        return NextResponse.json(
+          { message: "An unexpected error occured. Please try again" },
+          { status: 500 }
+        );
     }
   }
 );

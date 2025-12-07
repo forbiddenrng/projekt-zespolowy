@@ -1,4 +1,5 @@
 import axios, {AxiosResponse, AxiosRequestConfig, RawAxiosRequestHeaders, AxiosInstance} from "axios";
+import { APIError, parseAxiosError } from "./errors";
 
 export class APIClient {
   private client: AxiosInstance;
@@ -24,7 +25,7 @@ export class APIClient {
       return response;
     } catch (err){
       console.error(err);
-      throw err;
+      throw parseAxiosError(err);
     }
   }
 
@@ -40,7 +41,7 @@ export class APIClient {
       return response;
     } catch (err){
       console.error(err);
-      throw err;
+      throw parseAxiosError(err);
     }
   }
 
@@ -58,7 +59,7 @@ export class APIClient {
       return response;
     } catch (err){
       console.error(err);
-      throw err;
+      throw parseAxiosError(err);
     }
   }
 
@@ -75,7 +76,7 @@ export class APIClient {
       return response;
     } catch(err){
       console.log(err);
-      throw err;
+      throw parseAxiosError(err);
     }
   }
 
@@ -94,7 +95,7 @@ export class APIClient {
       return response;
     } catch(err){
       console.log(err);
-      throw err;
+      throw parseAxiosError(err);
     }
   }
  

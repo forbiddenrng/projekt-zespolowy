@@ -7,7 +7,7 @@ import type { FormikHelpers } from "formik";
 
 import { useRouter } from "next/navigation";
 import { FaTrash } from "react-icons/fa";
-import {emptyAbilities, abilitiesSchema, abilitiesFormValidator} from "@/app/profile/create/components/UserAbilities"
+import {emptyAbilities, abilitiesFormValidator} from "@/app/profile/create/components/UserAbilities"
 import CancelButton from "./ui/CancelButton";
 import SaveButton from "./ui/SaveButton";
 import AddPosition from "./ui/AddPosition";
@@ -34,15 +34,9 @@ export default function EditAbilitiesForm() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // const res = await fetch("/api/user/get?resource=abilities");
-        // if (!res.ok) throw new Error("Nie udało się pobrać danych");
 
         const response = await axios.get("/api/user/get?resource=abilities")
-        // console.log(response);
         const data = response.data?.data;
-
-        // const json = await res.json();
-        // const data = json?.data;
 
         if (data?.abilities && data.abilities.length > 0) {
           setFormData({
