@@ -4,17 +4,18 @@ import React from "react";
 import { Formik, Form, Field, FieldArray, ErrorMessage } from "formik";
 import type { FormikHelpers } from "formik";
 import * as Yup from "yup";
-import type { Certyficates, CertyficatesFormValues } from "@/app/ts/types";
+import type { Certificate, CertificatesFormValues } from "@/app/ts/types";
 import BackButton from "./BackButton";
 import NextButton from "./NextButton";
+import DeleteButton from "./DeleteButton";
+import { useWizard } from "../context/WizardContext";
 
-interface CertyficatesFormProps {
-  initialCertyficates?: Certyficates[];
+interface CertificatesFormProps {
   onBack: () => void;
-  onNext: (certyficates: Certyficates[]) => void;
+  onNext: () => void;
 }
-//certyficationDate
-const emptyCertyficates: Certyficates = {
+
+export const emptyCertificates: Certificate = {
   name: "",
   issuer: "",
   certificationDate: "",
@@ -25,26 +26,33 @@ const emptyCertyficates: Certyficates = {
  * Data dopuszcza puste stringi/undefined, ale jeśli jest wartością,
  * to sprawdzamy czy jest poprawną datą.
  */
-const certyficatesSchema = Yup.object({
-  name: Yup.string().nullable(),
-  issuer: Yup.string().nullable(),
+export const certificatesSchema = Yup.object({
+  name: Yup.string().required("Nazwa certyfikatu jest wymagana")
+  .min(3, "Nazwa certyfikatu musi mieć co najmniej 3 znaki")
+  .max(100, "Nazwa certyfikatu nie może być dłuższa niż 100 znaków"),
+  issuer: Yup.string().required("Wydawca certyfikatu jest wymagany")
+  .min(3, "Wydawca certyfikatu musi mieć co najmniej 3 znaki")
+  .max(255, "Wydawca certyfikatu nie może być dłuższy niż 255 znaków"),
   certificationDate: Yup.string()
-    .nullable()
     .test("is-valid-date-or-empty", "Niepoprawny format daty", (value) => {
-      if (!value) return true; // puste pole jest OK
+      if (!value) return false; 
       const d = new Date(value);
       return !isNaN(d.getTime());
-    }),
+    })
+    .test('is-valid-date', "Data nie może być późniejsza niż dzisiaj", (value) => {
+      if (!value) return true;
+      return new Date(value) < new Date();
+    })
 });
 
 /**
  * Tablica certyfikatów nie jest już wymagana (użytkownik może pozostawić pustą)
  */
-const certyficatesFormValidator = Yup.object({
-  certyficates: Yup.array().of(certyficatesSchema),
+export const certificatesFormValidator = Yup.object({
+  certificates: Yup.array().of(certificatesSchema),
 });
 
-const formatDateForInput = (dateString: string | undefined): string => {
+export const formatDateForInput = (dateString: string | undefined): string => {
   if (!dateString) return "";
   try {
     const date = new Date(dateString);
@@ -55,40 +63,32 @@ const formatDateForInput = (dateString: string | undefined): string => {
   }
 };
 
-export default function CertyficatesForm({
-  initialCertyficates = [],
+export default function certificatesForm({
   onBack,
   onNext,
-}: CertyficatesFormProps) {
-  // Normalizuj wejściowe certyfikaty: zapewnij puste stringi i sformatuj daty
-  const normalizedCertyfication: Certyficates[] =
-    initialCertyficates?.length > 0
-      ? initialCertyficates.map((cert) => ({
-          name: cert?.name ?? "",
-          issuer: cert?.issuer ?? "",
-          certificationDate: formatDateForInput(cert?.certificationDate),
-        }))
-      : [];
+}: CertificatesFormProps) {
 
-  const initialValues: CertyficatesFormValues = {
-    // jeśli brak zapisanych certyfikatów, zostaw tablicę pustą (użytkownik nie musi nic dodawać)
-    certyficates:
-      normalizedCertyfication.length > 0 ? normalizedCertyfication : [],
-  };
+  const {updateCertificates, wizardData} = useWizard();
+  const initialCertificates: CertificatesFormValues = {
+    certificates: wizardData.certificates.map((cert)=> ({
+      ...cert,
+      certificationDate: formatDateForInput(cert.certificationDate)
+    }) )
+  }
 
   const handleSubmit = (
-    values: CertyficatesFormValues,
-    helpers: FormikHelpers<CertyficatesFormValues>
+    values: CertificatesFormValues,
+    helpers: FormikHelpers<CertificatesFormValues>
   ) => {
     const { setSubmitting } = helpers;
 
     // Filtrujemy puste wpisy (wszystkie pola puste) — nie wysyłamy ich dalej
-    const nonEmpty = (cert: Certyficates) =>
+    const nonEmpty = (cert: Certificate) =>
       (cert.name && cert.name.trim() !== "") ||
       (cert.issuer && cert.issuer.trim() !== "") ||
       (cert.certificationDate && cert.certificationDate.trim() !== "");
 
-    const formattedCertyfication: Certyficates[] = values.certyficates
+    const formattedCertification: Certificate[] = values.certificates
       .filter(nonEmpty)
       .map((cert) => {
         // konwertuj datę tylko jeśli jest poprawna; w przeciwnym razie zostaw pusty string
@@ -109,7 +109,9 @@ export default function CertyficatesForm({
         };
       });
 
-    onNext(formattedCertyfication);
+    console.log(formattedCertification)
+    updateCertificates(formattedCertification);
+    onNext();
     setSubmitting(false);
   };
 
@@ -124,26 +126,26 @@ export default function CertyficatesForm({
       </p>
 
       <Formik
-        initialValues={initialValues}
+        initialValues={initialCertificates}
         enableReinitialize={true}
-        validationSchema={certyficatesFormValidator}
+        validationSchema={certificatesFormValidator}
         validateOnChange={false}
         validateOnBlur={false}
         onSubmit={handleSubmit}
       >
         {({ values, isSubmitting, errors }) => (
           <Form className="space-y-6">
-            <FieldArray name="certyficates">
+            <FieldArray name="certificates">
               {({ push, remove }) => (
                 <div className="space-y-6">
-                  {values.certyficates.length === 0 && (
+                  {values.certificates.length === 0 && (
                     <div className="p-4 bg-secondary border border-border rounded-lg text-sm text-muted">
                       Nie dodałeś żadnych certyfikatów. Możesz dodać je klikając
                       przycisk poniżej lub przejść dalej.
                     </div>
                   )}
 
-                  {values.certyficates.map((_, index) => (
+                  {values.certificates.map((_, index) => (
                     <div
                       key={index}
                       className="p-5 bg-secondary border border-border rounded-lg space-y-4 relative"
@@ -152,45 +154,28 @@ export default function CertyficatesForm({
                         <h3 className="text-lg font-medium text-foreground">
                           Certyfikat #{index + 1}
                         </h3>
-                        {values.certyficates.length > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => remove(index)}
-                            className="text-error hover:text-red-400 transition-colors p-1"
-                            aria-label="Usuń certyfikat"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-5 w-5"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </button>
-                        )}
+                        <DeleteButton
+                          prompt="Usuń certyfikat"
+                          remove={() => remove(index)}
+                        />
                       </div>
 
                       {/* Nazwa certyfikatu */}
                       <div>
                         <label
-                          htmlFor={`certyficates.${index}.name`}
+                          htmlFor={`certificates.${index}.name`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
                           Nazwa certyfikatu
                         </label>
                         <Field
-                          id={`certyficates.${index}.name`}
-                          name={`certyficates.${index}.name`}
+                          id={`certificates.${index}.name`}
+                          name={`certificates.${index}.name`}
                           placeholder="np. AWS Certified Developer"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
-                          name={`certyficates.${index}.name`}
+                          name={`certificates.${index}.name`}
                           component="p"
                           className="mt-1 text-sm text-error"
                         />
@@ -199,19 +184,19 @@ export default function CertyficatesForm({
                       {/* Wydawca */}
                       <div>
                         <label
-                          htmlFor={`certyficates.${index}.issuer`}
+                          htmlFor={`certificates.${index}.issuer`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
                           Wydawca
                         </label>
                         <Field
-                          id={`certyficates.${index}.issuer`}
-                          name={`certyficates.${index}.issuer`}
+                          id={`certificates.${index}.issuer`}
+                          name={`certificates.${index}.issuer`}
                           placeholder="np. Amazon Web Services"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
-                          name={`certyficates.${index}.issuer`}
+                          name={`certificates.${index}.issuer`}
                           component="p"
                           className="mt-1 text-sm text-error"
                         />
@@ -220,19 +205,19 @@ export default function CertyficatesForm({
                       {/* Data otrzymania */}
                       <div>
                         <label
-                          htmlFor={`certyficates.${index}.certificationDate`}
+                          htmlFor={`certificates.${index}.certificationDate`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Data otrzymania (opcjonalne)
+                          Data otrzymania
                         </label>
                         <Field
                           type="date"
-                          id={`certyficates.${index}.certificationDate`}
-                          name={`certyficates.${index}.certificationDate`}
+                          id={`certificates.${index}.certificationDate`}
+                          name={`certificates.${index}.certificationDate`}
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
-                          name={`certyficates.${index}.certificationDate`}
+                          name={`certificates.${index}.certificationDate`}
                           component="p"
                           className="mt-1 text-sm text-error"
                         />
@@ -243,7 +228,7 @@ export default function CertyficatesForm({
                   {/* Przycisk dodawania */}
                   <button
                     type="button"
-                    onClick={() => push({ ...emptyCertyficates })}
+                    onClick={() => push({ ...emptyCertificates })}
                     className="w-full p-3 border-2 border-dashed border-border rounded-lg text-muted hover:text-foreground hover:border-primary transition-all flex items-center justify-center gap-2"
                   >
                     <svg
@@ -262,8 +247,8 @@ export default function CertyficatesForm({
                   </button>
 
                   {/* Błąd walidacji tablicy */}
-                  {typeof errors.certyficates === "string" && (
-                    <p className="text-sm text-error">{errors.certyficates}</p>
+                  {typeof errors.certificates === "string" && (
+                    <p className="text-sm text-error">{errors.certificates}</p>
                   )}
                 </div>
               )}

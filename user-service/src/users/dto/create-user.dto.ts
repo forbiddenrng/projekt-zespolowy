@@ -6,6 +6,7 @@ import {
   IsEmail,
   IsNotEmpty,
   MinLength,
+  MaxLength,
   IsPhoneNumber,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -25,10 +26,14 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(2)
+  @MaxLength(100)
   name: string;
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(2)
+  @MaxLength(100)
   surname: string;
 
   @IsString()
@@ -40,6 +45,8 @@ export class CreateUserDto {
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(2)
+  @MaxLength(100)
   city: string;
 
   @IsOptional()

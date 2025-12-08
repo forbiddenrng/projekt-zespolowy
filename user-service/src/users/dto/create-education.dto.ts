@@ -4,6 +4,7 @@ import {
   IsDateString,
   IsOptional,
   MinLength,
+  MaxLength
 } from 'class-validator';
 import { OmitType } from '@nestjs/mapped-types';
 import { MaxNow } from 'src/validators/max-now.validator';
@@ -17,14 +18,17 @@ export class CreateEducationDto {
 
   @IsString()
   @MinLength(3)
+  @MaxLength(100)
   schoolName: string;
 
   @IsString()
   @MinLength(3)
+  @MaxLength(100)
   major: string;
 
   @IsString()
   @MinLength(3)
+  @MaxLength(20)
   degree: string;
 
   @IsDateString()

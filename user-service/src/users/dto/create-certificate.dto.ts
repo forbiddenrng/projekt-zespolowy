@@ -4,6 +4,7 @@ import {
   IsDateString,
   MinLength,
   IsOptional,
+  MaxLength,
 } from 'class-validator';
 import { OmitType } from '@nestjs/mapped-types';
 import { MaxNow } from 'src/validators/max-now.validator';
@@ -16,11 +17,13 @@ export class CreateCertificateDto {
   userId: string;
 
   @IsString()
-  @MinLength(10)
+  @MinLength(3)
+  @MaxLength(100)
   name: string;
 
   @IsString()
   @MinLength(3)
+  @MaxLength(255)
   issuer: string;
 
   @IsDateString()

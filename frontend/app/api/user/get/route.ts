@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/app/lib/auth0";
-import { jwtDecode } from "jwt-decode";
+import { APIClient } from "@/app/lib/apiClient";
+import { APIError } from "@/app/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const fetchCashe = "force-no-store";
 
+
 export const GET = auth0.withApiAuthRequired(async (req: Request) => {
   try {
-    console.log(">>> /api/user/get HIT");
-
-    const session = await auth0.getSession();
-    console.log("SESSION:", session ? "OK" : "NULL");
 
     const accessTokenResp = await auth0.getAccessToken({
       audience: process.env.AUTH0_AUDIENCE,
@@ -21,43 +19,29 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
         ? accessTokenResp
         : (accessTokenResp as any)?.token ?? null;
 
-    const decoded: any = jwtDecode(token);
-    const userID = encodeURIComponent(decoded.sub);
+    const url = new URL(req.url);
+    const rotueParam = url.searchParams.get("resource") || "all"; // custom URL search params
+    // resource = all | abilities | certificates | education | languages | links | work
+    // default param is all
 
     const params = new URLSearchParams();
-    params.append("all", "true");
+    params.append(rotueParam, "true");
 
-    const url = `${
-      process.env.GATEWAY_URL
-    }/users/${userID}?${params.toString()}`;
-    const gatewayRes = await fetch(url, {
-      method: "GET",
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-    });
+    const apiClient = new APIClient();
+    const response = await apiClient.getUser(token, params);
 
-    const contentType = gatewayRes.headers.get("content-type") ?? "";
-    const text = await gatewayRes.text();
+    return NextResponse.json(response?.data, {status: response?.status})
 
-    console.log("GATEWAY RESPONSE:", gatewayRes.status, text);
-
-    // JSON → JSON
-    if (contentType.includes("application/json")) {
-      return NextResponse.json(JSON.parse(text), {
-        status: gatewayRes.status,
-      });
-    }
-
-    // inne typy → tekst
-    return new NextResponse(text, {
-      status: gatewayRes.status,
-      headers: { "Content-Type": contentType || "text/plain" },
-    });
   } catch (err: any) {
-    console.error("USER PROFILE GET ERROR:", err);
+    if (err instanceof APIError){
+      return NextResponse.json(
+        {message: err.userMessage, details: err.details},
+        {status: err.statusCode || 500}
+      )
+    }
+    console.error("Unexpected error: ", err);
     return NextResponse.json(
-      { message: err?.message ?? "Unknown error" },
+      { message: "An unexpected error occured. Please try again" },
       { status: 500 }
     );
   }

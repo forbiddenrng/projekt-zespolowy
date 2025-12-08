@@ -7,14 +7,15 @@ import * as Yup from "yup";
 import type { Education, EducationFormValues } from "@/app/ts/types";
 import BackButton from "./BackButton";
 import NextButton from "./NextButton";
+import DeleteButton from "./DeleteButton";
+import { useWizard } from "../context/WizardContext";
 
 interface EducationFormProps {
-  initialEducation?: Education[];
   onBack: () => void;
-  onNext: (education: Education[]) => void;
+  onNext: () => void;
 }
 
-const emptyEducation: Education = {
+export const emptyEducation: Education = {
   schoolName: "",
   major: "",
   degree: "",
@@ -22,26 +23,42 @@ const emptyEducation: Education = {
   endDate: "",
 };
 
-const educationSchema = Yup.object({
-  schoolName: Yup.string().required("Nazwa szkoły jest wymagana"),
-  major: Yup.string().required("Kierunek jest wymagany"),
-  degree: Yup.string().required("Stopień jest wymagany"),
+export const educationSchema = Yup.object({
+  schoolName: Yup.string().required("Nazwa szkoły jest wymagana")
+  .min(3, "Nazwa szkoły musi mieć co najmniej 3 znaki")
+  .max(100, "Nazwa szkoły nie może być dłuższa niż 100 znaków"),
+  major: Yup.string().required("Kierunek jest wymagany")
+  .min(3, "Kierunek musi mieć co najmniej 3 znaki")
+  .max(100, "Kierunek nie może być dłuższy niż 100 znaków"),
+  degree: Yup.string().required("Stopień jest wymagany")
+  .min(3, "Stopień musi mieć co najmniej 3 znaki")
+  .max(20, "Stopień nie może być dłuższy niż 20 znaków"),
   beginDate: Yup.date()
     .required("Data rozpoczęcia jest wymagana")
-    .typeError("Niepoprawny format daty"),
+    .typeError("Niepoprawny format daty")
+    .test('cant-above-this-date',
+      'Maksymalna data to dzisiaj',
+      (date) =>  {
+        return new Date() > date;
+  }),
   endDate: Yup.date()
     .nullable()
     .typeError("Niepoprawny format daty")
-    .min(Yup.ref("beginDate"), "Data zakończenia musi być późniejsza niż rozpoczęcia"),
+    .min(Yup.ref("beginDate"), "Data zakończenia musi być późniejsza niż rozpoczęcia")
+    .test('cant-above-this-date',
+      'Maksymalna data to dzisiaj',
+      (date) =>  {
+        if (date === undefined || date === null) return true;
+        return new Date() > date;
+  }),
 });
 
-const educationFormValidator = Yup.object({
+export const educationFormValidator = Yup.object({
   education: Yup.array()
     .of(educationSchema)
-    .min(1, "Dodaj co najmniej jedną pozycję edukacji"),
 });
 
-const formatDateForInput = (dateString: string | undefined): string => {
+export const formatDateForInput = (dateString: string | undefined): string => {
   if(!dateString) return "";
   try {
     const date = new Date(dateString);
@@ -52,7 +69,7 @@ const formatDateForInput = (dateString: string | undefined): string => {
   }
 }
 
-const degreeOptions = [
+export const degreeOptions = [
   { value: "", label: "Wybierz stopień" },
   { value: "podstawowe", label: "Podstawowe" },
   { value: "gimnazjalne", label: "Gimnazjalne" },
@@ -65,12 +82,13 @@ const degreeOptions = [
 ];
 
 export default function EducationForm({
-  initialEducation = [],
   onBack,
   onNext,
 }: EducationFormProps) {
 
-  const normalizedEducation = initialEducation.map(edu => ({
+  const {updateEducation, wizardData} = useWizard();
+
+  const normalizedEducation = wizardData.education.map(edu => ({
     ...edu,
     beginDate: formatDateForInput(edu.beginDate),
     endDate: formatDateForInput(edu.endDate)
@@ -79,9 +97,6 @@ export default function EducationForm({
   const initialValues: EducationFormValues = {
     education: normalizedEducation.length > 0 ? normalizedEducation : [{ ...emptyEducation }],
   };
-
-  // console.log("init edu")
-  // console.log(initialValues)
 
   const handleSubmit = (
     values: EducationFormValues,
@@ -96,7 +111,8 @@ export default function EducationForm({
       endDate: edu.endDate ? new Date(edu.endDate).toISOString() : undefined,
     }));
 
-    onNext(formattedEducation);
+    updateEducation(formattedEducation);
+    onNext();
     setSubmitting(false);
   };
 
@@ -115,7 +131,7 @@ export default function EducationForm({
         validateOnBlur={false}
         onSubmit={handleSubmit}
       >
-        {({ values, isSubmitting, errors }) => (
+        {({ values, isSubmitting, errors }) =>  (
           <Form className="space-y-6">
             <FieldArray name="education">
               {({ push, remove }) => (
@@ -130,27 +146,11 @@ export default function EducationForm({
                         <h3 className="text-lg font-medium text-foreground">
                           Edukacja #{index + 1}
                         </h3>
-                        {values.education.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => remove(index)}
-                            className="text-error hover:text-red-400 transition-colors p-1"
-                            aria-label="Usuń edukację"
-                          >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className="h-5 w-5"
-                              viewBox="0 0 20 20"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          </button>
-                        )}
+                        <DeleteButton
+                          prompt="Usuń edukację"
+                          // index={index}
+                          remove={() => remove(index)}
+                        />
                       </div>
 
                       {/* Nazwa szkoły */}

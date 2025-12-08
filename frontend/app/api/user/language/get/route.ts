@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/app/lib/auth0";
+import { APIClient } from "@/app/lib/apiClient";
+import { APIError } from "@/app/lib/errors";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 export const GET = auth0.withApiAuthRequired(async (req: Request) => {
   try {
-    console.log(">>> /api/user/language/get HIT");
-
-    // session (opcjonalne, ale jak w twoim przykładzie)
-    const session = await auth0.getSession();
-    console.log("SESSION:", session ? "OK" : "NULL");
-
     // TOKEN DO GATEWAY
     const accessTokenResp = await auth0.getAccessToken({
       audience: process.env.AUTH0_AUDIENCE,
@@ -22,40 +18,21 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
         ? accessTokenResp
         : (accessTokenResp as any)?.token ?? null;
 
-    console.log("TOKEN:", token ? "OK" : "MISSING");
+    const apiClient = new APIClient();
+    const response = await apiClient.getAllLanguages(token);
 
-    // FORWARD DO GATEWAY (GET)
-    const gatewayRes = await fetch(
-      `${process.env.GATEWAY_URL}/users/languages/all`,
-      {
-        method: "GET",
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      }
-    );
+    return NextResponse.json(response?.data, {status: response?.status})
 
-    const contentType = gatewayRes.headers.get("content-type") ?? "";
-    const text = await gatewayRes.text();
-
-    console.log("GATEWAY RESPONSE:", gatewayRes.status, text);
-
-    // JSON → JSON
-    if (contentType.includes("application/json")) {
-      return NextResponse.json(JSON.parse(text), {
-        status: gatewayRes.status,
-      });
-    }
-
-    // inne typy → tekst
-    return new NextResponse(text, {
-      status: gatewayRes.status,
-      headers: { "Content-Type": contentType || "text/plain" },
-    });
   } catch (err: any) {
-    console.error("LANGUAGE GET ERROR:", err);
+    if (err instanceof APIError){
+      return NextResponse.json(
+        {message: err.userMessage, details: err.details},
+        {status: err.statusCode || 500}
+      )
+    }
+    console.error("Unexpected error: ", err);
     return NextResponse.json(
-      { message: err?.message ?? "Unknown error" },
+      { message: "An unexpected error occured. Please try again" },
       { status: 500 }
     );
   }

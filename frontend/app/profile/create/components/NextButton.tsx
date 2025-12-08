@@ -1,4 +1,4 @@
-export default function NextButton({prompt, isSubmitting}: {prompt: String, isSubmitting: boolean}){
+export default function NextButton({prompt, isSubmitting}: {prompt: string, isSubmitting: boolean}){
   return (
     <button
       type="submit"

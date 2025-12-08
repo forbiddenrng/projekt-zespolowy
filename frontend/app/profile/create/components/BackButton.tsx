@@ -3,7 +3,7 @@ export default function BackButton(
     prompt, 
     onBack}: 
   {
-    prompt: String,
+    prompt: string,
     onBack: () => void
   }
 ){ 

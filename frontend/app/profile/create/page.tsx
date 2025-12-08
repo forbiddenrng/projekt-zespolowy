@@ -1,7 +1,6 @@
 import { auth0 } from "../../lib/auth0";
-import UserNavigation from "../../components/UserNavigation";
-import ProfileWizard from "../components/ProfileWizard";
-import { jwtDecode } from "jwt-decode";
+import ProfileWizard from "./components/ProfileWizard";
+import { WizardProvider } from "./context/WizardContext";
 
 async function fetchProfile() {
   const accessTokenResp = await auth0.getAccessToken({
@@ -12,10 +11,6 @@ async function fetchProfile() {
     typeof accessTokenResp === "string"
       ? accessTokenResp
       : (accessTokenResp as any)?.token ?? null;
-
-  const decoded: any = jwtDecode(token);
-  const userID = encodeURIComponent(decoded.sub);
-  console.log("USERID", userID);
 
   const backendUrl = `${process.env.GATEWAY_URL}/users/me`;
   const gatewayRes = await fetch(backendUrl, {
@@ -50,15 +45,10 @@ export default async function Profile() {
     savedProfile = null;
   }
 
-  console.log("---user---");
-  console.log(user);
-  console.log("---saved profile---");
-  console.log(savedProfile);
-
   return (
-    <div className="min-h-screen bg-background pt-5">
-      <UserNavigation user={user} />
-      <ProfileWizard user={user} savedProfile={savedProfile} />
-    </div>
-  );
+    <WizardProvider>
+      <ProfileWizard user={user}/>
+    </WizardProvider>
+  )
+
 }

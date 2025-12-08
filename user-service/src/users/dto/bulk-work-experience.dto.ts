@@ -1,20 +1,19 @@
-import { OmitType } from '@nestjs/mapped-types';
+import { IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import {
   IsString,
-  IsNotEmpty,
   IsDateString,
   IsOptional,
   MinLength,
   MaxLength,
+  IsInt,
 } from 'class-validator';
 import { MaxNow } from 'src/validators/max-now.validator';
 
-// used when creating work experience from a separate request
-export class CreateWorkExperienceDto {
+export class WorkExperienceItemDto {
   @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  userId: string;
+  @IsInt()
+  id?: number;
 
   @IsString()
   @MinLength(3)
@@ -39,6 +38,10 @@ export class CreateWorkExperienceDto {
   @MinLength(10)
   description: string;
 }
-export class WorkExperienceDto extends OmitType(CreateWorkExperienceDto, [
-  'userId',
-]) {}
+
+export class BulkWorkExperienceDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => WorkExperienceItemDto)
+  workExperiences: WorkExperienceItemDto[];
+}

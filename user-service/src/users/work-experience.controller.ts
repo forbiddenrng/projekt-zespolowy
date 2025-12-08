@@ -1,16 +1,6 @@
-import {
-  Controller,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Req,
-  Get,
-} from '@nestjs/common';
+import { Controller, Body, Param, Req, Get, Put } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { WorkExperienceDto } from './dto/create-work-experience.dto';
-import { UpdateWorkExperienceDto } from './dto/update-work-experience.dto';
+import { BulkWorkExperienceDto } from './dto/bulk-work-experience.dto';
 
 @Controller('users')
 export class WorkExperienceController {
@@ -29,28 +19,10 @@ export class WorkExperienceController {
     return this.usersService.listWorkExperiencesByAuth0Id(id);
   }
 
-  // POST /users/work-experiences
-  @Post('work-experiences')
-  create(@Req() req: any, @Body() dto: WorkExperienceDto) {
+  // PUT /users/work-experiences (bulk merge)
+  @Put('work-experiences')
+  bulkMerge(@Req() req: any, @Body() body: BulkWorkExperienceDto) {
     const reqUserId = req.userId;
-    return this.usersService.addWorkExperience(reqUserId, dto);
-  }
-
-  // PATCH /users/work-experiences/:id
-  @Patch('work-experiences/:id')
-  update(
-    @Req() req: any,
-    @Param('id') id: string,
-    @Body() dto: UpdateWorkExperienceDto,
-  ) {
-    const reqUserId = req.userId;
-    return this.usersService.updateWorkExperience(reqUserId, +id, dto);
-  }
-
-  // DELETE /users/work-experiences/:id
-  @Delete('work-experiences/:id')
-  remove(@Req() req: any, @Param('id') id: string) {
-    const reqUserId = req.userId;
-    return this.usersService.removeWorkExperience(reqUserId, +id);
+    return this.usersService.mergeWorkExperiences(reqUserId, body);
   }
 }

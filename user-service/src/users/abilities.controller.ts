@@ -1,16 +1,6 @@
-import {
-  Controller,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Req,
-  Get,
-} from '@nestjs/common';
+import { Controller, Body, Param, Req, Get, Put } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { AbilityDto } from './dto/create-ability.dto';
-import { UpdateAbilityDto } from './dto/update-ability.dto';
+import { BulkAbilitiesDto } from './dto/bulk-ability.dto';
 
 @Controller('users')
 export class AbilitiesController {
@@ -29,28 +19,10 @@ export class AbilitiesController {
     return this.usersService.listAbilitiesByAuth0Id(id);
   }
 
-  // POST /users/abilities
-  @Post('abilities')
-  create(@Req() req: any, @Body() dto: AbilityDto) {
+  // PUT /users/abilities (bulk merge)
+  @Put('abilities')
+  bulkMerge(@Req() req: any, @Body() body: BulkAbilitiesDto) {
     const reqUserId = req.userId;
-    return this.usersService.addAbility(reqUserId, dto);
-  }
-
-  // PATCH /users/abilities/:id
-  @Patch('abilities/:id')
-  update(
-    @Req() req: any,
-    @Param('id') id: string,
-    @Body() dto: UpdateAbilityDto,
-  ) {
-    const reqUserId = req.userId;
-    return this.usersService.updateAbility(reqUserId, +id, dto);
-  }
-
-  // DELETE /users/abilities/:id
-  @Delete('abilities/:id')
-  remove(@Req() req: any, @Param('id') id: string) {
-    const reqUserId = req.userId;
-    return this.usersService.removeAbility(reqUserId, +id);
+    return this.usersService.mergeAbilities(reqUserId, body);
   }
 }

@@ -6,18 +6,22 @@ import EducationForm from "./UserEducation";
 import WorkExpForm from "./UserWorkExperience";
 import UserAbilities from "./UserAbilities";
 import UserLink from "./UserLink";
-import UserCertyficates from "./UserCertyficates";
+import UserCertyficates from "./UserCertificates";
 import UserLanguages from "./UserLanguage";
+import { useRouter } from "next/navigation";
 import type {
   UserFormValues,
   Education,
   WorkExp,
-  Abilities,
+  Ability,
   Links,
-  Certyficates,
+  Certificate,
   UserLanguage,
   Language,
 } from "@/app/ts/types";
+import { useWizard } from "../context/WizardContext";
+import BackButton from "./BackButton";
+import NextButton from "./NextButton";
 
 interface ProfileWizardProps {
   user: {
@@ -27,10 +31,8 @@ interface ProfileWizardProps {
     given_name?: string;
     sub: string;
   };
-  savedProfile?: any;
 }
 
-// Rozszerzone kroki: dodajemy 'abilities' (umiejętności)
 type WizardStep =
   | "user"
   | "education"
@@ -38,33 +40,26 @@ type WizardStep =
   | "abilities"
   | "languages"
   | "links"
-  | "certyficates"
+  | "certificates"
   | "summary";
 
 interface WizardData {
   userInfo: UserFormValues | null;
   education: Education[];
   workExperience: WorkExp[];
-  abilities: Abilities[];
+  abilities: Ability[];
   languages: UserLanguage[];
   links: Links[];
-  certyficates: Certyficates[];
+  certificates: Certificate[];
 }
 
 export default function ProfileWizard({
   user,
-  savedProfile,
 }: ProfileWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>("user");
-  const [wizardData, setWizardData] = useState<WizardData>({
-    userInfo: null,
-    education: savedProfile?.education || [],
-    workExperience: savedProfile?.workExperience || [],
-    abilities: savedProfile?.abilities || [],
-    languages: savedProfile?.languages || [],
-    links: savedProfile?.links || [],
-    certyficates: savedProfile?.certyfivates || [],
-  });
+
+  const {wizardData} = useWizard();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [allLanguages, setAllLanguages] = useState<Language[]>([]);
@@ -83,46 +78,13 @@ export default function ProfileWizard({
     { key: "abilities", label: "Umiejętności" },
     { key: "languages", label: "Języki" },
     { key: "links", label: "Linki" },
-    { key: "certyficates", label: "Certyfikaty" },
+    { key: "certificates", label: "Certyfikaty" },
     { key: "summary", label: "Podsumowanie" },
   ];
 
   const currentStepIndex = steps.findIndex((s) => s.key === currentStep);
 
-  const handleUserFormNext = (values: UserFormValues) => {
-    setWizardData((prev) => ({ ...prev, userInfo: values }));
-    setCurrentStep("education");
-  };
-
-  const handleEducationNext = (education: Education[]) => {
-    setWizardData((prev) => ({ ...prev, education }));
-    setCurrentStep("work");
-  };
-
-  const handleWorkNext = (workExperience: WorkExp[]) => {
-    setWizardData((prev) => ({ ...prev, workExperience }));
-    setCurrentStep("abilities");
-  };
-
-  const handleAbilitiesNext = (abilities: Abilities[]) => {
-    setWizardData((prev) => ({ ...prev, abilities }));
-    setCurrentStep("languages");
-  };
-
-  const handleLanguagesNext = (languages: UserLanguage[]) => {
-    setWizardData((prev) => ({ ...prev, languages }));
-    setCurrentStep("links");
-  };
-
-  const handleLinksNext = (links: Links[]) => {
-    setWizardData((prev) => ({ ...prev, links }));
-    setCurrentStep("certyficates");
-  };
-
-  const handleCertyficatesNext = (certyficates: Certyficates[]) => {
-    setWizardData((prev) => ({ ...prev, certyficates }));
-    setCurrentStep("summary");
-  };
+  const router = useRouter();
 
   const handleFinalSubmit = async () => {
     if (!wizardData.userInfo) return;
@@ -136,23 +98,14 @@ export default function ProfileWizard({
         name: wizardData.userInfo.name,
         surname: wizardData.userInfo.surname,
         city: wizardData.userInfo.city,
-        profileSummary: wizardData.userInfo.profileSummary,
+        profileSummary: wizardData.userInfo.profileSummary || null ,
         education: wizardData.education,
         abilities: wizardData.abilities,
-        certificates: wizardData.certyficates,
+        certificates: wizardData.certificates,
         links: wizardData.links,
         workExperience: wizardData.workExperience,
         languages: wizardData.languages,
       };
-
-      console.log("[ProfileWizard] SENDING PAYLOAD:", payload);
-
-      // Zanim wyśle się request trzeba najpierw sprawdzić na jaki endpoint go wysłać
-      // trzeba wysłać request na /users/profile-exists
-      // jeżeli profile-exists zwróci że profil istnieje to trzeba dokonac updata
-      // jeżeli zwróci że nie istnieje to trzeba dokonać edycji
-      //UWAGA: endpoint do edycji całościowej tj. z podaniem wszystkich pól edukacja, umiejętności itd. nie istnieje
-      // możliwa jest na razie tylko edycja poszczególnych pól poprzez dedykowane endpointy. Zobacz README.md w user-service
 
       const res = await fetch("/api/user/create", {
         method: "POST",
@@ -167,12 +120,11 @@ export default function ProfileWizard({
         throw new Error(err || `Server returned ${res.status}`);
       }
 
-      const data = await res.json();
-      console.log("[ProfileWizard] SUCCESS:", data);
-      alert("Profil zapisany pomyślnie!");
+      await res.json();
+      
+      router.push("/profile");
     } catch (err: any) {
       console.error("Submit error:", err);
-      alert("Wystąpił błąd: " + (err?.message ?? "unknown"));
     } finally {
       setIsSubmitting(false);
     }
@@ -257,59 +209,52 @@ export default function ProfileWizard({
 
       {/* Zawartość kroków */}
       {currentStep === "user" && (
-        <UserFormStep
+        <UserForm
           user={user}
-          savedProfile={savedProfile}
-          initialValues={wizardData.userInfo || savedProfile}
-          onNext={handleUserFormNext}
+          onNext={() => setCurrentStep("education")}
         />
       )}
 
       {currentStep === "education" && (
         <EducationForm
-          initialEducation={wizardData.education}
           onBack={() => setCurrentStep("user")}
-          onNext={handleEducationNext}
+          onNext={() => setCurrentStep("work")}
         />
       )}
 
       {currentStep === "work" && (
         <WorkExpForm
-          initialWorkExp={wizardData.workExperience}
           onBack={() => setCurrentStep("education")}
-          onNext={handleWorkNext}
+          onNext={() => setCurrentStep("abilities")}
         />
       )}
 
       {currentStep === "abilities" && (
         <UserAbilities
-          initialAbilities={wizardData.abilities}
           onBack={() => setCurrentStep("work")}
-          onNext={handleAbilitiesNext}
+          onNext={() => setCurrentStep("languages")}
         />
       )}
 
       {currentStep === "languages" && (
         <UserLanguages
-          initialLanguages={wizardData.languages}
+          allLanguages={allLanguages}
           onBack={() => setCurrentStep("abilities")}
-          onNext={handleLanguagesNext}
+          onNext={() => setCurrentStep("links")}
         />
       )}
 
       {currentStep === "links" && (
         <UserLink
-          initialLinks={wizardData.links}
-          onBack={() => setCurrentStep("abilities")}
-          onNext={handleLinksNext}
+          onBack={() => setCurrentStep("languages")}
+          onNext={() => setCurrentStep("certificates")}
         />
       )}
 
-      {currentStep === "certyficates" && (
+      {currentStep === "certificates" && (
         <UserCertyficates
-          initialCertyficates={wizardData.certyficates}
           onBack={() => setCurrentStep("links")}
-          onNext={handleCertyficatesNext}
+          onNext={() => setCurrentStep("summary")}
         />
       )}
 
@@ -317,7 +262,7 @@ export default function ProfileWizard({
         <SummaryStep
           data={wizardData}
           allLanguages={allLanguages}
-          onBack={() => setCurrentStep("certyficates")}
+          onBack={() => setCurrentStep("certificates")}
           onSubmit={handleFinalSubmit}
           isSubmitting={isSubmitting}
         />
@@ -326,27 +271,6 @@ export default function ProfileWizard({
   );
 }
 
-// Zmodyfikowany UserForm dla wizarda
-function UserFormStep({
-  user,
-  savedProfile,
-  initialValues,
-  onNext,
-}: {
-  user: any;
-  savedProfile: any;
-  initialValues: UserFormValues;
-  onNext: (values: UserFormValues) => void;
-}) {
-  return (
-    <UserForm
-      user={user}
-      savedProfile={savedProfile}
-      initialValues={initialValues}
-      onNext={onNext}
-    />
-  );
-}
 
 // Krok podsumowania
 function SummaryStep({
@@ -496,9 +420,9 @@ function SummaryStep({
       {/* Certyfikaty */}
       <div className="mb-6 p-4 bg-secondary rounded-lg">
         <h3 className="font-medium text-foreground mb-3">
-          Certyfikaty ({data.certyficates.length})
+          Certyfikaty ({data.certificates.length})
         </h3>
-        {data.certyficates.map((cert, index) => (
+        {data.certificates.map((cert, index) => (
           <div
             key={index}
             className="mb-3 pb-3 border-b border-border last:border-0"
@@ -514,25 +438,10 @@ function SummaryStep({
 
       {/* Przyciski */}
       <div className="flex justify-between gap-4 pt-6 border-t border-border">
-        <button
-          type="button"
-          onClick={onBack}
-          className="px-6 py-3 bg-secondary border border-border text-foreground hover:bg-border rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 cursor-pointer"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Wstecz
-        </button>
+        <BackButton
+          prompt="Wstecz"
+          onBack={onBack}
+        />
 
         <button
           type="button"
