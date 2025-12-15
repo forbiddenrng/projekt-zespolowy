@@ -4,7 +4,7 @@ from typing import List
 class CVRequest(BaseModel):
     name: str
     experience: str
-    skillas: List[str]
+    skills: List[str]
 
 class CVResponse(BaseModel):
     cv_text: str

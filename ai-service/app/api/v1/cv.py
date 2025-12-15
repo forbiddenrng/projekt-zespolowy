@@ -6,5 +6,5 @@ router = APIRouter(prefix="/cv", tags=["CV"])
 
 @router.post("/generate", response_model=CVResponse)
 def generate_cv_endpoint(request: CVRequest):
-    cv = generate_cv(request.dict())
+    cv = generate_cv(request.model_dump())
     return {"cv_text": cv}
