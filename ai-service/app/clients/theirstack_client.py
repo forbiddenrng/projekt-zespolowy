@@ -1,7 +1,6 @@
 import httpx
 from typing import List, Dict, Any, Optional, Set
 from app.core.config import settings
-from motor.motor_asyncio import AsyncDatabase
 
 class ThirstackClient:
   def __init__(self):
@@ -10,35 +9,24 @@ class ThirstackClient:
     self.headers = {
       "Authorization": f"Bearer {self.api_key}",
       "Content-Type": "application/json"
-  }
-    
-  async def get_existing_offer_ids(self, db: AsyncDatabase) -> Set[int]:
-    """
-    Pobierz wszystkie external_id ofert już zapisanych w bazie.
-    Zwraca set ID aby szybko sprawdzić czy oferta już istnieje.
-    """
+    }
+
+  async def get_existing_offer_ids(self, db: Any) -> Set[int]:
+    """Pobierz wszystkie external_id ofert już zapisanych w bazie"""
     collection = db["job_offers"]
     
-    # Pobierz tylko external_id (najmniej danych)
     cursor = collection.find({}, {"external_id": 1})
     offers = await cursor.to_list(length=None)
     
     existing_ids = {offer["external_id"] for offer in offers}
+    print(f"📊 Found {len(existing_ids)} existing offers in database")
     
     return existing_ids
 
-  async def aggregate_user_preferences(self, db: AsyncDatabase) -> Dict[str, Any]:
-    """
-    Pobierz wszystkie preferencje użytkowników i zagreguj je.
-    
-    Logika:
-    - Zbierz wszystkie technologie ze wszystkich użytkowników
-    - Jeśli remote/hybrid mają MIESZANE wartości (true i false), ustaw na null
-    - Jeśli wszyscy mają tę samą wartość, użyj tej wartości
-    """
+  async def aggregate_user_preferences(self, db: Any) -> Dict[str, Any]:
+    """Pobierz wszystkie preferencje użytkowników i zagreguj je"""
     collection = db["user_preferences"]
     
-    # Pobierz wszystkie preferencje
     cursor = collection.find()
     all_preferences = await cursor.to_list(length=None)
     
@@ -51,34 +39,32 @@ class ThirstackClient:
       techs = pref.get("technology_slugs") or []
       all_technologies.update(techs)
     
-    # Agreguj remote (True, False, None)
+    # Agreguj remote
     remote_values = set()
     for pref in all_preferences:
       remote = pref.get("remote")
       if remote is not None:
-          remote_values.add(remote)
-        
+        remote_values.add(remote)
+    
     # Agreguj hybrid
     hybrid_values = set()
     for pref in all_preferences:
       hybrid = pref.get("hybrid")
       if hybrid is not None:
         hybrid_values.add(hybrid)
-        
-    # Agreguj seniority levels
+    
+    # Agreguj seniority
     all_seniority_levels: Set[str] = set()
     for pref in all_preferences:
       seniority = pref.get("seniority_levels") or []
       all_seniority_levels.update(seniority)
-        
+    
     # Agreguj kraje
     all_countries: Set[str] = set()
     for pref in all_preferences:
       countries = pref.get("countries") or []
       all_countries.update(countries)
-        
-    # Logika: jeśli są MIESZANE wartości (True i False), ustaw None
-    # W innym wypadku, jeśli wszyscy mają tę samą wartość, użyj jej
+    
     remote = self._aggregate_boolean_preference(remote_values)
     hybrid = self._aggregate_boolean_preference(hybrid_values)
     
@@ -91,24 +77,17 @@ class ThirstackClient:
     }
 
   def _aggregate_boolean_preference(self, values: Set[bool]) -> Optional[bool]:
-    """
-    Agreguj preferencje boolean.
-    
-    Jeśli są MIESZANE (True i False) → zwróć None (pobieramy oba)
-    Jeśli tylko True → zwróć True
-    Jeśli tylko False → zwróć False
-    Jeśli pusty set → zwróć None
-    """
+    """Agreguj preferencje boolean"""
     if not values:
       return None
     
-    if len(values) == 2:  # Mieszane: True i False
+    if len(values) == 2:
       return None
     
-    return list(values)[0]  # Jeśli tylko jedna wartość
+    return list(values)[0]
 
   def _get_default_params(self) -> Dict[str, Any]:
-    """Domyślne parametry, gdy brak preferencji"""
+    """Domyślne parametry"""
     return {
       "technology_slugs": None,
       "remote": None,
@@ -118,86 +97,60 @@ class ThirstackClient:
     }
 
   async def get_job_offers(self, 
-                            db: AsyncDatabase,
+                            db: Any,
                             page: int = 1,
                             limit: int = 50) -> List[Dict[str, Any]]:
-    """
-    Pobierz oferty pracy z Theirstack API na podstawie zagregowanych preferencji.
-    
-    Args:
-        db: Połączenie do MongoDB
-        page: Numer strony
-        limit: Liczba ofert (max 50)
-    
-    Returns:
-        Lista ofert pracy
-    """
+    """Pobierz oferty pracy z Theirstack API"""
     try:
-      # Agreguj preferencje wszystkich użytkowników
       aggregated_prefs = await self.aggregate_user_preferences(db)
-
-      existring_ids = await self.get_existing_offer_ids(db)
+      existing_ids = await self.get_existing_offer_ids(db)
       
-      # Przygotuj parametry zapytania
       params = {
         "page": page,
-        "limit": min(limit, 20),  # Max 20
-        "posted_at_max_age_days": 30, ## ostatnie 30 dni
-        "job_country_code_or": ["PL"], # oferty z Polski
-        "job_id_not": existring_ids
+        "limit": min(limit, 50)
       }
       
-      # Dodaj technologie
       if aggregated_prefs["technology_slugs"]:
         params["job_technology_slug_or"] = aggregated_prefs["technology_slugs"]
       
-      # Dodaj remote
       if aggregated_prefs["remote"] is not None:
         params["remote"] = aggregated_prefs["remote"]
       
-      # Dodaj hybrid
       if aggregated_prefs["hybrid"] is not None:
         params["hybrid"] = aggregated_prefs["hybrid"]
       
-      # Dodaj seniority
-      if aggregated_prefs["job_seniority_or"]:
-        params["seniority_levels"] = aggregated_prefs["seniority_levels"]
+      if aggregated_prefs["seniority_levels"]:
+        params["job_seniority_or"] = aggregated_prefs["seniority_levels"]
       
-      print(f"Theirstack API Request Parameters: {params}")
+      if aggregated_prefs["countries"]:
+        params["countries"] = aggregated_prefs["countries"]
       
-      # Wyślij zapytanie do API
-      # async with httpx.AsyncClient(timeout=30.0) as client:
-      #   response = await client.get(
-      #       f"{self.base_url}/jobs",
-      #       headers=self.headers,
-      #       params=params
-      #   )
-      #   response.raise_for_status()
-      #   data = response.json()
+      print(f"📤 Theirstack API Request: {params}")
+      
+      async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.get(
+            f"{self.base_url}/jobs",
+            headers=self.headers,
+            params=params
+        )
+        response.raise_for_status()
+        data = response.json()
         
-      #   print(f"✓ Successfully fetched {len(data.get('jobs', []))} job offers")
-      #   return data.get("jobs", [])
+        all_offers = data.get("jobs", [])
+        new_offers = [
+            offer for offer in all_offers 
+            if offer.get("id") not in existing_ids
+        ]
+        
+        print(f"✓ API returned {len(all_offers)} offers, {len(new_offers)} are new")
+        
+        return new_offers
     
     except httpx.HTTPStatusError as e:
-      print(f"HTTP Error {e.response.status_code}: {e.response.text}")
-      raise
-    except httpx.RequestError as e:
-      print(f"Request Error: {e}")
+      print(f"✗ HTTP Error {e.response.status_code}: {e.response.text}")
       raise
     except Exception as e:
-      print(f"Unexpected error: {e}")
+      print(f"✗ Error: {e}")
       raise
-
-
-  def print_aggregation_debug(self, prefs: Dict[str, Any]) -> str:
-    """Debug helper - wyświetl jak wygląda agregacja"""
-    return f"""
-    Agregowane preferencje użytkowników:
-    - Technologie: {prefs['technology_slugs']}
-    - Remote: {prefs['remote']}
-    - Hybrid: {prefs['hybrid']}
-    - Seniority: {prefs['seniority_levels']}
-    - Kraje: {prefs['countries']}
-    """
 
 theirstack_client = ThirstackClient()

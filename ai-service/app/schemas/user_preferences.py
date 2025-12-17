@@ -1,8 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
 
-class UserPreferences(BaseModel):
-  user_id: str
+class UserPreferencesBase(BaseModel):
   technology_slugs: Optional[List[str]] = None  # ["python", "fastapi"]
   remote: Optional[bool] = None  # True, False, lub None (obojętne)
   hybrid: Optional[bool] = None
@@ -10,8 +9,14 @@ class UserPreferences(BaseModel):
   countries: Optional[List[str]] = None  # ["USA", "Poland"]
   excluded_companies: Optional[List[str]] = None
 
-class UserPreferencesCreate(UserPreferences):
+## schemat do tworzenia preferencji
+class UserPreferencesCreate(UserPreferencesBase):
   pass
 
+## schemat do przechowywania w bazie
+class UserPreferences(UserPreferencesBase):
+  user_id: str
+
+#Schema zwracany w API
 class UserPreferencesResponse(UserPreferences):
-  id: str
+  id: Optional[str] = None

@@ -24,7 +24,7 @@ async def get_user_id(x_user: Optional[str] = Header(None)) -> str:
   return x_user
     
 
-@router.post("/jobs/sync")
+# @router.post("/jobs/sync")
 async def sync_jobs(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=20),

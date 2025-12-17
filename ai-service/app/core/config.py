@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "AI Service"
 
     ## MongoDB
-    MONGODB_URL: str = "mongodb://localhost:27017"
+    MONGODB_URL: str = "mongodb://admin:password@localhost:27017"
     MONGODB_DB: str = "ai-service"
 
     ## Theirstack
