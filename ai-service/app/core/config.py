@@ -11,7 +11,7 @@ class Settings(BaseSettings):
 
     ## Theirstack
     THEIRSTACK_API_KEY: str
-    THEIRSTACK_API_URL: str = "https://api.theirstack.com"
+    THEIRSTACK_API_URL: str
 
 
     class Config:

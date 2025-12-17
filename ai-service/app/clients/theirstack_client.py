@@ -99,7 +99,7 @@ class ThirstackClient:
   async def get_job_offers(self, 
                             db: Any,
                             page: int = 1,
-                            limit: int = 50) -> List[Dict[str, Any]]:
+                            limit: int = 10) -> List[Dict[str, Any]]:
     """Pobierz oferty pracy z Theirstack API"""
     try:
       aggregated_prefs = await self.aggregate_user_preferences(db)
@@ -107,7 +107,7 @@ class ThirstackClient:
       
       params = {
         "page": page,
-        "limit": min(limit, 50)
+        "limit": min(limit, 10)
       }
       
       if aggregated_prefs["technology_slugs"]:
