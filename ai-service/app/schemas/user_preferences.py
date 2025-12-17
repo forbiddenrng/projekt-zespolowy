@@ -20,3 +20,12 @@ class UserPreferences(UserPreferencesBase):
 #Schema zwracany w API
 class UserPreferencesResponse(UserPreferences):
   id: Optional[str] = None
+
+class CreatePreferencesResponse(BaseModel):
+  status: str
+  user_id: str
+  message: str
+
+class GetPreferencesResponse(UserPreferencesBase):
+  _id: str
+  user_id: str

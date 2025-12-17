@@ -4,6 +4,7 @@ from app.services.job_offer_service import JobOfferService
 from app.services.user_preferences import UserPreferencesService
 from app.schemas.user_preferences import UserPreferencesCreate
 from app.clients.mongodb_client import mongodb
+from app.schemas.user_preferences import GetPreferencesResponse, CreatePreferencesResponse
 
 router = APIRouter(prefix="/api", tags=["jobs"])
 
@@ -47,7 +48,7 @@ async def sync_jobs(
         "message": f"Zsynchronizowano {count} ofert na podstawie preferencji użytkowników"
     }
 
-@router.post("/preferences")
+@router.post("/preferences", response_model=CreatePreferencesResponse)
 async def save_user_preferences(
     preferences: UserPreferencesCreate,
     user_id: str = Depends(get_user_id),
@@ -61,7 +62,7 @@ async def save_user_preferences(
         "message": "Preferencje zaktualizowane"
     }
 
-@router.get("/preferences")
+@router.get("/preferences", response_model=GetPreferencesResponse)
 async def get_user_preferences(
     user_id: str = Depends(get_user_id),
     service: UserPreferencesService = Depends(get_preferences_service)
