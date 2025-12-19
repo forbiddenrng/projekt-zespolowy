@@ -19,18 +19,17 @@ from app.core.config import settings
 
 async def main(page: int = 1, limit: int = 50):
     """
-    Synchronizuj oferty pracy
+    Synchronize job offers
     
     Args:
-        page: Strona API
-        limit: Limit ofert na stronę
-        dry_run: Jeśli True, nie zapisuje do bazy
+        page: API Page
+        limit: Job number limit
     """
     print(f"Starting job offers sync at {datetime.now(timezone.utc).isoformat()}")
     print(f"Parameters: page={page}, limit={limit}")
     
     try:
-        # Połącz z bazą
+        # connect with db
         await mongodb.connect_db()
         db = mongodb.get_db()
         
@@ -38,7 +37,7 @@ async def main(page: int = 1, limit: int = 50):
             print("Failed to connect to database")
             sys.exit(1)
         
-        # Synchronizuj
+        # Sync
         service = JobOfferService(db)
         
         synced = await service.sync_job_offers(page=page, limit=limit)

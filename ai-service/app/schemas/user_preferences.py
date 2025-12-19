@@ -23,15 +23,15 @@ class UserPreferencesBase(BaseModel):
       return v
     return [CountryCode(item) if isinstance(item, str) else item for item in v]
 
-## schemat do tworzenia preferencji
+## Schema for creating preferences
 class UserPreferencesCreate(UserPreferencesBase):
   pass
 
-## schemat do przechowywania w bazie
+## Schema for storing preferences in database
 class UserPreferences(UserPreferencesBase):
   user_id: str
 
-#Schema zwracany w API
+#Schema returned by API
 class UserPreferencesResponse(UserPreferences):
   id: Optional[str] = None
 

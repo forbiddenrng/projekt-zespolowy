@@ -50,8 +50,8 @@ class JobOfferCreate(JobOfferBase):
 
 class JobOffer(JobOfferBase):
   id: PyObjectId = Field(alias="_id")
-  created_at: datetime = Field(default_factory=datetime.now(timezone.utc))
-  updated_at: datetime = Field(default_factory=datetime.now(timezone.utc))
+  created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+  updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
   class Config:
     populate_by_name = True

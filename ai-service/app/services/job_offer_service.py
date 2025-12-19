@@ -11,7 +11,7 @@ class JobOfferService:
 
     async def sync_job_offers(self, page: int = 1, limit: int = 50) -> int:
         """
-        Synchronizuj oferty pracy z Theirstack API.
+        Synchronize job offers with Theirstack API.
         """
         try:
             offers_data = await theirstack_client.get_job_offers(
@@ -29,9 +29,9 @@ class JobOfferService:
                 try:
                     company_obj = offer.get("company_object", {})
                     company = Company(
-                        name=offer.get("company", "Unknown"),
-                        country=company_obj.get("company"),
-                        logo_url=company_obj.get("company")
+                        name=company_obj.get("name", "Unknown"),
+                        country=company_obj.get("country"),
+                        logo_url=company_obj.get("logo")
                     )
                     
                     salary = Salary(
@@ -93,7 +93,7 @@ class JobOfferService:
             raise
 
     async def get_offers_for_user(self, user_preferences: dict) -> List[dict]:
-        """Pobierz oferty pasujące do preferencji użytkownika"""
+        """Get job offers that fit user preferences"""
         query = {}
 
         if user_preferences.get("technology_slugs"):
@@ -130,11 +130,11 @@ class JobOfferService:
         return offers
 
     async def get_all_offers(self, skip: int = 0, limit: int = 20) -> List[dict]:
-        """Pobierz wszystkie oferty"""
+        """Get all job offers"""
         cursor = self.collection.find({}).skip(skip).limit(limit).sort("date_posted", -1)
         offers = await cursor.to_list(length=limit)
         
-        # Konwertuj _id na id
+        # Convert  _id na id
         for offer in offers:
             offer["id"] = str(offer["_id"])
             del offer["_id"]
@@ -142,5 +142,5 @@ class JobOfferService:
         return offers
 
     async def count_offers(self) -> int:
-        """Policz oferty"""
+        """Count offers"""
         return await self.collection.count_documents({})

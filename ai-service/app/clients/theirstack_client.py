@@ -2,7 +2,7 @@ import httpx
 from typing import List, Dict, Any, Optional, Set
 from app.core.config import settings
 
-class ThirstackClient:
+class TheirstackClient:
   def __init__(self):
     self.api_key = settings.THEIRSTACK_API_KEY
     self.base_url = settings.THEIRSTACK_API_URL
@@ -12,7 +12,7 @@ class ThirstackClient:
     }
 
   async def get_existing_offer_ids(self, db: Any) -> Set[int]:
-    """Pobierz wszystkie external_id ofert już zapisanych w bazie"""
+    """Get all external_id from offers saved in database"""
     collection = db["job_offers"]
     
     cursor = collection.find({}, {"external_id": 1})
@@ -24,7 +24,7 @@ class ThirstackClient:
     return existing_ids
 
   async def aggregate_user_preferences(self, db: Any) -> Dict[str, Any]:
-    """Pobierz wszystkie preferencje użytkowników i zagreguj je"""
+    """Get all user preferences and aggregate it"""
     collection = db["user_preferences"]
     
     cursor = collection.find()
@@ -77,7 +77,7 @@ class ThirstackClient:
     }
 
   def _aggregate_boolean_preference(self, values: Set[bool]) -> Optional[bool]:
-    """Agreguj preferencje boolean"""
+    """Aggregate boolean preferences"""
     if not values:
       return None
     
@@ -87,7 +87,7 @@ class ThirstackClient:
     return list(values)[0]
 
   def _get_default_params(self) -> Dict[str, Any]:
-    """Domyślne parametry"""
+    """Default parameters"""
     return {
       "technology_slugs": None,
       "remote": None,
@@ -100,7 +100,7 @@ class ThirstackClient:
                             db: Any,
                             page: int = 1,
                             limit: int = 10) -> List[Dict[str, Any]]:
-    """Pobierz oferty pracy z Theirstack API"""
+    """Get job offers from Theirstack API"""
     try:
       aggregated_prefs = await self.aggregate_user_preferences(db)
       existing_ids = await self.get_existing_offer_ids(db)
@@ -160,4 +160,4 @@ class ThirstackClient:
       print(f"✗ Error: {e}")
       raise
 
-theirstack_client = ThirstackClient()
+theirstack_client = TheirstackClient()

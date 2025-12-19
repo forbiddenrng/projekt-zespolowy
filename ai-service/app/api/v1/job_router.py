@@ -30,13 +30,13 @@ async def save_user_preferences(
     user_id: str = Depends(get_user_id),
     service: UserPreferencesService = Depends(get_preferences_service)
 ):
-    """Zapisz lub zaktualizuj preferencje użytkownika"""
+    """Save or update user preferences"""
     result = await service.save_preferences(user_id, preferences)
     # return result
     print(result)
     return {
         "status": "success",
-        "message": "Preferencje zaktualizowane"
+        "message": "Preferences updated"
     }
 
 @router.get("/preferences", response_model=GetPreferencesResponse)
@@ -44,7 +44,7 @@ async def get_user_preferences(
     user_id: str = Depends(get_user_id),
     service: UserPreferencesService = Depends(get_preferences_service)
 ):
-    """Pobierz preferencje użytkownika"""
+    """Get user preferences"""
     prefs = await service.get_preferences(user_id)
     if not prefs:
       raise HTTPException(status_code=404, detail="Preferences not found")
@@ -56,7 +56,7 @@ async def get_recommended_jobs(
     job_service: JobOfferService = Depends(get_job_service),
     pref_service: UserPreferencesService = Depends(get_preferences_service)
 ):
-    """Pobierz oferty dostosowane do preferencji użytkownika"""
+    """Get job offers that fit user preferences"""
     prefs = await pref_service.get_preferences(user_id)
     if not prefs:
         raise HTTPException(status_code=404, detail="You need to set preferences")
@@ -75,7 +75,7 @@ async def list_all_jobs(
     limit: int = Query(20, ge=1, le=100),
     service: JobOfferService = Depends(get_job_service)
 ):
-    """Pobierz wszystkie dostępne oferty"""
+    """Get all available job offers"""
     offers = await service.get_all_offers(skip=skip, limit=limit)
     count = await service.count_offers()
     return {

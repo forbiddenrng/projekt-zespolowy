@@ -5,10 +5,6 @@ class Settings(BaseSettings):
     OPENAI_MODEL: str = "gpt-4o-mini"
     APP_NAME: str = "AI Service"
 
-    ## MongoDB - local
-    # MONGODB_URL: str = "mongodb://admin:password@localhost:27017"
-    # MONGODB_DB: str = "ai-service"
-
     MONGODB_URL: str
     MONGODB_DB: str
 
