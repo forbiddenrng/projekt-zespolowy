@@ -31,10 +31,11 @@ async def save_user_preferences(
     service: UserPreferencesService = Depends(get_preferences_service)
 ):
     """Zapisz lub zaktualizuj preferencje użytkownika"""
-    await service.save_preferences(user_id, preferences)
+    result = await service.save_preferences(user_id, preferences)
+    # return result
+    print(result)
     return {
         "status": "success",
-        "user_id": user_id,
         "message": "Preferencje zaktualizowane"
     }
 

@@ -107,7 +107,7 @@ class ThirstackClient:
       
       params = {
         "page": page,
-        "limit": min(limit, 1),
+        "limit": min(limit, 10),
         "posted_at_max_age_days": 30,
         "job_id_not": list(existing_ids)
       }

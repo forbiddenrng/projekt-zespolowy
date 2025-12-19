@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime, timezone
 from bson import ObjectId
+from app.schemas.enums import SeniorityLevel
 
 class PyObjectId(ObjectId):
   @classmethod
@@ -12,7 +13,7 @@ class PyObjectId(ObjectId):
   def validate(cls, v):
     if not ObjectId.is_valid(v):
       raise ValueError("Invalid objectid")
-    return ObjectId(v)
+    return str(v)
 
 class Company(BaseModel):
   name: str
@@ -40,7 +41,7 @@ class JobOfferBase(BaseModel):
   technology_slugs: List[str]
   remote: Optional[bool] = None
   hybrid: Optional[bool] = None
-  seniority: Optional[str] = None
+  seniority: Optional[SeniorityLevel] = None
   date_posted: str
 
 

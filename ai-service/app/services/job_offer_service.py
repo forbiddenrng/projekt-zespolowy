@@ -112,23 +112,34 @@ class JobOfferService:
                 "$in": user_preferences["seniority_levels"]
             }
 
-        if user_preferences.get("countries"):
-            query["location.country_name"] = {
-                "$in": user_preferences["countries"]
-            }
+        # if user_preferences.get("countries"):
+        #     query["location.country_name"] = {
+        #         "$in": user_preferences["countries"]
+        #     }
 
-        if user_preferences.get("excluded_companies"):
-            query["company.name"] = {
-                "$nin": user_preferences["excluded_companies"]
-            }
+        # if user_preferences.get("excluded_companies"):
+        #     query["company.name"] = {
+        #         "$nin": user_preferences["excluded_companies"]
+        #     }
 
         cursor = self.collection.find(query).sort("date_posted", -1)
-        return await cursor.to_list(length=None)
+        offers = await cursor.to_list(length=None)
+        for offer in offers:
+            offer["id"] = str(offer["_id"])
+            del offer["_id"]
+        return offers
 
     async def get_all_offers(self, skip: int = 0, limit: int = 20) -> List[dict]:
         """Pobierz wszystkie oferty"""
-        cursor = self.collection.find({}, {"_id": 0}).skip(skip).limit(limit).sort("date_posted", -1)
-        return await cursor.to_list(length=limit)
+        cursor = self.collection.find({}).skip(skip).limit(limit).sort("date_posted", -1)
+        offers = await cursor.to_list(length=limit)
+        
+        # Konwertuj _id na id
+        for offer in offers:
+            offer["id"] = str(offer["_id"])
+            del offer["_id"]
+        
+        return offers
 
     async def count_offers(self) -> int:
         """Policz oferty"""
