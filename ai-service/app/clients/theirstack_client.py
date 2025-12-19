@@ -19,7 +19,7 @@ class ThirstackClient:
     offers = await cursor.to_list(length=None)
     
     existing_ids = {offer["external_id"] for offer in offers}
-    print(f"📊 Found {len(existing_ids)} existing offers in database")
+    print(f"Found {len(existing_ids)} existing offers in database")
     
     return existing_ids
 
@@ -107,40 +107,47 @@ class ThirstackClient:
       
       params = {
         "page": page,
-        "limit": min(limit, 10)
+        "limit": min(limit, 1),
+        "posted_at_max_age_days": 30,
+        "job_id_not": list(existing_ids)
       }
       
       if aggregated_prefs["technology_slugs"]:
         params["job_technology_slug_or"] = aggregated_prefs["technology_slugs"]
+
       
       if aggregated_prefs["remote"] is not None:
         params["remote"] = aggregated_prefs["remote"]
       
-      if aggregated_prefs["hybrid"] is not None:
-        params["hybrid"] = aggregated_prefs["hybrid"]
+      # if aggregated_prefs["hybrid"] is not None:
+      #   params["hybrid"] = aggregated_prefs["hybrid"]
       
       if aggregated_prefs["seniority_levels"]:
         params["job_seniority_or"] = aggregated_prefs["seniority_levels"]
       
       if aggregated_prefs["countries"]:
-        params["countries"] = aggregated_prefs["countries"]
+        params["job_country_code_or"] = aggregated_prefs["countries"]
       
-      print(f"📤 Theirstack API Request: {params}")
+      print(f"Theirstack API Request: {params}")
       
       async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.get(
-            f"{self.base_url}/jobs",
+        response = await client.post(
+            f"{self.base_url}",
             headers=self.headers,
-            params=params
+            json=params
         )
         response.raise_for_status()
         data = response.json()
+        print(data)
         
-        all_offers = data.get("jobs", [])
+        all_offers = data.get("data", [])
+        
         new_offers = [
             offer for offer in all_offers 
             if offer.get("id") not in existing_ids
         ]
+
+        print(new_offers)
         
         print(f"✓ API returned {len(all_offers)} offers, {len(new_offers)} are new")
         

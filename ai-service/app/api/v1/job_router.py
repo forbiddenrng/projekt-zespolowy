@@ -24,30 +24,6 @@ async def get_user_id(x_user: Optional[str] = Header(None)) -> str:
     )
   return x_user
     
-
-# @router.post("/jobs/sync")
-async def sync_jobs(
-    page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=20),
-    service: JobOfferService = Depends(get_job_service)
-):
-    """
-    Synchronizuj oferty pracy z Theirstack API.
-    
-    Pobiera oferty na podstawie zagregowanych preferencji WSZYSTKICH użytkowników:
-    - Zbiera wszystkie technologie ze wszystkich użytkowników
-    - Jeśli remote/hybrid mają mieszane wartości (true i false), wysyła null
-    - Jeśli wszyscy mają tę samą wartość, wysyła tę wartość
-    
-    Wywoływane: Co tydzień (np. poniedziałek o 2:00 AM)
-    """
-    count = await service.sync_job_offers(page=page, limit=limit)
-    return {
-        "status": "success",
-        "synced_count": count,
-        "message": f"Zsynchronizowano {count} ofert na podstawie preferencji użytkowników"
-    }
-
 @router.post("/preferences", response_model=CreatePreferencesResponse)
 async def save_user_preferences(
     preferences: UserPreferencesCreate,

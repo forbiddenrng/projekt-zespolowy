@@ -5,9 +5,12 @@ class Settings(BaseSettings):
     OPENAI_MODEL: str = "gpt-4o-mini"
     APP_NAME: str = "AI Service"
 
-    ## MongoDB
-    MONGODB_URL: str = "mongodb://admin:password@localhost:27017"
-    MONGODB_DB: str = "ai-service"
+    ## MongoDB - local
+    # MONGODB_URL: str = "mongodb://admin:password@localhost:27017"
+    # MONGODB_DB: str = "ai-service"
+
+    MONGODB_URL: str
+    MONGODB_DB: str
 
     ## Theirstack
     THEIRSTACK_API_KEY: str
@@ -16,5 +19,6 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
 
 settings = Settings()

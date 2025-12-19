@@ -21,34 +21,35 @@ class JobOfferService:
             )
             
             if not offers_data:
-                print("⚠ No job offers returned from API")
+                print("No job offers returned from API")
                 return 0
 
             operations = []
             for offer in offers_data:
                 try:
+                    company_obj = offer.get("company_object", {})
                     company = Company(
-                        name=offer.get("company", {}).get("name", "Unknown"),
-                        country=offer.get("company", {}).get("country"),
-                        logo_url=offer.get("company", {}).get("logo_url")
+                        name=offer.get("company", "Unknown"),
+                        country=company_obj.get("company"),
+                        logo_url=company_obj.get("company")
                     )
                     
                     salary = Salary(
-                        min_annual_salary=offer.get("salary", {}).get("min_annual_salary"),
-                        max_annual_salary=offer.get("salary", {}).get("max_annual_salary"),
-                        salary_currency=offer.get("salary", {}).get("currency")
+                        min_annual_salary=offer.get("min_annual_salary_usd"),
+                        max_annual_salary=offer.get("min_annual_salary_usd"),
+                        salary_currency='USD'
                     )
                     
                     location = [
                         Location(
                             country_name=loc.get("country_name"),
                             display_name=loc.get("display_name")
-                        ) for loc in offer.get("location", [])
+                        ) for loc in offer.get("locations", [])
                     ]
                     
                     job_offer = JobOfferCreate(
                         external_id=offer.get("id"),
-                        title=offer.get("title"),
+                        title=offer.get("job_title"),
                         company=company,
                         location=location,
                         description=offer.get("description"),
@@ -126,7 +127,7 @@ class JobOfferService:
 
     async def get_all_offers(self, skip: int = 0, limit: int = 20) -> List[dict]:
         """Pobierz wszystkie oferty"""
-        cursor = self.collection.find().skip(skip).limit(limit).sort("date_posted", -1)
+        cursor = self.collection.find({}, {"_id": 0}).skip(skip).limit(limit).sort("date_posted", -1)
         return await cursor.to_list(length=limit)
 
     async def count_offers(self) -> int:
