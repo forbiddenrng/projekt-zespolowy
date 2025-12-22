@@ -1,4 +1,4 @@
-# 🤖 AI Service
+#AI Service
 
 AI Service to szybki i nowoczesny serwis napisany w **Pythonie** przy użyciu frameworka **FastAPI**. Główną funkcjonalnością jest **generowanie dokumentów, m.in. CV**, za pomocą API OpenAI. Projekt jest zorganizowany w sposób modułowy, co ułatwia pracę zespołową, testowanie i rozbudowę o kolejne funkcjonalności oparte na AI.
 
@@ -21,14 +21,6 @@ Skopiuj plik `.env.example` i uzupełnij klucz API OpenAI:
 
 ```bash
 cp .env.example .env
-```
-
-Przykład zawartości pliku .env:
-
-```bash
-OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxx
-OPENAI_MODEL=gpt-4o-mini
-APP_NAME=AI Service
 ```
 
 ### 2. Środowisko Wirtualne
@@ -114,4 +106,20 @@ OpenAI,Oficjalny klient do komunikacji z API OpenAI.
 Pydantic Settings,"Zarządzanie konfiguracją i zmiennymi środowiskowymi, walidacja ustawień."
 Python-dotenv,Narzędzie do wczytywania zmiennych ze ścieżki .env.
 
-## Przykładowe Wywołanie
+## Synchronizacja ofert z zewnętrznym API
+
+Aby pobrać oferty pracy z TheirStack API i zapisać je do bazy danych należy użyć polecenia:
+
+```bash
+python -m app.scripts.sync_job_offer --page m --limit n 
+```
+
+gdzie argumenty *page* i *limit* służą do paginacji
+
+m - storna z której pobierane są oferty pracy
+
+n - limit ofert do pobrania 
+
+**Uwaga**: Aktualny plan API umożliwia pobranie jedynie 200 ofert miesięcznie wiec polecenia tego nie należy nadużywać.
+
+

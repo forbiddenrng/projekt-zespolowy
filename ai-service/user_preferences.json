@@ -1,0 +1,1 @@
+{"_id":{"$oid":"69428df965a6ba9a3e317125"},"user_id":"auth0|123","countries":["PL","US","DE"],"created_at":{"$date":"2025-12-17T12:03:21.845Z"},"excluded_companies":null,"hybrid":true,"remote":true,"seniority_levels":["junior","mid_level","senior"],"technology_slugs":["javascript","java","docker","spring","python"],"updated_at":{"$date":"2025-12-18T13:07:54.087Z"}}
