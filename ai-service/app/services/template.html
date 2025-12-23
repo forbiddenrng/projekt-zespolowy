@@ -1,8 +1,3 @@
-from jinja2 import Template
-from weasyprint import HTML, CSS
-from io import BytesIO
-
-CV_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
@@ -142,122 +137,106 @@ CV_TEMPLATE = """
 </head>
 <body>
     <div class="header">
-        <div class="name">{{ full_name }}</div>
+        <div class="name">Antoni</div>
         <div>
-          {{ quick_summary }}
+          Fullstack developer | Backend developer | DevOps
         </div>
         <div class="contact">
-        {% if email %}
-            <div class="contact-item">
-                <span class="contact-value">{{ email }}</span>
-            </div>
-        {% endif %}
-
-        {% if phone_number %}
-            <div class="contact-item">
-                <span class="contact-value">{{ phone_number }}</span>
-            </div>
-        {% endif %}
-
-        {% if city %}
-            <div class="contact-item">
-                <span class="contact-value">{{ city }}</span>
-            </div>
-        {% endif %}
-
-        {% for link in links %}
-            <div class="contact-item">
-            <a href="{{ link.linkString }}" class="contact-link">{{ link.name }}</a>
-            </div>
-        {% endfor %}
-
+        <div class="contact-item">
+            <span class="contact-value">email@gmail.com</span>
+        </div>
+        <div class="contact-item">
+            <span class="contact-value">123456789</span>
+        </div>
+        <div class="contact-item">
+            <span class="contact-value">Gdynia</span>
+        </div>
+        <div class="contact-item">
+            <a href="https://github.com/user" class="contact-link">GitHub</a>
+        </div>
+        <div class="contact-item">
+            <a href="https://linkedin.com/in/user" class="contact-link">LinkedIn</a>
+        </div>
     </div>
     </div>
 
-    {% if professional_summary %}
+    
     <div class="section">
         <div class="section-title">Podsumowanie</div>
-        <p>{{ professional_summary }}</p>
+        <p>Profesjonalne Podsumowanie</p>
     </div>
-    {% endif %}
     
 
-    {% if experience %}
     <div class="section">
         <div class="section-title">Doświadczenie Zawodowe</div>
-        {% for job in experience %}
         <div class="entry">
             <div class="entry-title">
-              <div>{{ job.position }}</div>
-              <div class="entry-subtitle">{{ job.company }} | {{ job.start_date }} - {{ job.end_date }}</div>
+              <div>Pozycja 1</div>
+              <div class="entry-subtitle">Firma 1 | 01.01.2024 - 01.01.2025</div>
             </div>
-            <div class="entry-description">{{ job.description }}</div>
+            <div class="entry-description">Opis 1</div>
         </div>
-        {% endfor %}
+        <div class="entry">
+            <div class="entry-title">
+              <div>Pozycja 2</div>
+              <div class="entry-subtitle">Firma 2 | 01.01.2025 - obecnie</div>
+            </div>
+            <div class="entry-description">Opis 2</div>
+        </div>
     </div>
-    {% endif %}
 
-    {% if education %}
+
     <div class="section">
       <div class="section-title">Edukacja</div>
-
       <div class="education-entry">
-        {% for edu in education %}
-          <div class="education-degree">{{ edu.major }}, {{edu.degree }}</div>
-          <div class="education-dates">{{ edu.start_date }} - {{ edu.end_date }} </div>
-          <div class="education-institution">{{ edu.school_name }}</div>
+          <div class="education-degree">Informatyka praktyczna, Licencjat</div>
+          <div class="education-dates">10/2023 - 06/2026</div>
+          <div class="education-institution">Uniwersytet Gdański</div>
       </div>
-      {% endfor %}
+      <div class="education-entry">
+          <div class="education-degree">Inny kierunek</div>
+          <div class="education-dates">09/2020 - 06/2023</div>
+          <div class="education-institution">Warszawa, Polska</div>
+      </div>
     </div>
-    {% endif %}
 
 
-    {% if skills %}
+
     <div class="section">
         <div class="section-title">Umiejętności</div>
-        <p>{{ skills|join(', ') }}</p>
+        <p>Python, Dokcer, Kubernetes, Git, AWS</p>
     </div>
-    {% endif %}
 
-    {% if certificates %}
     <div class="section">
-        <div class="section-title">Certyfikaty</div>
-        {% for cert in certificates %}
-        <div class="education-entry">
-            <div class="education-degree">{{ cert.name }}</div>
-            <div class="education-dates">{{ cert.certification_date }}</div>
-            <div class="education-institution">{{ cert.issuer }}</div>
-        </div>
-        {% endfor %}
+    <div class="section-title">Certyfikaty</div>
+    <div class="education-entry">
+        <div class="education-degree">AWS Certified Solutions Architect</div>
+        <div class="education-dates">12/2023</div>
+        <div class="education-institution">Amazon Web Services</div>
     </div>
-    {% endif %}
+    <div class="education-entry">
+        <div class="education-degree">Kubernetes Administrator (CKA)</div>
+        <div class="education-dates">06/2024</div>
+        <div class="education-institution">Linux Foundation</div>
+    </div>
+</div>
 
-    {% if languages %}
-        <div class="section">
-            <div class="section-title">Języki</div>
-            {% for lang in languages %}
-            <div class="languages-grid">
-                <div class="language-entry">
-                    <div class="language-name">{{ lang.name }}</div>
-
-                    <div class="language-level">{{ lang.level }}</div>
-                </div>
-            </div>
+<div class="section">
+    <div class="section-title">Języki</div>
+    <div class="languages-grid">
+        <div class="language-entry">
+            <div class="language-name">Polski</div>
+            <div class="language-level">Ojczysty</div>
         </div>
-    {% endif %}
+        <div class="language-entry">
+            <div class="language-name">Angielski</div>
+            <div class="language-level">C1</div>
+        </div>
+        <div class="language-entry">
+            <div class="language-name">Niemiecki</div>
+            <div class="language-level">B2</div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
-"""
-
-def generate_cv_html(user_data: dict) -> str:
-    """Generuje HTML CV z danych użytkownika"""
-    template = Template(CV_TEMPLATE)
-    return template.render(**user_data)
-
-def generate_cv_pdf(user_data: dict) -> BytesIO:
-    """Generuje PDF CV"""
-    html_content = generate_cv_html(user_data)
-    pdf_bytes = BytesIO()
-    HTML(string=html_content).write_pdf(pdf_bytes)
-    pdf_bytes.seek(0)
-    return pdf_bytes
