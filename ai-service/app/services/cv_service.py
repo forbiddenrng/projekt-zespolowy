@@ -1,6 +1,13 @@
 from jinja2 import Template
 # from weasyprint import HTML, CSS
 from io import BytesIO
+import os
+from datetime import datetime, timezone
+from pathlib import Path
+import aiofiles
+import fpdf
+
+
 
 CV_TEMPLATE = """
 <!DOCTYPE html>
@@ -249,10 +256,10 @@ CV_TEMPLATE = """
 </html>
 """
 
-def generate_cv_html(user_data: dict) -> str:
-    """Generuje HTML CV z danych użytkownika"""
-    template = Template(CV_TEMPLATE)
-    return template.render(**user_data)
+# def generate_cv_html(user_data: dict) -> str:
+#     """Generuje HTML CV z danych użytkownika"""
+#     template = Template(CV_TEMPLATE)
+#     return template.render(**user_data)
 
 # def generate_cv_pdf(user_data: dict) -> BytesIO:
 #     """Generuje PDF CV"""
@@ -261,3 +268,62 @@ def generate_cv_html(user_data: dict) -> str:
 #     HTML(string=html_content).write_pdf(pdf_bytes)
 #     pdf_bytes.seek(0)
 #     return pdf_bytes
+
+class CVService:
+    def __init__(self):
+        # Lokalne przechowywanie
+        self.local_storage_path = Path(os.getenv("CV_STORAGE_PATH", "storage/cvs"))
+        self.local_storage_path.mkdir(parents=True, exist_ok=True)
+        
+    def generate_cv_html(self, user_data: dict, job_offer: str = "") -> str:
+        """Wygeneruj HTML CV na podstawie danych użytkownika"""
+        
+        template = Template(CV_TEMPLATE)
+        
+        # Jeśli jest job_offer, możesz dostosować CV
+        return template.render(user=user_data, job_offer=job_offer)
+    
+    def html_to_pdf(self, html_content: str) -> bytes:
+        """Konwertuj HTML na PDF"""
+        pdf = fpdf.FPDF()
+        pdf.add_page()
+        pdf.write_html(html_content)
+        # pdf_bytes = html.write_pdf()
+
+        return bytes(pdf.output(dest="S"))
+    
+    def generate_cv_pdf(self, user_data: dict, job_offer: str = "") -> bytes:
+        """Wygeneruj PDF CV z szablonu HTML"""
+        html_content = self.generate_cv_html(user_data, job_offer)
+        return self.html_to_pdf(html_content)
+    
+    async def save_pdf(self, user_id: str, task_id: str, pdf_bytes: bytes) -> str:
+        """Przechowaj PDF lokalnie"""
+        
+        return await self._save_locally(user_id, task_id, pdf_bytes)
+    
+    async def _save_locally(self, user_id: str, task_id: str, pdf_bytes: bytes) -> str:
+        """Przechowaj PDF lokalnie w strukturze: storage/cvs/YYYY/MM/user_id/task_id.pdf"""
+
+        now = datetime.now(timezone.utc)
+        user_dir = self.local_storage_path / str(now.year) / f"{now.month:02d}" / user_id
+        user_dir.mkdir(parents=True, exist_ok=True)
+        
+        file_path = user_dir / f"{task_id}.pdf"
+        async with aiofiles.open(file_path, "wb") as f:
+            await f.write(pdf_bytes)
+        
+        return f"{now.year}/{now.month:02d}/{user_id}/{task_id}.pdf"
+    
+
+    async def get_pdf(self, pdf_path: str) -> bytes:
+        """Pobierz PDF z lokalnego systemu lub chmury"""
+        
+        return await self._get_locally(pdf_path)
+    
+    async def _get_locally(self, pdf_path: str) -> bytes:
+        """Pobierz PDF z dysku"""
+        file_path = self.local_storage_path / pdf_path
+        async with aiofiles.open(file_path, "rb") as f:
+            return await f.read()
+
