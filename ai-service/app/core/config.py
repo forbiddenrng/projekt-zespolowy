@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     THEIRSTACK_API_KEY: str
     THEIRSTACK_API_URL: str
 
+    USER_SERVICE_URL: str
+
 
     class Config:
         env_file = ".env"

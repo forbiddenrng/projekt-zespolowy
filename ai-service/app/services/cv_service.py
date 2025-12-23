@@ -1,5 +1,5 @@
 from jinja2 import Template
-from weasyprint import HTML, CSS
+# from weasyprint import HTML, CSS
 from io import BytesIO
 
 CV_TEMPLATE = """
@@ -254,10 +254,10 @@ def generate_cv_html(user_data: dict) -> str:
     template = Template(CV_TEMPLATE)
     return template.render(**user_data)
 
-def generate_cv_pdf(user_data: dict) -> BytesIO:
-    """Generuje PDF CV"""
-    html_content = generate_cv_html(user_data)
-    pdf_bytes = BytesIO()
-    HTML(string=html_content).write_pdf(pdf_bytes)
-    pdf_bytes.seek(0)
-    return pdf_bytes
+# def generate_cv_pdf(user_data: dict) -> BytesIO:
+#     """Generuje PDF CV"""
+#     html_content = generate_cv_html(user_data)
+#     pdf_bytes = BytesIO()
+#     HTML(string=html_content).write_pdf(pdf_bytes)
+#     pdf_bytes.seek(0)
+#     return pdf_bytes
