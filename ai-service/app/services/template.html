@@ -83,7 +83,7 @@
             font-size: 13px;
         }
 
-        .education-entry {
+        /* .education-entry {
         display: grid;
         grid-template-columns: 1fr auto;
         gap: 10px;
@@ -108,7 +108,7 @@
         grid-column: 1 / -1;
         font-size: 13px;
         color: #555;
-    }
+    } */
 
     .language-entry {
     display: flex;
@@ -129,114 +129,108 @@
     align-items: flex-end;
 }
     .languages-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: flex;
     gap: 20px;
 }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="name">Antoni</div>
+        <div class="name">{{ full_name }}</div>
         <div>
-          Fullstack developer | Backend developer | DevOps
+          {{ quick_summary }}
         </div>
         <div class="contact">
         <div class="contact-item">
-            <span class="contact-value">email@gmail.com</span>
+            <span class="contact-value">{{ email }}</span>
         </div>
         <div class="contact-item">
-            <span class="contact-value">123456789</span>
+            <span class="contact-value">{{ phone_number }}</span>
         </div>
         <div class="contact-item">
-            <span class="contact-value">Gdynia</span>
+            <span class="contact-value">{{ city }}</span>
         </div>
+        {% if links %}
+        {% for link in links %}
         <div class="contact-item">
-            <a href="https://github.com/user" class="contact-link">GitHub</a>
+            <a href="{{link.linkString}}" class="contact-link">{{link.name}}</a>
         </div>
-        <div class="contact-item">
-            <a href="https://linkedin.com/in/user" class="contact-link">LinkedIn</a>
-        </div>
+        {% endfor %}
+        {% endif %}
     </div>
     </div>
 
     
+    {% if summary %}
     <div class="section">
         <div class="section-title">Podsumowanie</div>
-        <p>Profesjonalne Podsumowanie</p>
+        <p>{{ summary }}</p>
     </div>
-    
+    {% endif %}
 
+    {% if experience %}
     <div class="section">
         <div class="section-title">Doświadczenie Zawodowe</div>
+        {% for exp in experience %}
         <div class="entry">
             <div class="entry-title">
-              <div>Pozycja 1</div>
-              <div class="entry-subtitle">Firma 1 | 01.01.2024 - 01.01.2025</div>
+              <div>{{ exp.position }}</div>
+              <div class="entry-subtitle">{{ exp.company }} | {{exp.start_date}} - {{exp.end_date}}</div>
             </div>
-            <div class="entry-description">Opis 1</div>
+            <div class="entry-description">{{ exp.description }}</div>
         </div>
-        <div class="entry">
-            <div class="entry-title">
-              <div>Pozycja 2</div>
-              <div class="entry-subtitle">Firma 2 | 01.01.2025 - obecnie</div>
-            </div>
-            <div class="entry-description">Opis 2</div>
-        </div>
+        {% endfor %}
     </div>
+    {% endif %}
 
 
+    {% if education %}
     <div class="section">
       <div class="section-title">Edukacja</div>
-      <div class="education-entry">
-          <div class="education-degree">Informatyka praktyczna, Licencjat</div>
-          <div class="education-dates">10/2023 - 06/2026</div>
-          <div class="education-institution">Uniwersytet Gdański</div>
+      {% for edu in education %}
+      <div class="entry-title">
+          <div class="">{{ edu.major }}, {{ edu.degree }}</div>
+          <div class="">{{ edu.school_name }}</div>
+          <div class="entry-subtitle">{{ edu.start_date }} - {{ edu.end_date }}</div>
       </div>
-      <div class="education-entry">
-          <div class="education-degree">Inny kierunek</div>
-          <div class="education-dates">09/2020 - 06/2023</div>
-          <div class="education-institution">Warszawa, Polska</div>
-      </div>
+      {% endfor %}
     </div>
+    {% endif %}
 
 
 
+    {% if skills %}
     <div class="section">
         <div class="section-title">Umiejętności</div>
-        <p>Python, Dokcer, Kubernetes, Git, AWS</p>
+        <p class="entry-description">{{skills|join(", ")}}</p>
     </div>
+    {% endif %}
 
+    {% if certificates %}
     <div class="section">
     <div class="section-title">Certyfikaty</div>
+    {% for cert in certificates %}
     <div class="education-entry">
-        <div class="education-degree">AWS Certified Solutions Architect</div>
-        <div class="education-dates">12/2023</div>
-        <div class="education-institution">Amazon Web Services</div>
+        <div class="education-degree">{{cert.name}}</div>
+        <div class="education-dates">{{cert.certification_date}}</div>
+        <div class="education-institution">{{cert.issuer}}</div>
     </div>
-    <div class="education-entry">
-        <div class="education-degree">Kubernetes Administrator (CKA)</div>
-        <div class="education-dates">06/2024</div>
-        <div class="education-institution">Linux Foundation</div>
+    {% endfor %}
     </div>
-</div>
+    {% endif %}
 
+{% if languages %}
 <div class="section">
     <div class="section-title">Języki</div>
     <div class="languages-grid">
+        {% for lang in languages %}
         <div class="language-entry">
-            <div class="language-name">Polski</div>
-            <div class="language-level">Ojczysty</div>
+            <div class="language-name">{{ lang.name }}</div>
+            <div class="language-level">{{ lang.level }}</div>
         </div>
-        <div class="language-entry">
-            <div class="language-name">Angielski</div>
-            <div class="language-level">C1</div>
-        </div>
-        <div class="language-entry">
-            <div class="language-name">Niemiecki</div>
-            <div class="language-level">B2</div>
-        </div>
+        {% endfor %}
     </div>
 </div>
+{% endif %}
 </body>
 </html>

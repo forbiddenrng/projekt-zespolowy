@@ -13,26 +13,36 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-  ai-mongodb:
-    image: mongo:latest
-    container_name: ai-service-mongodb
-    restart: always
+  redis:
+    image: redis:7-alpine
+    container_name: ai-service-redis
     ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: ai-service
+      - "6379:6379"
+    command: redis-server --appendonly yes
     volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - redis_data:/data
+    
+  # ai-mongodb:
+  #   image: mongo:latest
+  #   container_name: ai-service-mongodb
+  #   restart: always
+  #   ports:
+  #     - "27017:27017"
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: admin
+  #     MONGO_INITDB_ROOT_PASSWORD: password
+  #     MONGO_INITDB_DATABASE: ai-service
+  #   volumes:
+  #     - mongodb_data:/data/db
+  #     - mongodb_config:/data/configdb
+  #   healthcheck:
+  #     test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
 
 volumes:
   postgres_data:
-  mongodb_data:
-  mongodb_config:
+  # mongodb_data:
+  # mongodb_config:
+  redis_data:
