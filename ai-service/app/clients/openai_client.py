@@ -1,18 +1,21 @@
 import json
-from openai import OpenAI
+from openai import AsyncOpenAI
 from app.core.config import settings
 
-client = OpenAI(
+client = AsyncOpenAI(
   base_url=settings.OPENROUTER_URL,
   api_key=settings.OPENROUTER_API_KEY,
 )
 
-def generate_cv_data(user_info: str, job_offer: str) -> str:
+async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
     """Generuje dane CV w formacie JSON na podstawie danych użytkownika"""
+
+    user_info_str = json.dumps(user_info, ensure_ascii=False) if isinstance(user_info, dict) else str(user_info)
+
     prompt = f"""
     Na podstawie podanych informacji o użytkowniku i oferty pracy wygeneruj profesjonalne CV. Odpowiedź zwróć jako JSON.
 
-    Informacje o użytkowniku: {user_info}
+    Informacje o użytkowniku: {user_info_str}
     Oferta pracy: {job_offer}
 
     Zwróć JSON z następującą strukturą:
@@ -41,7 +44,7 @@ def generate_cv_data(user_info: str, job_offer: str) -> str:
         ]
     }}
     """
-    response = client.chat.completions.create(
+    response = await client.chat.completions.create(
         model=settings.OPENROUTER_MODEL,
         messages=[
             {"role": "system", "content": "Jesteś profesjonalnym ekspertem w pisaniu CV. Rozmiesz obecną sytuację na rynku i wiesz, że każda osoba szukająca pracy musi mieć dopasowane CV do konkretnej oferty. Na podstawie danych o użytkowniku oraz konkretnej oferty pracy tworzysz dane do CV. Zawsze zwracasz odpowiedź jako JSON"},

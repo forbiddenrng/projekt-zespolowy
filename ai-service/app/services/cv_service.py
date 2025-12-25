@@ -6,8 +6,6 @@ from weasyprint import HTML
 import aiofiles
 from io import BytesIO
 
-# import tempfile
-
 
 class CVService:
     def __init__(self):
@@ -41,9 +39,6 @@ class CVService:
         #     await f.write(pdf_bytes)
 
         HTML(string=pdf_html).write_pdf(str(file_path))
-        # pdf_bytes= HTML(string=pdf_html).write_pdf()
-        # async with aiofiles.open(file_path, "wb") as f:
-        #     await f.write(pdf_bytes)
         
         return f"{now.year}/{now.month:02d}/{user_id}/{task_id}.pdf"
     
@@ -105,3 +100,4 @@ async def test_cv_generation():
 if __name__ == "__main__":
     asyncio.run(test_cv_generation())
     # pass
+    #docker run -v ${PWD}:/app -v ${PWD}/wyjscie:/app/wyjscie ai-service python -m app.services.cv_service

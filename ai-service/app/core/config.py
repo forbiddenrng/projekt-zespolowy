@@ -15,6 +15,12 @@ class Settings(BaseSettings):
 
     USER_SERVICE_URL: str
 
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
+
+    USER_SERVICE_WEBHOOK_URL: str = ""
+
+    API_BASE_URL: str = "http://localhost:8000"
 
     class Config:
         env_file = ".env"

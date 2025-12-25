@@ -3,6 +3,7 @@ from app.services.cv_service import CVService
 from app.services.cv_generation_service import CVGenerationService
 from app.clients.userservice_client import UserServiceClient
 from app.clients.mongodb_client import mongodb
+from app.clients.openai_client import generate_cv_data
 import asyncio
 import os
 from pathlib import Path
@@ -27,17 +28,17 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
     
     # Pobierz dane użytkownika
     user_data = loop.run_until_complete(user_client.get_user_data(user_id))
+
+    ## generuj dane do cv
+    cv_data = loop.run_until_complete(generate_cv_data(user_data, job_offer))
     
-    # Wygeneruj HTML CV
-    # html_content = cv_service.generate_cv_html(user_data, job_offer)
     
-    # # Konwertuj na PDF
-    # pdf_bytes = cv_service.html_to_pdf(html_content)
-    pdf_bytes = cv_service.generate_cv_pdf(user_data, job_offer)
+    # # wygeneruj CV w HTML
+    cv_html = cv_service.generate_cv_html(cv_data)
     
     # Przechowaj PDF
     pdf_path = loop.run_until_complete(
-      cv_service.save_pdf(user_id, task_id, pdf_bytes)
+      cv_service.save_pdf(user_id, task_id, cv_html)
     )
       
     # Zaktualizuj status

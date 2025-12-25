@@ -20,7 +20,7 @@ class UserServiceClient:
         response.raise_for_status()
         data = response.json()
 
-        return data.data
+        return data.get("data", data)
       
     except httpx.HTTPStatusError as e:
       print(f"HTTP Error: {e.response.status_code}: {e.response.text}")
