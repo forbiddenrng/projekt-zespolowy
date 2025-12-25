@@ -14,7 +14,7 @@ class CVGenerationService:
       "user_id": user_id,
       "job_offer": job_offer,
       "status": "PENDING",
-      "created_at": datetime.utcnow(),
+      "created_at": datetime.now(timezone.utc),
       "started_at": None,
       "completed_at": None,
       "pdf_path": None,

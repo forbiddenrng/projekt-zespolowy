@@ -12,15 +12,22 @@ from datetime import datetime, timezone
 @celery_app.task(bind=True, name="generate_cv_task")
 def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
   """Długotrwałe zadanie generowania CV"""
-  cv_gen_service = CVGenerationService()
-  cv_service = CVService()
-  user_client = UserServiceClient()
+  
   
   # Uruchom event loop dla operacji async
   loop = asyncio.new_event_loop()
   asyncio.set_event_loop(loop)
     
   try:
+
+    # connect with mongo
+    loop.run_until_complete(mongodb.connect_db())
+
+    # init services
+    cv_gen_service = CVGenerationService()
+    cv_service = CVService()
+    user_client = UserServiceClient()
+
     # Zmień status na PROCESSING
     loop.run_until_complete(cv_gen_service.update_task_status(
       task_id, "PROCESSING", started_at=datetime.now(timezone.utc)
@@ -56,6 +63,8 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
     ))
       
   except Exception as e:
+    cv_gen_service = CVGenerationService()
+    
     loop.run_until_complete(cv_gen_service.update_task_status(
       task_id, "FAILED", error=str(e)
     ))
@@ -64,4 +73,5 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
     ))
     raise
   finally:
+    loop.run_until_complete(mongodb.close_db())
     loop.close()

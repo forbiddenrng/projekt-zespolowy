@@ -21,6 +21,13 @@ services:
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
     
   # ai-mongodb:
   #   image: mongo:latest
@@ -40,9 +47,75 @@ services:
   #     interval: 10s
   #     timeout: 5s
   #     retries: 5
+  ai-service:
+    build: 
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: ai-service-app
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - API_BASE_URL=${API_BASE_URL}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL}
+      - OPENROUTER_URL=${OPENROUTER_URL}
+      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_DB=${MONGODB_DB}
+      - THEIRSTACK_API_KEY=${THEIRSTACK_API_KEY}
+      - THEIRSTACK_API_URL=${THEIRSTACK_API_URL}
+    volumes:
+      - ./ai-service:/app
+      - ./ai-service/storage:/app/storage
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - app-network
+
+  ai-celery-worker:
+    build: 
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: ai-service-celery
+    restart: always
+    # ports:
+    #   - "8000:8000"
+    environment:
+    - PYTHONUNBUFFERED=1
+    - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+    - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    - USER_SERVICE_URL=${USER_SERVICE_URL}
+    - API_BASE_URL=${API_BASE_URL}
+    - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+    - OPENROUTER_MODEL=${OPENROUTER_MODEL}
+    - OPENROUTER_URL=${OPENROUTER_URL}
+    - MONGODB_URL=${MONGODB_URL}
+    - MONGODB_DB=${MONGODB_DB}
+    - THEIRSTACK_API_KEY=${THEIRSTACK_API_KEY}
+    - THEIRSTACK_API_URL=${THEIRSTACK_API_URL}
+    volumes:
+      - ./ai-service:/app
+      - ./ai-service/storage:/app/storage
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: celery -A app.services.cv_task worker --loglevel=info
+    networks:
+      - app-network
+  
 
 volumes:
   postgres_data:
   # mongodb_data:
   # mongodb_config:
   redis_data:
+
+networks:
+  app-network:
+    driver: bridge
