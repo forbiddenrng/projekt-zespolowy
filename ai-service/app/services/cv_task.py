@@ -37,8 +37,23 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
     user_data = loop.run_until_complete(user_client.get_user_data(user_id))
 
     ## generuj dane do cv
-    cv_data = loop.run_until_complete(generate_cv_data(user_data, job_offer))
-    
+    generated_cv_data = loop.run_until_complete(generate_cv_data(user_data, job_offer))
+
+    cv_data = {
+      "full_name": f"{user_data["name"]} {user_data["surname"]}",
+      "email": user_data["email"],
+      "phone_number": user_data["phone_number"],
+      "city": user_data["city"],
+      "professional_summary": generated_cv_data["professional_summary"],
+      "quick_summary": generated_cv_data["quick_summary"],
+      "links": generated_cv_data["links"],
+      "skills": generated_cv_data["skills"],
+      "languages": generated_cv_data["languages"],
+      "certificates": generated_cv_data["certificates"],
+      "experience": generated_cv_data["experience"],
+      "education": generated_cv_data["education"],
+    }
+
     
     # # wygeneruj CV w HTML
     cv_html = cv_service.generate_cv_html(cv_data)
