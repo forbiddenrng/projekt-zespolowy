@@ -22,7 +22,7 @@ async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
     Oferta pracy: {job_offer}
 
     Opis pól, które masz zwrócić: 
-    professional_summary - profesjonalne podsumowanie danego kandydata na podstawie pola profile_summary (z informacji o użytkowniku) oraz reszty jego danych.
+    summary - profesjonalne podsumowanie danego kandydata na podstawie pola profile_summary (z informacji o użytkowniku) oraz reszty jego danych.
     quick_summary - krótkie podsumowanie danego użytkownika na podstawie jego umiejętności i doświadczenia. Np: Python developer | Backend engineer | Fullstack engineer | Cloud Architect
     certificates - tablica certyfikatów, gdzie name - nazwa certyfikatu, certification_date - data wystawienia certyfikatu, issuer - wydawca certyfikatu
     languages - tablica jezykow jakie zna uzytkownik, name - nazwa jezyka, level - poziom jezyka
@@ -33,7 +33,7 @@ async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
 
     Zwróć JSON z następującą strukturą:
     {{
-        "professioal_summary": "...",
+        "summary": "...",
         "quick_summary": "...",
         "skills": ["...", "..."],
         "certificates": [

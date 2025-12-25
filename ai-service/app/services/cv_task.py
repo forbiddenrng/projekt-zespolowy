@@ -44,7 +44,7 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
       "email": user_data["email"],
       "phone_number": user_data["phone_number"],
       "city": user_data["city"],
-      "professional_summary": generated_cv_data["professional_summary"],
+      "summary": generated_cv_data["summary"],
       "quick_summary": generated_cv_data["quick_summary"],
       "links": generated_cv_data["links"],
       "skills": generated_cv_data["skills"],
