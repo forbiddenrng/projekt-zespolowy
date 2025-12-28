@@ -80,6 +80,29 @@ def get_cv_generation_service():
 def get_cv_service():
   return CVService()
 
+
+async def verify_task_ownership(
+  task_id: str,
+  user_id: str = Depends(get_user_id),
+  cv_gen_service: CVGenerationService = Depends(get_cv_generation_service)
+) -> dict:
+  """Verify that the user owns the task.
+  
+  Raises:
+    - 404 HTTPException if task not found
+    - 401 HTTPException if user doesn't own the task
+  """
+  task = await cv_gen_service.get_task(task_id)
+
+  if not task:
+    raise HTTPException(status_code=404, detail="Task not found")
+  
+  if task.get("user_id") != user_id:
+    raise HTTPException(status_code=401, detail="Unauthorized - you don't have access to this task")
+  
+  return task
+
+
 @router.post(
   "/generate/cv",
   response_model=GenerateCVResponse,
@@ -122,18 +145,20 @@ async def generate_cv(
   "/generate/cv/{task_id}/status",
   response_model=CVStatusResponse,
   responses={
-    404: {"model": ErrorResponse, "description": "Task not found"}
+    404: {"model": ErrorResponse, "description": "Task not found"},
+    401: {"model": ErrorResponse, "description": "Unauthorized - you don't have access to this task"}
   }
 )
 async def get_cv_status(
   task_id: str = Field(description="Task identifier returned from CV generation endpoint"),
-  cv_gen_service: CVGenerationService = Depends(get_cv_generation_service)
+  task: dict = Depends(verify_task_ownership)
+  # cv_gen_service: CVGenerationService = Depends(get_cv_generation_service)
 ):
   "Check CV status"
-  task = await cv_gen_service.get_task(task_id)
+  # task = await cv_gen_service.get_task(task_id)
 
-  if not task:
-    raise HTTPException(status_code=404, detail="Task not found")
+  # if not task:
+  #   raise HTTPException(status_code=404, detail="Task not found")
   
   return {
     "task_id": task_id,
@@ -148,22 +173,17 @@ async def get_cv_status(
   response_class=StreamingResponse,
   responses={
     404: {"model": ErrorResponse, "description": "Task not found or PDF file not found"},
-    400: {"model": ErrorResponse, "description": "CV not ready yet"}
+    400: {"model": ErrorResponse, "description": "CV not ready yet"},
+    401: {"model": ErrorResponse, "description": "Unauthorized - you don't have access to this task"}
   }
 )
 async def download_cv(
   task_id: str = Field(description="Task identifier returned from CV generation endpoint"),
-  
-  cv_gen_service: CVGenerationService = Depends(get_cv_generation_service),
+
+  task: dict = Depends(verify_task_ownership),
   cv_service: CVService = Depends(CVService)
   ):
   """Download generated CV as PDF"""
-
-  # get task
-  task = await cv_gen_service.get_task(task_id)
-
-  if not task:
-    raise HTTPException(status_code=404, detail="Task not found")
   
   if task["status"] != "COMPLETED":
     raise HTTPException(status_code=400, detail=f"CV not ready. Status: {task['status']}")
