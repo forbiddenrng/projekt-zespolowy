@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Header
+from fastapi import APIRouter, Depends, HTTPException, Query, Header, Path
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -150,7 +150,7 @@ async def generate_cv(
   }
 )
 async def get_cv_status(
-  task_id: str = Field(description="Task identifier returned from CV generation endpoint"),
+  task_id: str = Path(..., description="Task identifier returned from CV generation endpoint"),
   task: dict = Depends(verify_task_ownership)
   # cv_gen_service: CVGenerationService = Depends(get_cv_generation_service)
 ):
@@ -178,10 +178,10 @@ async def get_cv_status(
   }
 )
 async def download_cv(
-  task_id: str = Field(description="Task identifier returned from CV generation endpoint"),
+  task_id: str = Path(..., description="Task identifier returned from CV generation endpoint"),
 
   task: dict = Depends(verify_task_ownership),
-  cv_service: CVService = Depends(CVService)
+  cv_service: CVService = Depends(get_cv_service)
   ):
   """Download generated CV as PDF"""
   

@@ -40,7 +40,7 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
     generated_cv_data = loop.run_until_complete(generate_cv_data(user_data, job_offer))
 
     cv_data = {
-      "full_name": f"{user_data["name"]} {user_data["surname"]}",
+      "full_name": f"{user_data['name']} {user_data['surname']}",
       "email": user_data["email"],
       "phone_number": user_data["phone_number"],
       "city": user_data["city"],
