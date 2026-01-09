@@ -3,6 +3,7 @@ const { expressjwt: jwt } = require("express-jwt");
 const jwks = require("jwks-rsa");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 require("dotenv").config();
@@ -15,13 +16,6 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization", "x-user"],
   })
 );
-
-// DEBUG LOGGING
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
-  console.log(`Headers:`, req.headers);
-  next();
-});
 
 app.get("/health", (req, res) => {
   res.json({
@@ -91,10 +85,20 @@ app.use(
   })
 );
 
+// rate limiter for AI endpoints
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutues
+  max: 10, // max 10 requests per IP in 15 min frame
+  message: { message: "Too many AI requests, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // AI service - CV generation endpoints (/ai/*)
 app.use(
   "/api/ai",
   checkJwt,
+  aiLimiter,
   createProxyMiddleware({
     target: `${process.env.AI_SERVICE}`,
     changeOrigin: true,
