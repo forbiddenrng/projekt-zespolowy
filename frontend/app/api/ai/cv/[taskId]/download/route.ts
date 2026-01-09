@@ -18,7 +18,7 @@ export const GET = auth0.withApiAuthRequired(
           : (accessTokenResp as any)?.token ?? null;
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_GATEWAY_URL}/api/ai/cv/${encodeURIComponent(
+        `${process.env.GATEWAY_URL}/api/ai/cv/${encodeURIComponent(
           params.taskId
         )}/download`,
         {

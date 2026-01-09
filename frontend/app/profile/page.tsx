@@ -12,7 +12,7 @@ async function fetchProfile() {
       ? accessTokenResp
       : (accessTokenResp as any)?.token ?? null;
 
-  const backendUrl = `${process.env.NEXT_PUBLIC_GATEWAY_URL}/users/me`;
+  const backendUrl = `${process.env.GATEWAY_URL}/users/me`;
   const gatewayRes = await fetch(backendUrl, {
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -26,7 +26,6 @@ async function fetchProfile() {
 }
 
 export default async function Profile() {
-
   let savedProfile = null;
 
   try {
@@ -36,9 +35,7 @@ export default async function Profile() {
     savedProfile = null;
   }
 
-  if (!savedProfile) return <NoProfileFound/>
-  
-  return (
-    <UserData />
-  );
+  if (!savedProfile) return <NoProfileFound />;
+
+  return <UserData />;
 }

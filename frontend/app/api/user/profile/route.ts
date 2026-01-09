@@ -15,7 +15,7 @@ export const GET = auth0.withApiAuthRequired(
           ? accessTokenResp
           : (accessTokenResp as any)?.token ?? null;
 
-      const backendUrl = `${process.env.NEXT_PUBLIC_GATEWAY_URL}/users/profile`;
+      const backendUrl = `${process.env.GATEWAY_URL}/users/profile`;
       const gatewayRes = await fetch(backendUrl, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -45,14 +45,13 @@ export const GET = auth0.withApiAuthRequired(
   }
 );
 
-
 export enum APIParams {
   abilities = "abilities",
   education = "education",
   work = "work-experiences",
   certificates = "certificates",
   languages = "languages",
-  links = "links"
+  links = "links",
 }
 
 export const PUT = auth0.withApiAuthRequired(
@@ -64,12 +63,17 @@ export const PUT = auth0.withApiAuthRequired(
 
       const body = await req.json();
       const url = new URL(req.url);
-      const resource= url.searchParams.get("resource") as keyof typeof APIParams;
-      
-      if (!APIParams[resource]){
-        return NextResponse.json({
-          message: "Invalid resource parameter"
-        }, {status: 400});
+      const resource = url.searchParams.get(
+        "resource"
+      ) as keyof typeof APIParams;
+
+      if (!APIParams[resource]) {
+        return NextResponse.json(
+          {
+            message: "Invalid resource parameter",
+          },
+          { status: 400 }
+        );
       }
 
       const token =
@@ -78,18 +82,19 @@ export const PUT = auth0.withApiAuthRequired(
           : (accessTokenResp as any)?.token ?? null;
 
       const apiClient = new APIClient();
-      const response = await apiClient.updateProfile(APIParams[resource], token, body);
+      const response = await apiClient.updateProfile(
+        APIParams[resource],
+        token,
+        body
+      );
 
-      return NextResponse.json(response.data, {status: response.status})
-
-      
+      return NextResponse.json(response.data, { status: response.status });
     } catch (err: any) {
-
-      if (err instanceof APIError){
+      if (err instanceof APIError) {
         return NextResponse.json(
-          {message: err.userMessage, details: err.details},
-          {status: err.statusCode || 500}
-        )
+          { message: err.userMessage, details: err.details },
+          { status: err.statusCode || 500 }
+        );
       }
       console.error("Unexpected error: ", err);
       return NextResponse.json(
@@ -117,21 +122,19 @@ export const PATCH = auth0.withApiAuthRequired(
       const apiClient = new APIClient();
       const response = await apiClient.updateUserInfo(token, body);
 
-      return NextResponse.json(response.data, {status: response.status})
-
-      
+      return NextResponse.json(response.data, { status: response.status });
     } catch (err: any) {
-        if (err instanceof APIError){
-          return NextResponse.json(
-            {message: err.userMessage, details: err.details},
-            {status: err.statusCode || 500}
-          )
-        }
-        console.error("Unexpected error: ", err);
+      if (err instanceof APIError) {
         return NextResponse.json(
-          { message: "An unexpected error occurred. Please try again" },
-          { status: 500 }
+          { message: err.userMessage, details: err.details },
+          { status: err.statusCode || 500 }
         );
+      }
+      console.error("Unexpected error: ", err);
+      return NextResponse.json(
+        { message: "An unexpected error occurred. Please try again" },
+        { status: 500 }
+      );
     }
   }
 );

@@ -22,18 +22,15 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_GATEWAY_URL}/api/ai/generate/cv`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify(body),
-          signal: controller.signal,
-        }
-      );
+      const res = await fetch(`${process.env.GATEWAY_URL}/api/ai/generate/cv`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
 
       clearTimeout(timeoutId);
 

@@ -1,102 +1,98 @@
-import axios, { AxiosRequestConfig, AxiosInstance} from "axios";
-import {parseAxiosError } from "./errors";
+import axios, { AxiosRequestConfig, AxiosInstance } from "axios";
+import { parseAxiosError } from "./errors";
 
 export class APIClient {
   private client: AxiosInstance;
 
-  constructor(){
+  constructor() {
     this.client = axios.create({
-      baseURL: `${process.env.NEXT_PUBLIC_GATEWAY_URL}/users`
+      baseURL: `${process.env.GATEWAY_URL}/users`,
     });
   }
 
-
-  async getUser(accessToken: string, params: URLSearchParams){
+  async getUser(accessToken: string, params: URLSearchParams) {
     const config: AxiosRequestConfig = {
       headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
-    }
+        Authorization: `Bearer ${accessToken}`,
+      },
+    };
 
     const query: string = params.toString();
 
     try {
       const response = await this.client.get(`me?${query}`, config);
       return response;
-    } catch (err){
+    } catch (err) {
       console.error(err);
       throw parseAxiosError(err);
     }
   }
 
-  async getAllLanguages(accessToken: string){
+  async getAllLanguages(accessToken: string) {
     const config: AxiosRequestConfig = {
       headers: {
-        Authorization: `Bearer ${accessToken}`
-      }
-    }
+        Authorization: `Bearer ${accessToken}`,
+      },
+    };
 
     try {
       const response = await this.client.get(`languages/all`, config);
       return response;
-    } catch (err){
+    } catch (err) {
       console.error(err);
       throw parseAxiosError(err);
     }
   }
 
-
-  async createProfile(accessToken: string, payload: any){
+  async createProfile(accessToken: string, payload: any) {
     const config: AxiosRequestConfig = {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`
-      } 
-    }
+        Authorization: `Bearer ${accessToken}`,
+      },
+    };
 
     try {
       const response = await this.client.post("", payload, config);
       return response;
-    } catch (err){
+    } catch (err) {
       console.error(err);
       throw parseAxiosError(err);
     }
   }
 
-  async updateProfile(url: string, accessToken: string, payload: any){
+  async updateProfile(url: string, accessToken: string, payload: any) {
     const config: AxiosRequestConfig = {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`
-      } 
-    }
+        Authorization: `Bearer ${accessToken}`,
+      },
+    };
 
     try {
       const response = await this.client.put(`${url}`, payload, config);
       return response;
-    } catch(err){
+    } catch (err) {
       console.log(err);
       throw parseAxiosError(err);
     }
   }
 
-  
   // for updating personal info
-  async updateUserInfo(accessToken: string, payload: any){
+  async updateUserInfo(accessToken: string, payload: any) {
     const config: AxiosRequestConfig = {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`
-      } 
-    }
+        Authorization: `Bearer ${accessToken}`,
+      },
+    };
 
     try {
-      const response = await this.client.patch('me', payload, config);
+      const response = await this.client.patch("me", payload, config);
       return response;
-    } catch(err){
+    } catch (err) {
       console.log(err);
       throw parseAxiosError(err);
     }
   }
- 
 }
