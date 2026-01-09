@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from typing import List, Optional
 from app.services.job_offer_service import JobOfferService
@@ -8,22 +9,35 @@ from app.schemas.user_preferences import GetPreferencesResponse, CreatePreferenc
 
 router = APIRouter(prefix="/api", tags=["jobs"])
 
+
 async def get_job_service() -> JobOfferService:
-  db = mongodb.get_db()
-  return JobOfferService(db)
+    db = mongodb.get_db()
+    return JobOfferService(db)
+
 
 async def get_preferences_service() -> UserPreferencesService:
-  db = mongodb.get_db()
-  return UserPreferencesService(db)
+    db = mongodb.get_db()
+    return UserPreferencesService(db)
 
-async def get_user_id(x_user: Optional[str] = Header(None)) -> str: 
-  if not x_user:
-    raise HTTPException(
-      status_code=401,
-      detail="No X-User header"
-    )
-  return x_user
-    
+
+async def get_user_id(x_user: Optional[str] = Header(None)) -> str:
+    if not x_user:
+        raise HTTPException(
+            status_code=401,
+            detail="No X-User header"
+        )
+    try:
+        obj = json.loads(x_user) if x_user.strip(
+        ).startswith("{") else {"id": x_user}
+        uid = obj.get("id")
+        if not uid:
+            raise ValueError("Missing id in x-user")
+        return uid
+    except Exception:
+        # fallback: use header value
+        return x_user
+
+
 @router.post("/preferences", response_model=CreatePreferencesResponse)
 async def save_user_preferences(
     preferences: UserPreferencesCreate,
@@ -39,6 +53,7 @@ async def save_user_preferences(
         "message": "Preferences updated"
     }
 
+
 @router.get("/preferences", response_model=GetPreferencesResponse)
 async def get_user_preferences(
     user_id: str = Depends(get_user_id),
@@ -47,8 +62,9 @@ async def get_user_preferences(
     """Get user preferences"""
     prefs = await service.get_preferences(user_id)
     if not prefs:
-      raise HTTPException(status_code=404, detail="Preferences not found")
+        raise HTTPException(status_code=404, detail="Preferences not found")
     return prefs
+
 
 @router.get("/recommended-jobs")
 async def get_recommended_jobs(
@@ -59,15 +75,17 @@ async def get_recommended_jobs(
     """Get job offers that fit user preferences"""
     prefs = await pref_service.get_preferences(user_id)
     if not prefs:
-        raise HTTPException(status_code=404, detail="You need to set preferences")
+        raise HTTPException(
+            status_code=404, detail="You need to set preferences")
 
     offers = await job_service.get_offers_for_user(prefs)
-    
+
     return {
         "user_id": user_id,
         "count": len(offers),
         "data": offers
     }
+
 
 @router.get("/jobs")
 async def list_all_jobs(
@@ -79,8 +97,8 @@ async def list_all_jobs(
     offers = await service.get_all_offers(skip=skip, limit=limit)
     count = await service.count_offers()
     return {
-      "total": count,
-      "skip": skip,
-      "limit": limit,
-      "data": offers
+        "total": count,
+        "skip": skip,
+        "limit": limit,
+        "data": offers
     }

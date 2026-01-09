@@ -15,7 +15,7 @@ export const GET = auth0.withApiAuthRequired(
           ? accessTokenResp
           : (accessTokenResp as any)?.token ?? null;
 
-      const backendUrl = `${process.env.GATEWAY_URL}/users/profile`;
+      const backendUrl = `${process.env.NEXT_PUBLIC_GATEWAY_URL}/users/profile`;
       const gatewayRes = await fetch(backendUrl, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),

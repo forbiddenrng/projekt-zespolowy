@@ -6,7 +6,7 @@ export class APIClient {
 
   constructor(){
     this.client = axios.create({
-      baseURL: `${process.env.GATEWAY_URL}/users`
+      baseURL: `${process.env.NEXT_PUBLIC_GATEWAY_URL}/users`
     });
   }
 

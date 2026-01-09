@@ -3,16 +3,18 @@ from openai import AsyncOpenAI
 from app.core.config import settings
 
 client = AsyncOpenAI(
-  base_url=settings.OPENROUTER_URL,
-  api_key=settings.OPENROUTER_API_KEY,
+    base_url=settings.OPENROUTER_URL,
+    api_key=settings.OPENROUTER_API_KEY,
 )
+
 
 async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
     """Generuje dane CV w formacie JSON na podstawie danych użytkownika"""
 
-    user_info_str = json.dumps(user_info, ensure_ascii=False) if isinstance(user_info, dict) else str(user_info)
+    user_info_str = json.dumps(user_info, ensure_ascii=False) if isinstance(
+        user_info, dict) else str(user_info)
 
-    prompt = f"""
+    header = f"""
     Na podstawie podanych informacji o użytkowniku i oferty pracy wygeneruj profesjonalne CV. Odpowiedź zwróć jako JSON. 
 
     Z dostępnych danych o użytkowniku wybierz najlepsze dopasowanie umiejętności i certyfikatów do danej oferty pracy. 
@@ -30,23 +32,25 @@ async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
     education - tablica pozycji edukacji uzytkownika. degree - stopien studiow, major - kierunek, school_name - nazwa szkoly, start_date/end_date - poczatek/koniec
     experience - tablica pozycji doswiadczenia uzytkownika. position - stanowisko, company - firma, start/end date - od/do.
     description - opis obowiazkow itd.
+    """
 
+    schema = """
     Zwróć JSON z następującą strukturą:
-    {{
+    {
         "summary": "...",
         "quick_summary": "...",
         "skills": ["...", "..."],
         "certificates": [
-            {{"name": "...", "certification_date": "...", "issuer": "..."}}
+            {"name": "...", "certification_date": "...", "issuer": "..."}
         ],
         "languages": [
-            {{"name": "...", "level": "..."}}
+            {"name": "...", "level": "..."}
         ],
         "links": [
-            {{"linkString": "...", "name": "..."}}
+            {"linkString": "...", "name": "..."}
         ],
         "education": [
-        {{"degree": "...", "major": "...", "school_name": "...", "start_date": "...", "end_date": "..."}}
+        {"degree": "...", "major": "...", "school_name": "...", "start_date": "...", "end_date": "..."}
         ],
         "experience": [
             {
@@ -57,18 +61,30 @@ async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
                 "description": "..."
             }
         ],
-    }}
+    }
     """
+
+    prompt = header + "\n" + schema
+
     response = await client.chat.completions.create(
         model=settings.OPENROUTER_MODEL,
         messages=[
-            {"role": "system", "content": "Jesteś profesjonalnym ekspertem w pisaniu CV. Rozmiesz obecną sytuację na rynku i wiesz, że każda osoba szukająca pracy musi mieć dopasowane CV do konkretnej oferty. Na podstawie danych o użytkowniku oraz konkretnej oferty pracy tworzysz dane do CV. Zawsze zwracasz odpowiedź jako JSON"},
+            {"role": "system", "content": "Jesteś profesjonalnym ekspertem w pisaniu CV. Rozumiesz obecną sytuację na rynku i wiesz, że każda osoba szukająca pracy musi mieć dopasowane CV do konkretnej oferty. Na podstawie danych o użytkowniku oraz konkretnej oferty pracy tworzysz dane do CV. Zawsze zwracasz odpowiedź jako JSON"},
             {"role": "user", "content": prompt}
         ],
         temperature=0.7,
-        response_format={"type": "json_object"} 
+        response_format={"type": "json_object"}
     )
     content = response.choices[0].message.content
-    return json.loads(content) if content else {}
 
+    if not content or not content.strip():
+        print(f"ERROR: Empty response from OpenRouter API")
+        print(f"Full response: {response}")
+        raise ValueError("OpenRouter API returned empty response")
 
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError as e:
+        print(f"ERROR: Failed to parse JSON response: {e}")
+        print(f"Response content: {content[:200]}")
+        raise ValueError(f"Invalid JSON response from API: {str(e)}")

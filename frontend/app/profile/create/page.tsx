@@ -12,7 +12,7 @@ async function fetchProfile() {
       ? accessTokenResp
       : (accessTokenResp as any)?.token ?? null;
 
-  const backendUrl = `${process.env.GATEWAY_URL}/users/me`;
+  const backendUrl = `${process.env.NEXT_PUBLIC_GATEWAY_URL}/users/me`;
   const gatewayRes = await fetch(backendUrl, {
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -47,8 +47,7 @@ export default async function Profile() {
 
   return (
     <WizardProvider>
-      <ProfileWizard user={user}/>
+      <ProfileWizard user={user} />
     </WizardProvider>
-  )
-
+  );
 }

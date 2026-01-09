@@ -36,8 +36,20 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
     # Pobierz dane użytkownika
     user_data = loop.run_until_complete(user_client.get_user_data(user_id))
 
-    ## generuj dane do cv
-    generated_cv_data = loop.run_until_complete(generate_cv_data(user_data, job_offer))
+    try:
+      # generuj dane do cv
+      generated_cv_data = loop.run_until_complete(generate_cv_data(user_data, job_offer))
+    except (ValueError, Exception) as e:
+      print(f"ERROR: CV generation failed: {e}")
+      loop.run_until_complete(cv_gen_service.update_task_status(
+        task_id,
+        "FAILED",
+        error=f"Failed to generate CV data: {str(e)}"
+      ))
+      loop.run_until_complete(cv_gen_service.send_webhook(
+        user_id, task_id, "FAILED"
+      ))
+      raise
 
     cv_data = {
       "full_name": f"{user_data['name']} {user_data['surname']}",
@@ -55,7 +67,7 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
     }
 
     
-    # # wygeneruj CV w HTML
+    # wygeneruj CV w HTML
     cv_html = cv_service.generate_cv_html(cv_data)
     
     # Przechowaj PDF
