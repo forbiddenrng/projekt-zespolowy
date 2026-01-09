@@ -3,6 +3,7 @@ import { auth0 } from "@/app/lib/auth0";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
+export const maxDuration = 120;
 
 export const POST = auth0.withApiAuthRequired(async (req: Request) => {
   try {
@@ -17,28 +18,45 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
 
     const body = await req.json();
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_GATEWAY_URL}/api/ai/generate/cv`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(body),
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_GATEWAY_URL}/api/ai/generate/cv`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(body),
+          signal: controller.signal,
+        }
+      );
+
+      clearTimeout(timeoutId);
+
+      const contentType = res.headers.get("content-type") ?? "";
+      const text = await res.text();
+
+      if (contentType.includes("application/json")) {
+        return NextResponse.json(JSON.parse(text), { status: res.status });
       }
-    );
-
-    const contentType = res.headers.get("content-type") ?? "";
-    const text = await res.text();
-
-    if (contentType.includes("application/json")) {
-      return NextResponse.json(JSON.parse(text), { status: res.status });
+      return new NextResponse(text, {
+        status: res.status,
+        headers: { "Content-Type": contentType || "text/plain" },
+      });
+    } catch (fetchErr: any) {
+      clearTimeout(timeoutId);
+      if (fetchErr.name === "AbortError") {
+        return NextResponse.json(
+          { message: "Request timeout - generation is taking too long" },
+          { status: 504 }
+        );
+      }
+      throw fetchErr;
     }
-    return new NextResponse(text, {
-      status: res.status,
-      headers: { "Content-Type": contentType || "text/plain" },
-    });
   } catch (err: any) {
     console.error("AI generate CV error:", err);
     return NextResponse.json(
