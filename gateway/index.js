@@ -2,9 +2,28 @@ const express = require("express");
 const { expressjwt: jwt } = require("express-jwt");
 const jwks = require("jwks-rsa");
 const { createProxyMiddleware } = require("http-proxy-middleware");
+const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 require("dotenv").config();
+
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-user"],
+  })
+);
+
+app.get("/health", (req, res) => {
+  res.json({
+    status: "Gateway OK",
+    port: process.env.PORT || 4000,
+    timestamp: new Date().toISOString(),
+  });
+});
 
 const checkJwt = jwt({
   secret: jwks.expressJwtSecret({
@@ -38,6 +57,17 @@ function injectUserHeader(req, res, next) {
 //   next()
 // }
 
+// Error handling JWT -> JSON
+app.use((err, req, res, next) => {
+  if (err.name === "UnauthorizedError") {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized", detail: err.message });
+  }
+  next(err);
+});
+
+// User service proxy
 app.use(
   "/users",
   checkJwt,
@@ -46,12 +76,60 @@ app.use(
     changeOrigin: true,
     on: {
       proxyReq: (proxyReq, req) => {
-      const userInfo = { id: req.auth.sub };
-      // console.log(`Proxying: ${req.method} ${req.url} -> ${process.env.USER_SERVICE}${req.url}`); // dodaj to
-      // const userInfo = { id: "auth0|123" };
-      proxyReq.setHeader("x-user", JSON.stringify(userInfo));
-    }
-    }
+        const userInfo = { id: req.auth.sub };
+        // console.log(`Proxying: ${req.method} ${req.url} -> ${process.env.USER_SERVICE}${req.url}`); // dodaj to
+        // const userInfo = { id: "auth0|123" };
+        proxyReq.setHeader("x-user", JSON.stringify(userInfo));
+      },
+    },
+  })
+);
+
+// rate limiter for AI endpoints
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutues
+  max: 10, // max 10 requests per IP in 15 min frame
+  message: { message: "Too many AI requests, please try again later" },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// AI service - CV generation endpoints (/ai/*)
+app.use(
+  "/api/ai",
+  checkJwt,
+  aiLimiter,
+  createProxyMiddleware({
+    target: `${process.env.AI_SERVICE}`,
+    changeOrigin: true,
+    timeout: 120000, // 2 minutes timeout
+    proxyTimeout: 120000,
+    pathRewrite: (path) => `/ai${path}`, // /generate/cv -> /ai/generate/cv
+    on: {
+      proxyReq: (proxyReq, req) => {
+        const userInfo = { id: req.auth.sub };
+        proxyReq.setHeader("x-user", JSON.stringify(userInfo));
+      },
+    },
+  })
+);
+
+// AI service - Job offers & preferences endpoints (/api/*)
+app.use(
+  "/api/jobs",
+  checkJwt,
+  createProxyMiddleware({
+    target: `${process.env.AI_SERVICE}`,
+    changeOrigin: true,
+    timeout: 30000,
+    proxyTimeout: 30000,
+    pathRewrite: (path) => `/api${path}`, // /preferences -> /api/preferences
+    on: {
+      proxyReq: (proxyReq, req) => {
+        const userInfo = { id: req.auth.sub };
+        proxyReq.setHeader("x-user", JSON.stringify(userInfo));
+      },
+    },
   })
 );
 

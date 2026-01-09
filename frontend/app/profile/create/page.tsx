@@ -47,8 +47,7 @@ export default async function Profile() {
 
   return (
     <WizardProvider>
-      <ProfileWizard user={user}/>
+      <ProfileWizard user={user} />
     </WizardProvider>
-  )
-
+  );
 }

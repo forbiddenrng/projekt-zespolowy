@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, sans-serif;
+            max-width: 900px;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .header {
+            border-bottom: 2px solid #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+        }
+        .name {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .contact {
+            font-size: 12px;
+            color: #7f8c8d;
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.contact-label {
+    font-weight: bold;
+    color: #555;
+}
+
+.contact-value {
+    color: #7f8c8d;
+}
+
+.contact-link {
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.contact-link:hover {
+    text-decoration: underline;
+}
+        .section {
+            margin: 20px 0;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        .entry {
+            margin: 10px 0;
+        }
+        .entry-title {
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+
+        }
+        .entry-subtitle {
+            color: #7f8c8d;
+            font-style: italic;
+            font-size: 12px;
+        }
+        .entry-description {
+            margin-top: 5px;
+            font-size: 13px;
+        }
+
+    .language-entry {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.language-name {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.language-level {
+    font-size: 12px;
+    color: #7f8c8d;
+    text-align: right;
+    display: flex;
+    align-items: flex-end;
+}
+    .languages-grid {
+    display: flex;
+    gap: 20px;
+}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="name">{{ full_name }}</div>
+        <div>
+          {{ quick_summary }}
+        </div>
+        <div class="contact">
+        <div class="contact-item">
+            <span class="contact-value">{{ email }}</span>
+        </div>
+        <div class="contact-item">
+            <span class="contact-value">{{ phone_number }}</span>
+        </div>
+        <div class="contact-item">
+            <span class="contact-value">{{ city }}</span>
+        </div>
+        {% if links %}
+        {% for link in links %}
+        <div class="contact-item">
+            <a href="{{link.linkString}}" class="contact-link">{{link.name}}</a>
+        </div>
+        {% endfor %}
+        {% endif %}
+    </div>
+    </div>
+
+    
+    {% if summary %}
+    <div class="section">
+        <div class="section-title">Podsumowanie</div>
+        <p>{{ summary }}</p>
+    </div>
+    {% endif %}
+
+    {% if experience %}
+    <div class="section">
+        <div class="section-title">Doświadczenie Zawodowe</div>
+        {% for exp in experience %}
+        <div class="entry">
+            <div class="entry-title">
+              <div>{{ exp.position }}</div>
+              <div class="entry-subtitle">{{ exp.company }} | {{exp.start_date}} - {{exp.end_date}}</div>
+            </div>
+            <div class="entry-description">{{ exp.description }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
+    {% if education %}
+    <div class="section">
+      <div class="section-title">Edukacja</div>
+      {% for edu in education %}
+      <div class="entry-title">
+          <div class="">{{ edu.major }}, {{ edu.degree }}</div>
+          <div class="">{{ edu.school_name }}</div>
+          <div class="entry-subtitle">{{ edu.start_date }} - {{ edu.end_date }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+
+
+    {% if skills %}
+    <div class="section">
+        <div class="section-title">Umiejętności</div>
+        <p class="entry-description">{{skills|join(", ")}}</p>
+    </div>
+    {% endif %}
+
+    {% if certificates %}
+    <div class="section">
+    <div class="section-title">Certyfikaty</div>
+    {% for cert in certificates %}
+    <div class="entry-title">
+        <div class="">{{cert.name}}</div>
+        <div class="">{{cert.issuer}}</div>
+        <div class="entry-subtitle">{{cert.certification_date}}</div>
+    </div>
+    {% endfor %}
+    </div>
+    {% endif %}
+
+{% if languages %}
+<div class="section">
+    <div class="section-title">Języki</div>
+    <div class="languages-grid">
+        {% for lang in languages %}
+        <div class="language-entry">
+            <div class="language-name">{{ lang.name }}</div>
+            <div class="language-level">{{ lang.level }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+</body>
+</html>

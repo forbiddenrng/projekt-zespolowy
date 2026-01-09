@@ -26,7 +26,6 @@ async function fetchProfile() {
 }
 
 export default async function Profile() {
-
   let savedProfile = null;
 
   try {
@@ -36,9 +35,7 @@ export default async function Profile() {
     savedProfile = null;
   }
 
-  if (!savedProfile) return <NoProfileFound/>
-  
-  return (
-    <UserData />
-  );
+  if (!savedProfile) return <NoProfileFound />;
+
+  return <UserData />;
 }

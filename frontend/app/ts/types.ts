@@ -132,3 +132,28 @@ export interface FullProfilePayload extends UserFormValues {
   workExperience: any[];
   languages: any[];
 }
+
+// CV Generation Types
+export type CVGenerationStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+
+export interface CVGenerationRequest {
+  job_offer: string;
+}
+
+export interface CVGenerationResponse {
+  message: string;
+  task_id: string;
+  status: CVGenerationStatus;
+}
+
+export interface CVStatusResponse {
+  task_id: string;
+  status: CVGenerationStatus;
+  error?: string | null;
+  created_at?: string | null;
+  completed_at?: string | null;
+}
+
+export interface CVGenerationError {
+  detail: string;
+}
