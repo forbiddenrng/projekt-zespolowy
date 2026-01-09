@@ -4,7 +4,6 @@ import type {
   CVStatusResponse,
   CVGenerationStatus,
 } from "@/app/ts/types";
-import { auth0 } from "@/app/lib/auth0";
 
 interface UseCVGenerationReturn {
   taskId: string | null;
@@ -32,24 +31,20 @@ export function useCVGeneration(): UseCVGenerationReturn {
   const checkStatus = useCallback(
     async (id: string): Promise<CVStatusResponse | undefined> => {
       try {
-        const tokenResponse = await fetch("/api/auth/token");
-        if (!tokenResponse.ok) {
-          throw new Error("Failed to get access token");
-        }
-        const { accessToken } = await tokenResponse.json();
-
-        const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL;
-
-        const response = await fetch(
-          `${gatewayUrl}/api/ai/generate/cv/${id}/status`,
-          {
-            headers: { Authorization: `Bearer ${accessToken}` },
-          }
-        );
+        const response = await fetch(`/api/ai/generate/cv/${id}/status`, {
+          cache: "no-store",
+          credentials: "include",
+        });
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to check status");
+          const text = await response.text();
+          let errJson: any = null;
+          try {
+            errJson = JSON.parse(text);
+          } catch {}
+          throw new Error(
+            errJson?.detail || errJson?.message || `HTTP ${response.status}`
+          );
         }
 
         const data: CVStatusResponse = await response.json();
@@ -125,20 +120,10 @@ export function useCVGeneration(): UseCVGenerationReturn {
     setCompletedAt(null);
 
     try {
-      const tokenResponse = await fetch("/api/auth/token");
-      if (!tokenResponse.ok) {
-        throw new Error("Failed to get access token");
-      }
-      const { accessToken } = await tokenResponse.json();
-
-      const gatewayUrl = process.env.NEXT_PUBLIC_GATEWAY_URL;
-      const response = await fetch(`${gatewayUrl}/api/ai/generate/cv`, {
+      const response = await fetch(`/api/ai/generate/cv`, {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ job_offer: jobOffer }),
       });
 
@@ -189,18 +174,9 @@ export function useCVGeneration(): UseCVGenerationReturn {
     }
 
     try {
-      const tokenResponse = await fetch("/api/auth/token");
-      if (!tokenResponse.ok) {
-        throw new Error("Failed to get access token");
-      }
-      const { accessToken } = await tokenResponse.json();
-
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_GATEWAY_URL}/api/ai/cv/${taskId}/download`,
-        {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        }
-      );
+      const res = await fetch(`/api/ai/cv/${taskId}/download`, {
+        credentials: "include",
+      });
 
       if (!res.ok) throw new Error(`Download failed ${res.status}`);
 
