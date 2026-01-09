@@ -26,10 +26,25 @@ export function useCVGeneration(): UseCVGenerationReturn {
   const [completedAt, setCompletedAt] = useState<string | null>(null);
 
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, []);
 
   // Function to check status
   const checkStatus = useCallback(
     async (id: string): Promise<CVStatusResponse | undefined> => {
+      if (!isMountedRef.current) return;
+
       try {
         const response = await fetch(`/api/ai/generate/cv/${id}/status`, {
           cache: "no-store",
@@ -48,6 +63,8 @@ export function useCVGeneration(): UseCVGenerationReturn {
         }
 
         const data: CVStatusResponse = await response.json();
+
+        if (!isMountedRef.current) return;
 
         setStatus(data.status);
         setCreatedAt(data.created_at || null);
@@ -69,6 +86,7 @@ export function useCVGeneration(): UseCVGenerationReturn {
         return data;
       } catch (err: any) {
         console.error("Status check error:", err);
+        if (!isMountedRef.current) return;
         setError(err.message || "Failed to check status");
         setIsLoading(false);
 
@@ -82,7 +100,7 @@ export function useCVGeneration(): UseCVGenerationReturn {
   );
 
   useEffect(() => {
-    if (!taskId) return;
+    if (!taskId || !isMountedRef.current) return;
 
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
@@ -90,6 +108,11 @@ export function useCVGeneration(): UseCVGenerationReturn {
     }
 
     pollingIntervalRef.current = setInterval(async () => {
+      if (!isMountedRef.current) {
+        if (pollingIntervalRef.current)
+          clearInterval(pollingIntervalRef.current);
+        return;
+      }
       try {
         const res = await checkStatus(taskId);
         if (res && (res.status === "COMPLETED" || res.status === "FAILED")) {
@@ -112,6 +135,8 @@ export function useCVGeneration(): UseCVGenerationReturn {
 
   // Function to start CV generation
   const generateCV = useCallback(async (jobOffer: string): Promise<void> => {
+    if (!isMountedRef.current) return;
+
     setIsLoading(true);
     setError(null);
     setTaskId(null);
@@ -142,10 +167,13 @@ export function useCVGeneration(): UseCVGenerationReturn {
 
       const data: CVGenerationResponse = await response.json();
 
+      if (!isMountedRef.current) return;
+
       setTaskId(data.task_id);
       setStatus(data.status);
     } catch (err: any) {
       console.error("CV generation error:", err);
+      if (!isMountedRef.current) return;
       setError(err.message || "Failed to generate CV");
       setIsLoading(false);
     }
@@ -189,6 +217,7 @@ export function useCVGeneration(): UseCVGenerationReturn {
       URL.revokeObjectURL(url);
     } catch (err: any) {
       console.error("Download error:", err);
+      if (!isMountedRef.current) return;
       setError(err.message || "Failed to download CV");
     }
   }, [taskId]);
