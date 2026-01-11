@@ -10,8 +10,8 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 @celery_app.task(bind=True, name="generate_cover_letter_task")
-def generate_cover_letter_task(self, task_id: str, user_id: str, job_offer: str = ""):
-  """Długotrwałe zadanie generowania listu motywacyjnego"""
+def generate_cover_letter_task(self, task_id: str, user_id: str, job_offer: str = "", company_info: str = ""):
+  """Long process of generating covering letter"""
   
   # Uruchom event loop dla operacji async
   loop = asyncio.new_event_loop()
@@ -36,7 +36,7 @@ def generate_cover_letter_task(self, task_id: str, user_id: str, job_offer: str 
 
     try:
       # generuj dane do listu motywacyjnego
-      generated_cover_letter_data = loop.run_until_complete(generate_cover_letter_data(user_data, job_offer))
+      generated_cover_letter_data = loop.run_until_complete(generate_cover_letter_data(user_data, job_offer, company_info))
     except (ValueError, Exception) as e:
       print(f"ERROR: Cover letter generation failed: {e}")
       loop.run_until_complete(cover_letter_gen_service.update_task_status(
@@ -49,13 +49,15 @@ def generate_cover_letter_task(self, task_id: str, user_id: str, job_offer: str 
       ))
       raise
 
+
+    print(generated_cover_letter_data)
+
     cover_letter_data = {
       "full_name": f"{user_data['name']} {user_data['surname']}",
       "email": user_data["email"],
       "phone_number": user_data["phone_number"],
       "city": user_data["city"],
       "date": datetime.now(timezone.utc).strftime("%d.%m.%Y"),
-      "job_offer": job_offer,
       "introduction": generated_cover_letter_data["introduction"],
       "body": generated_cover_letter_data["body"],
       "closing": generated_cover_letter_data["closing"],

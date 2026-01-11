@@ -131,4 +131,16 @@ async def generate_cover_letter_data(user_info: dict, job_offer: str, company_in
     )
     content = response.choices[0].message.content
 
+    if not content or not content.strip():
+        print(f"ERROR: Empty response from OpenRouter API")
+        print(f"Full response: {response}")
+        raise ValueError("OpenRouter API returned empty response")
+
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError as e:
+        print(f"ERROR: Failed to parse JSON response: {e}")
+        print(f"Response content: {content[:200]}")
+        raise ValueError(f"Invalid JSON response from API: {str(e)}")
+
     

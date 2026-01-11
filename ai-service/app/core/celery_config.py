@@ -15,5 +15,9 @@ celery_app.conf.update(
   enable_utc=True,
   task_track_started=True,
   task_time_limit=5 * 60,  # 5 minut max
+  include=[
+    'app.services.cv_task',
+    'app.services.cover_letter_task',
+  ]
 )
 
