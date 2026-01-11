@@ -1,5 +1,5 @@
 from typing import List, Optional, Any
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pymongo import UpdateOne
 from app.schemas.job_offer import JobOfferCreate, Company, Salary, Location
 from app.clients.theirstack_client import theirstack_client
@@ -8,6 +8,7 @@ class JobOfferService:
     def __init__(self, db: Any):
         self.db = db
         self.collection = db["job_offers"]
+        self.tz = timezone(timedelta(hours=1))
 
     async def sync_job_offers(self, page: int = 1, limit: int = 50) -> int:
         """
@@ -69,27 +70,27 @@ class JobOfferService:
                             {
                                 "$set": {
                                     **job_offer.model_dump(),
-                                    "updated_at": datetime.now(timezone.utc)
+                                    "updated_at": datetime.now(self.tz)
                                 },
-                                "$setOnInsert": {"created_at": datetime.now(timezone.utc)}
+                                "$setOnInsert": {"created_at": datetime.now(self.tz)}
                             },
                             upsert=True
                         )
                     )
                 except Exception as e:
-                    print(f"⚠ Error processing offer {offer.get('id')}: {e}")
+                    print(f"Error processing offer {offer.get('id')}: {e}")
                     continue
 
             if operations:
                 result = await self.collection.bulk_write(operations)
                 synced = len(result.upserted_ids) + result.modified_count
-                print(f"✓ Synced {synced} job offers")
+                print(f"Synced {synced} job offers")
                 return synced
 
             return 0
 
         except Exception as e:
-            print(f"✗ Error syncing job offers: {e}")
+            print(f"Error syncing job offers: {e}")
             raise
 
     async def get_offers_for_user(self, user_preferences: dict) -> List[dict]:

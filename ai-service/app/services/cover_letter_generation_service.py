@@ -1,12 +1,13 @@
 import aiohttp
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from app.clients.mongodb_client import mongodb
 from bson import ObjectId
 
 class CoverLetterGenerationService:
   def __init__(self):
     self.collection = mongodb.db["cover_letter_generation_tasks"]
+    self.tz = timezone(timedelta(hours=1))
     
   async def create_task(self, user_id: str, job_offer: str = ""):
     """Utwórz rekord zadania w bazie danych"""
@@ -14,7 +15,7 @@ class CoverLetterGenerationService:
       "user_id": user_id,
       "job_offer": job_offer,
       "status": "PENDING",
-      "created_at": datetime.now(timezone.utc),
+      "created_at": datetime.now(self.tz),
       "started_at": None,
       "completed_at": None,
       "pdf_path": None,
@@ -38,7 +39,7 @@ class CoverLetterGenerationService:
     try:
       await self.collection.update_one(
           {"_id": ObjectId(task_id)},
-          {"$set": {**kwargs, "status": status, "updated_at": datetime.now(timezone.utc)}}
+          {"$set": {**kwargs, "status": status, "updated_at": datetime.now(self.tz)}}
       )
     except Exception as e:
       print(f"Error updating task: {e}")
@@ -58,7 +59,7 @@ class CoverLetterGenerationService:
         "task_id": task_id,
         "status": status,
         "pdf_url": pdf_url,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(self.tz).isoformat(),
       }
       
       async with aiohttp.ClientSession() as session:

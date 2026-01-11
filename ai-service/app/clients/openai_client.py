@@ -96,13 +96,13 @@ async def generate_cover_letter_data(user_info: dict, job_offer: str, company_in
         user_info, dict) else str(user_info)
     
     header = f"""
-    Na podstawie podanych informacji o użytkowniku, oferty pracy oraz informacji o firmie wygeneruj profesjonalny list motywacyjny. Wykorzystujesz tylko podane informacje, posłgujesz się profesjonalnym, korporacyjnym językiem. Odpowiedź zwracasz w formacie JSON. 
+    Twoim zadaniem jest zwrócenie JSON na podstawie podanych informacji o użytkowniku, oferty pracy oraz informacji o firmie wygeneruj profesjonalny list motywacyjny. Wykorzystujesz tylko podane informacje, posłgujesz się profesjonalnym, korporacyjnym językiem.
 
     Informacje o użytkowniku: {user_info_str}
     Oferta pracy: {job_offer}
     Dane firmy: {company_info}
 
-    W odpowiedzi masz zwrócić następujące pola:
+    W odpowiedzi JSON masz zwrócić tylko następujące pola. Zwróć tylko jedną odpowiedź w formacie JSON i nie dodawaj żadnych innych komentarzy.
     introduction - dlaczego piszesz dany list motywacyjny, na jakie stanowisko aplikujesz. Na koniec introduction napisz jedno zdanie, które oznajmi rekruterowi że możesz wnieść do firmy coś od siebie. Ta część ma mieć od 3-4 zdań. 
 
     body - główne osiągnięcia zawodowe na podstawie dostarczonych informacji o użytkowniu. Co udało mu się osiągnąć i jak może pozytywnie wpłynąć to na rozwój firmy do której pisany jest list. To główna część, ma zawierać od 5-8 zdań. Na koniec tej części wspomnieć o wykształceniu użytkownika, jednak ma to być jedynie uzupełnienie do wcześniejszego fragmentu - nie więcej niż 2 zdania. 
@@ -116,6 +116,13 @@ async def generate_cover_letter_data(user_info: dict, job_offer: str, company_in
         "body": "...",
         "closing": "..."
     }
+
+    Przykładowa odopowiedź: 
+    {
+        "introduction": "Piszę aby wyrazić zainteresowanie ofertą pracy",
+        "body": "Podczas praktyk w firmie X uczesniczyłem w podobnym projekcie w który zaangażowany jest Wasza firma",
+        "closing": "Uprzejmie dziękuję za czas poświęcony i rozważanie mojej aplikacji"
+    }
     """
 
     prompt = header + "\n" + schema
@@ -123,13 +130,15 @@ async def generate_cover_letter_data(user_info: dict, job_offer: str, company_in
     response = await client.chat.completions.create(
         model=settings.OPENROUTER_MODEL,
         messages=[
-            {"role": "system", "content": "Jesteś profesjonalnym ekspertem w toworzeniu listów motywacyjnych. Rozumiesz obecną sytuację na rynku i wiesz, że każda osoba szukająca pracy musi mieć dopasowane dokumenty aplikacyjne do konkretnej oferty. Na podstawie danych o użytkowniku oraz konkretnej oferty pracy tworzysz dane do listów motywacyjnych. Zawsze zwracasz odpowiedź jako JSON"},
+            {"role": "system", "content": "Jesteś profesjonalnym ekspertem w toworzeniu listów motywacyjnych. Możesz odpowidać na żądania jedynie w formacie JSON. Rozumiesz obecną sytuację na rynku i wiesz, że każda osoba szukająca pracy musi mieć dopasowane dokumenty aplikacyjne do konkretnej oferty. Na podstawie danych o użytkowniku oraz konkretnej oferty pracy tworzysz dane do listów motywacyjnych."},
             {"role": "user", "content": prompt}
         ],
         temperature=0.7,
         response_format={"type": "json_object"}
     )
     content = response.choices[0].message.content
+
+    print(content)
 
     if not content or not content.strip():
         print(f"ERROR: Empty response from OpenRouter API")

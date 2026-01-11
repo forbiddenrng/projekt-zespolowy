@@ -7,7 +7,10 @@ from app.clients.openai_client import generate_cv_data
 import asyncio
 import os
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+
+def get_time():
+  return timezone(timedelta(hours=1))
 
 @celery_app.task(bind=True, name="generate_cv_task")
 def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
@@ -30,7 +33,7 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
 
     # Zmień status na PROCESSING
     loop.run_until_complete(cv_gen_service.update_task_status(
-      task_id, "PROCESSING", started_at=datetime.now(timezone.utc)
+      task_id, "PROCESSING", started_at=datetime.now(get_time())
     ))
     
     # Pobierz dane użytkownika
@@ -80,13 +83,13 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
         task_id,
         "COMPLETED",
         pdf_path=pdf_path,
-        completed_at=datetime.now(timezone.utc)
+        completed_at=datetime.now(get_time())
     ))
     
     # Wyślij webhook
     pdf_url = f"{os.getenv('API_BASE_URL')}/cv/{task_id}/download"
     loop.run_until_complete(cv_gen_service.send_webhook(
-        user_id, task_id, "COMPLETED", pdf_url
+      user_id, task_id, "COMPLETED", pdf_url
     ))
       
   except Exception as e:
