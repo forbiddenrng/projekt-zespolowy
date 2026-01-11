@@ -2,7 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Header, Path
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
+# from pytz import timezone as pytz_timezone
+from zoneinfo import ZoneInfo
+
 from app.api.v1.job_router import get_user_id
 from app.clients.userservice_client import UserServiceClient
 from app.services.cv_generation_service import CVGenerationService
@@ -14,6 +17,16 @@ from app.services.cover_letter_task import generate_cover_letter_task
 from io import BytesIO
 
 router = APIRouter(prefix="/ai", tags=["ai"])
+
+tz_utc = timezone.utc
+tz_warsaw = ZoneInfo('Europe/Warsaw')
+
+def _conver_datetime_to_warsaw(dt: datetime) -> datetime:
+  if not dt:
+    return dt
+  if dt.tzinfo is None:
+    dt = dt.replace(tzinfo=tz_utc)
+  return dt.astimezone(tz_warsaw)
 
 class GenerateCVRequest(BaseModel):
   """Model for CV generation request"""
@@ -213,8 +226,8 @@ async def get_cv_status(
     "task_id": task_id,
     "status": task["status"],
     "error": task.get("error"),
-    "created_at": task.get("created_at"),
-    "completed_at": task.get("completed_at")
+    "created_at": _conver_datetime_to_warsaw(task.get("created_at")),
+    "completed_at": _conver_datetime_to_warsaw(task.get("completed_at"))
   }
   
 @router.get(
@@ -303,7 +316,7 @@ async def generate_cover_letter(
     401: {"model": ErrorResponse, "description": "Unauthorized - you don't have access to this task"}
   }
 )
-async def get_cv_status(
+async def get_cover_letter_status(
   task_id: str = Path(..., description="Task identifier returned from CV generation endpoint"),
   task: dict = Depends(verify_letter_task_ownership)
   # cv_gen_service: CVGenerationService = Depends(get_cv_generation_service)
@@ -314,8 +327,8 @@ async def get_cv_status(
     "task_id": task_id,
     "status": task["status"],
     "error": task.get("error"),
-    "created_at": task.get("created_at"),
-    "completed_at": task.get("completed_at")
+    "created_at": _conver_datetime_to_warsaw(task.get("created_at")),
+    "completed_at": _conver_datetime_to_warsaw(task.get("completed_at"))
   }
   
 @router.get(
@@ -327,7 +340,7 @@ async def get_cv_status(
     401: {"model": ErrorResponse, "description": "Unauthorized - you don't have access to this task"}
   }
 )
-async def download_cv(
+async def download_cover_letter(
   task_id: str = Path(..., description="Task identifier returned from cover letter generation endpoint"),
 
   task: dict = Depends(verify_letter_task_ownership),

@@ -12,6 +12,34 @@ from datetime import datetime, timezone, timedelta
 def get_time():
   return timezone(timedelta(hours=1))
 
+class APIGenerationError(Exception):
+  """Exception dla błędów generowania z API (format JSON, brakujące pola)"""
+  pass
+
+
+async def generate_cv_with_retry(user_data: dict, job_offer: str, max_retries: int = 3):
+  """Generuj dane CV z polityką retry dla błędów API"""
+  last_error = None
+  
+  for attempt in range(1, max_retries + 1):
+    try:
+      generated_data = await generate_cv_data(user_data, job_offer)
+      return generated_data
+    except ValueError as e:
+      # ValueError jest zwracany gdy API zwróci zły format JSON
+      last_error = e
+      
+      if attempt < max_retries:
+        continue
+      else:
+        raise APIGenerationError(f"Failed to generate CV after {max_retries} attempts: {str(last_error)}")
+    except Exception as e:
+      # Inne błędy (np. błędy w aplikacji) nie ponawiaj
+      print(f"Non-retriable error: {str(e)}")
+      raise
+
+
+
 @celery_app.task(bind=True, name="generate_cv_task")
 def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
   """Długotrwałe zadanie generowania CV"""
@@ -41,7 +69,7 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
 
     try:
       # generuj dane do cv
-      generated_cv_data = loop.run_until_complete(generate_cv_data(user_data, job_offer))
+      generated_cv_data = loop.run_until_complete(generate_cv_with_retry(user_data, job_offer,max_retries=3))
     except (ValueError, Exception) as e:
       print(f"ERROR: CV generation failed: {e}")
       loop.run_until_complete(cv_gen_service.update_task_status(
