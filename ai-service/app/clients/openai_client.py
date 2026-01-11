@@ -70,7 +70,7 @@ def _validate_cv_structure(data: dict) -> None:
     for idx, edu in enumerate(data["education"]):
         if not isinstance(edu, dict):
             raise ValueError(f"education[{idx}] must be an object")
-        required_edu_fields = ["degree", "major", "school_name", "start_date", "end_date"]
+        required_edu_fields = ["degree", "major", "school_name", "start_date"]
         for field in required_edu_fields:
             if field not in edu or not edu[field] or (isinstance(edu[field], str) and not edu[field].strip()):
                 raise ValueError(f"education[{idx}].{field} is required and cannot be empty")
@@ -79,7 +79,7 @@ def _validate_cv_structure(data: dict) -> None:
     for idx, exp in enumerate(data["experience"]):
         if not isinstance(exp, dict):
             raise ValueError(f"experience[{idx}] must be an object")
-        required_exp_fields = ["position", "company", "start_date", "end_date", "description"]
+        required_exp_fields = ["position", "company", "start_date", "description"]
         for field in required_exp_fields:
             if field not in exp or not exp[field] or (isinstance(exp[field], str) and not exp[field].strip()):
                 raise ValueError(f"experience[{idx}].{field} is required and cannot be empty")
@@ -94,7 +94,7 @@ async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
         user_info, dict) else str(user_info)
 
     header = f"""
-    Na podstawie podanych informacji o użytkowniku i oferty pracy wygeneruj profesjonalne CV. Odpowiedź zwróć jako JSON. 
+    Na podstawie podanych informacji o użytkowniku i oferty pracy wygeneruj profesjonalne CV. Masz napisć to w 1 osobie - z perspektywy użytkownika.  Odpowiedź zwróć jako JSON. 
 
     Z dostępnych danych o użytkowniku wybierz najlepsze dopasowanie umiejętności i certyfikatów do danej oferty pracy. 
     Poniżej znajdziesz dane o użytkowniku oraz samą ofertę pracy.
@@ -103,7 +103,7 @@ async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
     Oferta pracy: {job_offer}
 
     Opis pól, które masz zwrócić: 
-    summary - profesjonalne podsumowanie danego kandydata na podstawie pola profile_summary (z informacji o użytkowniku) oraz reszty jego danych.
+    summary - profesjonalne podsumowanie danego kandydata na podstawie pola profile_summary (z informacji o użytkowniku) oraz reszty jego danych. Podsumowanie to jest w 1 osobie, z perspektywy użytkownika.
     quick_summary - krótkie podsumowanie danego użytkownika na podstawie jego umiejętności i doświadczenia. Np: Python developer | Backend engineer | Fullstack engineer | Cloud Architect
     certificates - tablica certyfikatów, gdzie name - nazwa certyfikatu, certification_date - data wystawienia certyfikatu, issuer - wydawca certyfikatu
     languages - tablica jezykow jakie zna uzytkownik, name - nazwa jezyka, level - poziom jezyka
@@ -166,11 +166,11 @@ async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON response from API: {str(e)}")
     
-    try:
-        _validate_cv_structure(data)
-    except ValueError as e:
-        print(f"ERROR: CV structure validation failed: {e}")
-        raise
+    # try:
+    #     _validate_cv_structure(data)
+    # except ValueError as e:
+    #     print(f"ERROR: CV structure validation failed: {e}")
+    #     raise
 
     return data
 

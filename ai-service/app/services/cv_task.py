@@ -17,6 +17,89 @@ class APIGenerationError(Exception):
   pass
 
 
+
+def _format_date(date_input) -> str:
+  if not date_input:
+    return ""
+  
+  try:
+    if isinstance(date_input, datetime):
+      return date_input.strftime("%d-%m-%Y")
+    
+    if isinstance(date_input, str):
+      if not date_input.strip():
+          return ""
+      
+      # Spróbuj ISO format first
+      try:
+        dt = datetime.fromisoformat(date_input.replace("T", " ").split(".")[0])
+        return dt.strftime("%d-%m-%Y")
+      except:
+        pass
+
+  except Exception as e:
+    print(f"Error formatting date {date_input}: {e}")
+  
+  return ""
+
+
+def _transform_education(education: list) -> list:
+  """Transform education data"""
+  transformed = []
+  for edu in education:
+    edu_item = {
+        "degree": edu.get("degree", ""),
+        "major": edu.get("major", ""),
+        "school_name": edu.get("school_name", ""),
+        "start_date": _format_date(edu.get("start_date", "")),
+        "end_date": _format_date(edu.get("end_date")) if edu.get("end_date") else "Obecnie",
+    }
+    transformed.append(edu_item)
+  return transformed
+
+
+def _transform_experience(experience: list) -> list:
+  """Transform experience data"""
+  transformed = []
+  for exp in experience:
+    exp_item = {
+        "position": exp.get("position", ""),
+        "company": exp.get("company", ""),
+        "start_date": _format_date(exp.get("start_date", "")),
+        "end_date": _format_date(exp.get("end_date")) if exp.get("end_date") else "Obecnie",
+        "description": exp.get("description", ""),
+    }
+    transformed.append(exp_item)
+  return transformed
+
+
+def _transform_certificates(certificates: list) -> list:
+    """Transform certificates"""
+    transformed = []
+    for cert in certificates:
+        cert_item = {
+            "name": cert.get("name", ""),
+            "certification_date": _format_date(cert.get("certification_date", "")),
+            "issuer": cert.get("issuer", ""),
+        }
+        transformed.append(cert_item)
+    return transformed
+
+
+def _transform_cv_data(generated_cv_data: dict) -> dict:
+  """Transform CV data"""
+  return {
+      "summary": generated_cv_data.get("summary", ""),
+      "quick_summary": generated_cv_data.get("quick_summary", ""),
+      "skills": generated_cv_data.get("skills", []),
+      "languages": generated_cv_data.get("languages", []),
+      "links": generated_cv_data.get("links", []),
+      "certificates": _transform_certificates(generated_cv_data.get("certificates", [])),
+      "experience": _transform_experience(generated_cv_data.get("experience", [])),
+      "education": _transform_education(generated_cv_data.get("education", [])),
+  }
+
+
 async def generate_cv_with_retry(user_data: dict, job_offer: str, max_retries: int = 3):
   """Generuj dane CV z polityką retry dla błędów API"""
   last_error = None
@@ -30,6 +113,7 @@ async def generate_cv_with_retry(user_data: dict, job_offer: str, max_retries: i
       last_error = e
       
       if attempt < max_retries:
+        print("Retry CV generation")
         continue
       else:
         raise APIGenerationError(f"Failed to generate CV after {max_retries} attempts: {str(last_error)}")
@@ -70,8 +154,19 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
     try:
       # generuj dane do cv
       generated_cv_data = loop.run_until_complete(generate_cv_with_retry(user_data, job_offer,max_retries=3))
-    except (ValueError, Exception) as e:
-      print(f"ERROR: CV generation failed: {e}")
+    except APIGenerationError as e:
+      # change to failed
+      loop.run_until_complete(cv_gen_service.update_task_status(
+        task_id,
+        "FAILED",
+        error=f"Failed to generate CV data: {str(e)}"
+      ))
+      loop.run_until_complete(cv_gen_service.send_webhook(
+        user_id, task_id, "FAILED"
+      ))
+      raise
+    except Exception as e:
+      # change to failed
       loop.run_until_complete(cv_gen_service.update_task_status(
         task_id,
         "FAILED",
@@ -82,19 +177,21 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
       ))
       raise
 
+    transformed_cv_data = _transform_cv_data(generated_cv_data)
+
     cv_data = {
       "full_name": f"{user_data['name']} {user_data['surname']}",
       "email": user_data["email"],
       "phone_number": user_data["phone_number"],
       "city": user_data["city"],
-      "summary": generated_cv_data["summary"],
-      "quick_summary": generated_cv_data["quick_summary"],
-      "links": generated_cv_data["links"],
-      "skills": generated_cv_data["skills"],
-      "languages": generated_cv_data["languages"],
-      "certificates": generated_cv_data["certificates"],
-      "experience": generated_cv_data["experience"],
-      "education": generated_cv_data["education"],
+      "summary": transformed_cv_data["summary"],
+      "quick_summary": transformed_cv_data["quick_summary"],
+      "links": transformed_cv_data["links"],
+      "skills": transformed_cv_data["skills"],
+      "languages": transformed_cv_data["languages"],
+      "certificates": transformed_cv_data["certificates"],
+      "experience": transformed_cv_data["experience"],
+      "education": transformed_cv_data["education"],
     }
 
     
