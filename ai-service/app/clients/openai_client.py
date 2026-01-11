@@ -7,6 +7,85 @@ client = AsyncOpenAI(
     api_key=settings.OPENROUTER_API_KEY,
 )
 
+def _validate_cv_structure(data: dict) -> None:
+    """Waliduj strukturę danych CV"""
+    required_fields = ["summary", "quick_summary", "skills", "certificates", "languages", "links", "education", "experience"]
+    
+    # check if all fields exist
+    missing_fields = []
+    for field in required_fields:
+        if field not in data:
+            missing_fields.append(field)
+        elif data[field] is None:
+            missing_fields.append(field)
+    
+    if missing_fields:
+        raise ValueError(f"Missing required fields: {missing_fields}")
+    
+    # validate string fields
+    string_fields = ["summary", "quick_summary"]
+    for field in string_fields:
+        if not isinstance(data[field], str) or not data[field].strip():
+            raise ValueError(f"Field '{field}' must be a non-empty string")
+    
+    # validate list fields
+    array_fields = ["skills", "certificates", "languages", "links", "education", "experience"]
+    for field in array_fields:
+        if not isinstance(data[field], list):
+            raise ValueError(f"Field '{field}' must be an array")
+    
+    # vaidate skills
+    for idx, skill in enumerate(data["skills"]):
+        if not isinstance(skill, str) or not skill.strip():
+            raise ValueError(f"skills[{idx}] must be a non-empty string")
+    
+    # validate certs
+    for idx, cert in enumerate(data["certificates"]):
+        if not isinstance(cert, dict):
+            raise ValueError(f"certificates[{idx}] must be an object")
+        required_cert_fields = ["name", "certification_date", "issuer"]
+        for field in required_cert_fields:
+            if field not in cert or not cert[field] or (isinstance(cert[field], str) and not cert[field].strip()):
+                raise ValueError(f"certificates[{idx}].{field} is required and cannot be empty")
+    
+    # validate langs
+    for idx, lang in enumerate(data["languages"]):
+        if not isinstance(lang, dict):
+            raise ValueError(f"languages[{idx}] must be an object")
+        required_lang_fields = ["name", "level"]
+        for field in required_lang_fields:
+            if field not in lang or not lang[field] or (isinstance(lang[field], str) and not lang[field].strip()):
+                raise ValueError(f"languages[{idx}].{field} is required and cannot be empty")
+    
+    # validate links
+    for idx, link in enumerate(data["links"]):
+        if not isinstance(link, dict):
+            raise ValueError(f"links[{idx}] must be an object")
+        required_link_fields = ["linkString", "name"]
+        for field in required_link_fields:
+            if field not in link or not link[field] or (isinstance(link[field], str) and not link[field].strip()):
+                raise ValueError(f"links[{idx}].{field} is required and cannot be empty")
+    
+    # validate edu
+    for idx, edu in enumerate(data["education"]):
+        if not isinstance(edu, dict):
+            raise ValueError(f"education[{idx}] must be an object")
+        required_edu_fields = ["degree", "major", "school_name", "start_date", "end_date"]
+        for field in required_edu_fields:
+            if field not in edu or not edu[field] or (isinstance(edu[field], str) and not edu[field].strip()):
+                raise ValueError(f"education[{idx}].{field} is required and cannot be empty")
+    
+    # validate experience
+    for idx, exp in enumerate(data["experience"]):
+        if not isinstance(exp, dict):
+            raise ValueError(f"experience[{idx}] must be an object")
+        required_exp_fields = ["position", "company", "start_date", "end_date", "description"]
+        for field in required_exp_fields:
+            if field not in exp or not exp[field] or (isinstance(exp[field], str) and not exp[field].strip()):
+                raise ValueError(f"experience[{idx}].{field} is required and cannot be empty")
+
+
+
 
 async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
     """Generuje dane CV w formacie JSON na podstawie danych użytkownika"""
@@ -83,11 +162,17 @@ async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
         raise ValueError("OpenRouter API returned empty response")
 
     try:
-        return json.loads(content)
+        data = json.loads(content)
     except json.JSONDecodeError as e:
-        print(f"ERROR: Failed to parse JSON response: {e}")
-        print(f"Response content: {content[:200]}")
         raise ValueError(f"Invalid JSON response from API: {str(e)}")
+    
+    try:
+        _validate_cv_structure(data)
+    except ValueError as e:
+        print(f"ERROR: CV structure validation failed: {e}")
+        raise
+
+    return data
 
 
 async def generate_cover_letter_data(user_info: dict, job_offer: str, company_info: str) -> dict:
@@ -138,18 +223,28 @@ async def generate_cover_letter_data(user_info: dict, job_offer: str, company_in
     )
     content = response.choices[0].message.content
 
-    print(content)
-
     if not content or not content.strip():
         print(f"ERROR: Empty response from OpenRouter API")
         print(f"Full response: {response}")
         raise ValueError("OpenRouter API returned empty response")
 
     try:
-        return json.loads(content)
+        data = json.loads(content)
     except json.JSONDecodeError as e:
-        print(f"ERROR: Failed to parse JSON response: {e}")
-        print(f"Response content: {content[:200]}")
         raise ValueError(f"Invalid JSON response from API: {str(e)}")
+    
+    required_fields = ["introduction", "body", "closing"]
+    missing_fields = []
+    
+    for field in required_fields:
+        if field not in data:
+            missing_fields.append(field)
+        elif data[field] is None or (isinstance(data[field], str) and not data[field].strip()):
+            missing_fields.append(field)
+    
+    if missing_fields:
+        raise ValueError(f"Missing or empty required fields in API response: {missing_fields}")
+    
+    return data
 
     

@@ -12,6 +12,31 @@ from datetime import datetime, timezone, timedelta
 def get_time():
   return timezone(timedelta(hours=1))
 
+class APIGenerationError(Exception):
+  """Exception dla błędów generowania z API (format JSON, brakujące pola)"""
+  pass
+
+async def generate_cover_letter_with_retry(user_data: dict, job_offer: str, company_info: str, max_retries: int = 3):
+  """Generate covering letter data with retry policy"""
+  last_error = None
+  for attempt in range(1, max_retries + 1):
+    try:
+      generated_data = await generate_cover_letter_data(user_data, job_offer, company_info)
+      return generated_data
+    except ValueError as e:
+      # api returned invalid format
+      last_error = e
+
+      if attempt < max_retries:
+        continue
+      else:
+        raise APIGenerationError(f"Failed to generate covering letter after {max_retries} attemps: {str(last_error)}")
+    except Exception as e:
+      print(f"Non-retriable error: {str(e)}")
+      raise
+  
+
+
 @celery_app.task(bind=True, name="generate_cover_letter_task")
 def generate_cover_letter_task(self, task_id: str, user_id: str, job_offer: str = "", company_info: str = ""):
   """Long process of generating covering letter"""
@@ -39,8 +64,22 @@ def generate_cover_letter_task(self, task_id: str, user_id: str, job_offer: str 
 
     try:
       # generuj dane do listu motywacyjnego
-      generated_cover_letter_data = loop.run_until_complete(generate_cover_letter_data(user_data, job_offer, company_info))
-    except (ValueError, Exception) as e:
+      generated_cover_letter_data = loop.run_until_complete(generate_cover_letter_with_retry(user_data, job_offer, company_info))
+
+    except APIGenerationError as e:
+      # error after 3 retries - task failed
+      loop.run_until_complete(cover_letter_gen_service.update_task_status(
+        task_id,
+        "FAILED",
+        error=f"Failed to generate cover letter data: {str(e)}"
+      ))
+      loop.run_until_complete(cover_letter_gen_service.send_webhook(
+        user_id, task_id, "FAILED"
+      ))
+      raise
+
+    except Exception as e:
+      # other error - dont retry
       print(f"ERROR: Cover letter generation failed: {e}")
       loop.run_until_complete(cover_letter_gen_service.update_task_status(
         task_id,

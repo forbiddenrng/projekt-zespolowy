@@ -16,7 +16,7 @@ class UserPreferencesService:
       {
         "$set": {
             **prefs.model_dump(),
-            "updated_at": datetime.now()
+            "updated_at": datetime.now(self.tz)
         },
         "$setOnInsert": {"created_at": datetime.now(self.tz)}
       },
