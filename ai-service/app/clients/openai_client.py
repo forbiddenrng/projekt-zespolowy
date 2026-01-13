@@ -105,12 +105,8 @@ async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
     Opis pól, które masz zwrócić: 
     summary - profesjonalne podsumowanie danego kandydata na podstawie pola profile_summary (z informacji o użytkowniku) oraz reszty jego danych. Podsumowanie to jest w 1 osobie, z perspektywy użytkownika.
     quick_summary - krótkie podsumowanie danego użytkownika na podstawie jego umiejętności i doświadczenia. Np: Python developer | Backend engineer | Fullstack engineer | Cloud Architect
-    certificates - tablica certyfikatów, gdzie name - nazwa certyfikatu, certification_date - data wystawienia certyfikatu, issuer - wydawca certyfikatu
-    languages - tablica jezykow jakie zna uzytkownik, name - nazwa jezyka, level - poziom jezyka
     links - tablica linkow ktore ma uzytkownik np linkedin github. Zwróć tablicę obiektow {{linkString, name}} gdzie linkString pochodzi z danych o użytkowniku a name to nazwa portlu na który wskazuje link (Np. Linkedin, github ... Name musisz samodzielnie podać na podstawie linku)
-    education - tablica pozycji edukacji uzytkownika. degree - stopien studiow, major - kierunek, school_name - nazwa szkoly, start_date/end_date - poczatek/koniec
-    experience - tablica pozycji doswiadczenia uzytkownika. position - stanowisko, company - firma, start/end date - od/do.
-    description - opis obowiazkow itd.
+    
     """
 
     schema = """
@@ -118,28 +114,9 @@ async def generate_cv_data(user_info: dict, job_offer: str) -> dict:
     {
         "summary": "...",
         "quick_summary": "...",
-        "skills": ["...", "..."],
-        "certificates": [
-            {"name": "...", "certification_date": "...", "issuer": "..."}
-        ],
-        "languages": [
-            {"name": "...", "level": "..."}
-        ],
         "links": [
             {"linkString": "...", "name": "..."}
-        ],
-        "education": [
-        {"degree": "...", "major": "...", "school_name": "...", "start_date": "...", "end_date": "..."}
-        ],
-        "experience": [
-            {
-                "position": "...",
-                "company": "...",
-                "start_date": "...",
-                "end_date": "...",
-                "description": "..."
-            }
-        ],
+        ]
     }
     """
 
@@ -188,25 +165,34 @@ async def generate_cover_letter_data(user_info: dict, job_offer: str, company_in
     Dane firmy: {company_info}
 
     W odpowiedzi JSON masz zwrócić tylko następujące pola. Zwróć tylko jedną odpowiedź w formacie JSON i nie dodawaj żadnych innych komentarzy.
-    introduction - dlaczego piszesz dany list motywacyjny, na jakie stanowisko aplikujesz. Na koniec introduction napisz jedno zdanie, które oznajmi rekruterowi że możesz wnieść do firmy coś od siebie. Ta część ma mieć od 3-4 zdań. 
+
+    salution - zwrot grzecznościowy np. Szanowni Państwo. (krótki, maksymalnie 2 słowa)
+
+    introduction - dlaczego piszesz dany list motywacyjny, na jakie stanowisko aplikujesz. Zaczynasz z małej litery bo jest to kontynuacja zdania rozpoczętego w salution. Na koniec introduction napisz jedno zdanie, które oznajmi rekruterowi że możesz wnieść do firmy coś od siebie. Ta część ma mieć od 3-4 zdań. 
 
     body - główne osiągnięcia zawodowe na podstawie dostarczonych informacji o użytkowniu. Co udało mu się osiągnąć i jak może pozytywnie wpłynąć to na rozwój firmy do której pisany jest list. To główna część, ma zawierać od 5-8 zdań. Na koniec tej części wspomnieć o wykształceniu użytkownika, jednak ma to być jedynie uzupełnienie do wcześniejszego fragmentu - nie więcej niż 2 zdania. 
 
     closing - podziękowanie za poświęcony czas w procesie rekrutacyjnym, wyrażenie chęci do udziału w następnych etapach procesu rekrutacyjnego. Ten fragment ma zawierać nie więcej niż 3 zdania. 
+
+    signature - zwrot kończący list, np. Z wyrazami szacunku, <Imie i nazwisko kandydata>
     """
 
     schema = """
     {
+        "salution": "...",
         "introduction": "...",
         "body": "...",
-        "closing": "..."
+        "closing": "...",
+        "signature": "...",
     }
 
     Przykładowa odopowiedź: 
     {
-        "introduction": "Piszę aby wyrazić zainteresowanie ofertą pracy",
+        "salution": "Szanowni Państwo,"
+        "introduction": "piszę aby wyrazić zainteresowanie ofertą pracy",
         "body": "Podczas praktyk w firmie X uczesniczyłem w podobnym projekcie w który zaangażowany jest Wasza firma",
         "closing": "Uprzejmie dziękuję za czas poświęcony i rozważanie mojej aplikacji"
+        "signature": "Z wyrazami szacunku, XYZ"
     }
     """
 
@@ -233,7 +219,7 @@ async def generate_cover_letter_data(user_info: dict, job_offer: str, company_in
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON response from API: {str(e)}")
     
-    required_fields = ["introduction", "body", "closing"]
+    required_fields = ["salution", "introduction", "body", "closing", "signature"]
     missing_fields = []
     
     for field in required_fields:

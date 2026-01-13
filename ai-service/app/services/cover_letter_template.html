@@ -71,7 +71,7 @@
             font-size: 14px;
         }
         .signature-name {
-            margin-top: 30px;
+            /* margin-top: 30px; */
             font-weight: bold;
         }
     </style>
@@ -93,23 +93,20 @@
         </div>
     </div>
 
-    <!-- {% if city %}
-      <div class="contact-item">
-          <span>{{ city }}</span>
-      </div>
-    {% endif %} -->
-
     {% if city %}
     <div class="date">
       {{ city }} {{ date }}
     </div>
     {% endif %}
 
-    <div class="salutation">
-      Szanowni Państwo,
-    </div>
-
     <div class="letter-content">
+
+        {% if salution %}
+        <div class="salutation">
+            {{ salution }}
+        </div>
+        {% endif %}
+
         {% if introduction %}
         <div class="paragraph">
             {{ introduction }}
@@ -129,11 +126,10 @@
         {% endif %}
     </div>
 
-    <div class="signature">
-        <span>Z wyrazami szacunku,</span>
-        <div class="signature-name">
-            {{ full_name }}
+    {% if signature %}
+        <div class="signature">
+            <span>{{ signature }}</span>
         </div>
-    </div>
+    {% endif %}
 </body>
 </html>

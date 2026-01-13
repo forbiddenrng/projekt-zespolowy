@@ -85,18 +85,29 @@ def _transform_certificates(certificates: list) -> list:
         transformed.append(cert_item)
     return transformed
 
+def _transform_languages(languages: list) -> list:
+  """Transform languages data"""
+  transformed = []
+  for lang in languages:
+    lang_item = {
+      "name": lang.get("language", {}).get("name", ""),
+      "level": lang.get("level", "")
+    }
+    transformed.append(lang_item)
+  return transformed
 
-def _transform_cv_data(generated_cv_data: dict) -> dict:
+
+def _transform_cv_data(generated_cv_data: dict, user_data: dict) -> dict:
   """Transform CV data"""
   return {
       "summary": generated_cv_data.get("summary", ""),
       "quick_summary": generated_cv_data.get("quick_summary", ""),
-      "skills": generated_cv_data.get("skills", []),
-      "languages": generated_cv_data.get("languages", []),
+      "skills": [ability.get("name") for ability in user_data.get("abilities", [])],
+      "languages": _transform_languages(user_data.get("user_languages", [])),
       "links": generated_cv_data.get("links", []),
-      "certificates": _transform_certificates(generated_cv_data.get("certificates", [])),
-      "experience": _transform_experience(generated_cv_data.get("experience", [])),
-      "education": _transform_education(generated_cv_data.get("education", [])),
+      "certificates": _transform_certificates(user_data.get("certificates", [])),
+      "experience": _transform_experience(user_data.get("work_experiences", [])),
+      "education": _transform_education(user_data.get("education", [])),
   }
 
 
@@ -113,7 +124,8 @@ async def generate_cv_with_retry(user_data: dict, job_offer: str, max_retries: i
       last_error = e
       
       if attempt < max_retries:
-        print("Retry CV generation")
+        # retry after 3 seconds
+        await asyncio.sleep(3)
         continue
       else:
         raise APIGenerationError(f"Failed to generate CV after {max_retries} attempts: {str(last_error)}")
@@ -177,7 +189,7 @@ def generate_cv_task(self, task_id: str, user_id: str, job_offer: str = ""):
       ))
       raise
 
-    transformed_cv_data = _transform_cv_data(generated_cv_data)
+    transformed_cv_data = _transform_cv_data(generated_cv_data, user_data)
 
     cv_data = {
       "full_name": f"{user_data['name']} {user_data['surname']}",
