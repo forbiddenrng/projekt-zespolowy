@@ -25,3 +25,9 @@ class SeniorityLevel(str, Enum):
   
   def __str__(self):
     return self.value
+
+class TaskStatus(str, Enum):
+  PENDING = "PENDING"
+  IN_PROGRESS = "IN_PROGRESS"
+  FAILED = "FAILED"
+  COMPLETED = "COMPLETED"

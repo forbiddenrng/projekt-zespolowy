@@ -14,6 +14,7 @@ from app.services.cover_letter_generation_service import CoverLetterGenerationSe
 from app.services.cover_letter_service import CoverLetterService
 from app.services.cv_task import generate_cv_task
 from app.services.cover_letter_task import generate_cover_letter_task
+from app.schemas.document_model import GenerateCVRequest, GenerateLetterRequest, GenerateDocumentResponse, DocumentStatusResponse, ErrorResponse, TaskSearchResponse, TaskItem
 from io import BytesIO
 
 router = APIRouter(prefix="/ai", tags=["ai"])
@@ -27,83 +28,6 @@ def _conver_datetime_to_warsaw(dt: datetime) -> datetime:
   if dt.tzinfo is None:
     dt = dt.replace(tzinfo=tz_utc)
   return dt.astimezone(tz_warsaw)
-
-class GenerateCVRequest(BaseModel):
-  """Model for CV generation request"""
-  job_offer: Optional[str] = Field(
-    default="",
-    description="Job offer text to tailor CV to"
-  )
-  class Config:
-    json_schema_extra = {
-      "example": {
-        "job_offer": "We are hiring a Python developer with 5+ years of experience"
-      }
-    }
-
-class GenerateLetterRequest(BaseModel):
-  """Model for CV generation request"""
-  job_offer: Optional[str] = Field(
-    default="",
-    description="Job offer text to tailor letter to"
-  ),
-  company_info: Optional[str] = Field(
-    default="",
-    description="Company info text to tailor letter to"
-  )
-
-  class Config:
-    json_schema_extra = {
-      "example": {
-        "job_offer": "We are hiring a Python developer with 5+ years of experience"
-      }
-    }
-
-
-class GenerateDocumentResponse(BaseModel):
-  """Response model for CV generation request"""
-  message: str = Field(description="Status message")
-  task_id: str = Field(description="Unique task identifier for tracking")
-  status: str = Field(description="Current status of the task")
-
-  class Config: 
-    json_schema_extra = {
-      "example": {
-        "message": "CV generation started",
-        "task_id": "507f1f77bcf86cd799439011",
-        "status": "PENDING"
-      }
-    }
-
-class DocumentStatusResponse(BaseModel):
-  """Response model for CV status check"""
-  task_id: str = Field(description="Unique task identifier")
-  status: str = Field(description="Task status: PENDING, IN_PROGRESS, COMPLETED, FAILED")
-  error: Optional[str] = Field(default=None, description="Error message")
-  created_at: Optional[datetime] = Field(default=None, description="Task creation timestamp")
-  completed_at: Optional[datetime] = Field(default=None, description="Task completion timestamp")
-
-  class Config: 
-    json_schema_extra = {
-      "example": {
-        "task_id": "507f1f77bcf86cd799439011",
-        "status": "COMPLETED",
-        "error": None,
-        "created_at": "2025-12-28T10:30:00",
-        "completed_at": "2025-12-28T10:35:00"
-      }
-    }
-
-class ErrorResponse(BaseModel):
-  """Response model for error cases"""
-  detail: str = Field(description="Error description")
-
-  class Config:
-    json_schema_extra = {
-      "example": {
-        "detail": "Task not found",
-      }
-    } 
 
 
 def get_user_service_client():
@@ -262,6 +186,58 @@ async def generate_cv(
   }
 
 @router.get(
+  "/cv/search",
+  response_model=TaskSearchResponse,
+  responses={
+    400: {"model": ErrorResponse, "description": "Invalid status"},
+    401: {"model": ErrorResponse, "description": "Unauthorized"},
+  }
+)
+async def search_cv_tasks(
+  user_id: str = Depends(get_user_id),
+  status: Optional[str] = Query(None, description="Filter by status: pending, processing, failed, completed"),
+  skip: int = Query(0, ge=0, description="Number of records to skip"),
+  limit: int = Query(10, ge=1, le=100, description="Number of records to return"),
+  sort_order: str = Query("desc", description="Sort order: asc or desc"),
+  cv_gen_service: CVGenerationService = Depends(get_cv_generation_service)
+):
+  """Search CV generation tasks by status with pagination and sorting"""
+  
+  try:
+    sort_direction = 1 if sort_order.lower() == "asc" else -1
+    
+    result = await cv_gen_service.search_tasks(
+      user_id=user_id,
+      status=status,
+      skip=skip,
+      limit=limit,
+      sort_order=sort_direction
+    )
+    
+    tasks_items = [
+      TaskItem(
+        task_id=str(task["_id"]),
+        status=task["status"],
+        created_at=_conver_datetime_to_warsaw(task.get("created_at")),
+        completed_at=_conver_datetime_to_warsaw(task.get("completed_at")),
+        error=task.get("error")
+      )
+      for task in result["tasks"]
+    ]
+    
+    return {
+      "tasks": tasks_items,
+      "total": result["total"],
+      "skip": result["skip"],
+      "limit": result["limit"],
+      "count": result["count"]
+    }
+  except ValueError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+
+
+
+@router.get(
   "/generate/cv/{task_id}/status",
   response_model=DocumentStatusResponse,
   responses={
@@ -363,6 +339,58 @@ async def generate_cover_letter(
     "task_id": task_id,
     "status": "PENDING"
   }
+
+@router.get(
+  "/cover-letter/search",
+  response_model=TaskSearchResponse,
+  responses={
+    400: {"model": ErrorResponse, "description": "Invalid status"},
+    401: {"model": ErrorResponse, "description": "Unauthorized"},
+  }
+)
+async def search_cv_tasks(
+  user_id: str = Depends(get_user_id),
+  status: Optional[str] = Query(None, description="Filter by status: pending, processing, failed, completed"),
+  skip: int = Query(0, ge=0, description="Number of records to skip"),
+  limit: int = Query(10, ge=1, le=100, description="Number of records to return"),
+  sort_order: str = Query("desc", description="Sort order: asc or desc"),
+  letter_service: CoverLetterGenerationService = Depends(get_cover_letter_generation_service)
+):
+  """Search CV generation tasks by status with pagination and sorting"""
+  
+  try:
+    sort_direction = 1 if sort_order.lower() == "asc" else -1
+    
+    result = await letter_service.search_tasks(
+      user_id=user_id,
+      status=status,
+      skip=skip,
+      limit=limit,
+      sort_order=sort_direction
+    )
+    
+    tasks_items = [
+      TaskItem(
+        task_id=str(task["_id"]),
+        status=task["status"],
+        created_at=_conver_datetime_to_warsaw(task.get("created_at")),
+        completed_at=_conver_datetime_to_warsaw(task.get("completed_at")),
+        error=task.get("error")
+      )
+      for task in result["tasks"]
+    ]
+    
+    return {
+      "tasks": tasks_items,
+      "total": result["total"],
+      "skip": result["skip"],
+      "limit": result["limit"],
+      "count": result["count"]
+    }
+  except ValueError as e:
+    raise HTTPException(status_code=400, detail=str(e))
+
+
 
 @router.get(
   "/generate/cover-letter/{task_id}/status",

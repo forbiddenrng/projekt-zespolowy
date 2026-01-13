@@ -76,6 +76,39 @@ class CoverLetterGenerationService:
 
     return result
   
+  async def search_tasks(
+    self,
+    user_id: str,
+    status: str = None,
+    skip: int = 0,
+    limit: int = 10,
+    sort_by: str = "created_at",
+    sort_order: int = -1
+  ) -> dict:
+    """Search user tasks based on status with pagination and sort"""
+    
+    query = {"user_id": user_id}
+    
+    if status:
+      query["status"] = status
+    
+    total = await self.collection.count_documents(query)
+    
+    tasks = []
+    cursor = self.collection.find(query).sort(sort_by, sort_order).skip(skip).limit(limit)
+    
+    async for task in cursor:
+      task["_id"] = str(task["_id"])
+      tasks.append(task)
+    
+    return {
+      "tasks": tasks,
+      "total": total,
+      "skip": skip,
+      "limit": limit,
+      "count": len(tasks)
+    }
+  
   async def send_webhook(self, user_id: str, task_id: str, status: str, pdf_url: str = None):
       """Wyślij powiadomienie przez webhook"""
       from app.core.config import settings
