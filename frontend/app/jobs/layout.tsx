@@ -2,7 +2,7 @@ import UserNavigation from "../components/UserNavigation";
 import WelcomePage from "../components/WelcomePage";
 import { auth0 } from "../lib/auth0";
 
-export default async function GenerateLayout({
+export default async function JobOfferLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
