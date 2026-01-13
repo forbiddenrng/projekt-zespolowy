@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -15,82 +14,85 @@ datasource db {
 }
 
 model User {
-  id    Int    @id @default(autoincrement())
-  auth0_id  String @unique @db.VarChar(255)
-  name  String @db.VarChar(100)
-  surname String @db.VarChar(100)
-  phone_number String @unique @db.VarChar(20)
-  email String @unique @db.VarChar(150)
-  city String @db.VarChar(100)
+  id              Int     @id @default(autoincrement())
+  auth0_id        String  @unique @db.VarChar(255)
+  name            String  @db.VarChar(100)
+  surname         String  @db.VarChar(100)
+  phone_number    String  @unique @db.VarChar(20)
+  email           String  @unique @db.VarChar(150)
+  city            String  @db.VarChar(100)
   profile_summary String? @db.Text
 
-  links Link[]
-  education Education[]
+  links            Link[]
+  education        Education[]
   work_experiences Work_Experience[]
-  // languages Languages[]
-  user_languages User_Languages[]
-  certificates Certificate[]
-  abilities Abilities[]
+  user_languages   User_Languages[]
+  certificates     Certificate[]
+  abilities        Abilities[]
 }
+
 // (1:n)
-model Link{
-  id Int @id @default(autoincrement())
-  user_id Int
+model Link {
+  id         Int    @id @default(autoincrement())
+  user_id    Int
   linkString String @db.VarChar(150)
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
+
 // (1:n)
-model Education{
-  id Int @id @default(autoincrement())
-  user_id Int
-  school_name String @db.VarChar(100)
-  major String @db.VarChar(100)
-  degree String @db.VarChar(20)
-  begin_date DateTime
-  end_date DateTime?
+model Education {
+  id          Int       @id @default(autoincrement())
+  user_id     Int
+  school_name String    @db.VarChar(100)
+  major       String    @db.VarChar(100)
+  degree      String    @db.VarChar(20)
+  begin_date  DateTime
+  end_date    DateTime?
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
+
 // (1:n)
-model Work_Experience{
-  id Int @id @default(autoincrement())
-  user_id Int 
-  company_name String @db.VarChar(150)
-  position String @db.VarChar(150)
-  begin_date DateTime
-  end_date DateTime?
-  description String @db.Text
+model Work_Experience {
+  id           Int       @id @default(autoincrement())
+  user_id      Int
+  company_name String    @db.VarChar(150)
+  position     String    @db.VarChar(150)
+  begin_date   DateTime
+  end_date     DateTime?
+  description  String    @db.Text
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
+
 // (n:m)
-model Languages{
-  id Int @id @default(autoincrement())
+model Languages {
+  id   Int    @id @default(autoincrement())
   name String @db.VarChar(50)
   code String @db.VarChar(5)
 
   user_languages User_Languages[]
 }
 
-model User_Languages{
-  id Int @id @default(autoincrement())
-  user_id Int
+model User_Languages {
+  id          Int    @id @default(autoincrement())
+  user_id     Int
   language_id Int
-  level String @db.VarChar(6)
+  level       String @db.VarChar(6)
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
   language Languages @relation(fields: [language_id], references: [id], onDelete: Restrict)
 
   @@unique([user_id, language_id])
 }
 
 // (1:n)
-model Certificate{
-  id Int @id @default(autoincrement())
-  user_id Int
-  name String @db.VarChar(100)
-  issuer String @db.VarChar(255)
+model Certificate {
+  id                 Int      @id @default(autoincrement())
+  user_id            Int
+  name               String   @db.VarChar(100)
+  issuer             String   @db.VarChar(255)
   certification_date DateTime
 
   user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -105,10 +107,10 @@ model Certificate{
 //   certificate Certificate @relation(fields: [certificate_id], references: [id])
 // }
 // (1:n)
-model Abilities{
-  id Int @id @default(autoincrement())
+model Abilities {
+  id      Int    @id @default(autoincrement())
   user_id Int
-  name String @db.VarChar(255)
+  name    String @db.VarChar(255)
 
   users User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
