@@ -144,6 +144,58 @@ async def verify_cv_task_ownership(
   return task
 
 
+async def check_cv_generation_rate_limit(
+  user_id: str,
+  cv_gen_service: CVGenerationService = Depends(get_cv_generation_service)
+):
+  """Middleware to check user limit for generating CV"""
+  limit_check = await cv_gen_service.check_generation_limit(
+    user_id=user_id,
+    limit=5,
+    time_window_minutes=10
+  )
+
+  if not limit_check["allowed"]:
+    reset_time = limit_check.get("reset_time")
+    raise HTTPException(
+      status_code=429,
+      detail={
+        "error": "Rate limit exceeded",
+        "message": f"You have reached the limit of {limit_check['limit']} documents per 10 minutes",
+        "current_count": limit_check["current_count"],
+        "limit": limit_check["limit"],
+        "reset_time": reset_time.isoformat() if reset_time else None
+      }
+    )
+  return limit_check
+
+
+async def check_letter_generation_rate_limit(
+  user_id: str,
+  letter_service: CoverLetterGenerationService = Depends(get_cover_letter_generation_service)
+):
+  """Middleware to check user limit for generating CV"""
+  limit_check = await letter_service.check_generation_limit(
+    user_id=user_id,
+    limit=5,
+    time_window_minutes=10
+  )
+
+  if not limit_check["allowed"]:
+    reset_time = limit_check.get("reset_time")
+    raise HTTPException(
+      status_code=429,
+      detail={
+        "error": "Rate limit exceeded",
+        "message": f"You have reached the limit of {limit_check['limit']} documents per 10 minutes",
+        "current_count": limit_check["current_count"],
+        "limit": limit_check["limit"],
+        "reset_time": reset_time.isoformat() if reset_time else None
+      }
+    )
+  return limit_check
+
+
 async def verify_letter_task_ownership(
   task_id: str,
   user_id: str = Depends(get_user_id),
@@ -175,11 +227,13 @@ CV generation endpoitns
   responses={
     400: {"model": ErrorResponse, "description": "Bad request"},
     401: {"model": ErrorResponse, "description": "Unauthorized"},
+    429: {"description": "Rate limit exceeded"}
   }
 )
 async def generate_cv(
   user_id: str = Depends(get_user_id),
   request: GenerateCVRequest = None,
+  rate_limit: dict = Depends(check_cv_generation_rate_limit),
   cv_gen_service: CVGenerationService = Depends(get_cv_generation_service)
 ):
   """Generate CV based on user data from user service and job offer
@@ -275,11 +329,13 @@ Covering letter generation endpoitns
   responses={
     400: {"model": ErrorResponse, "description": "Bad request"},
     401: {"model": ErrorResponse, "description": "Unauthorized"},
+    429: {"description": "Rate limit exceeded"}
   }
 )
 async def generate_cover_letter(
   user_id: str = Depends(get_user_id),
   request: GenerateLetterRequest = None,
+  rate_limit: dict = Depends(check_letter_generation_rate_limit),
   cover_letter_gen_service: CoverLetterGenerationService = Depends(get_cover_letter_generation_service)
 ):
   """Generate cover letter based on user data from user service, job offer and company info

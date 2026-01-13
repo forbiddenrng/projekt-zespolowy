@@ -43,6 +43,40 @@ class CVGenerationService:
       )
     except Exception as e:
       print(f"Error updating task: {e}")
+
+  async def check_generation_limit(self, user_id: str, limit: int = 5, time_window_minutes: int = 10) -> dict:
+
+    now = datetime.now(self.tz)
+    time_window_start = now - timedelta(minutes=time_window_minutes)
+
+    # count tasks startet in x miutes
+    count = await self.collection.count_documents({
+      "user_id": user_id,
+      "created_at": {"$gte": time_window_start}
+    })
+
+    result = {
+      "allowed": count < limit,
+      "current_count": count,
+      "limit": limit
+    }
+
+    if count >= limit:
+      # find oldest task in time window to get reset time
+      oldest_task = await self.collection.find_one(
+        {
+          "user_id": user_id,
+          "created_at": {"$gte": time_window_start}
+        },
+        sort =[("created_at", 1)]
+      )
+      if oldest_task:
+        reset_time = oldest_task["created_at"] + timedelta(minutes=time_window_minutes)
+        result["reset_time"] = reset_time
+
+    return result
+    
+  
   
   async def send_webhook(self, user_id: str, task_id: str, status: str, pdf_url: str = None):
       """Wyślij powiadomienie przez webhook"""
