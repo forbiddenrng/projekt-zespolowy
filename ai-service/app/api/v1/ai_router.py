@@ -446,6 +446,6 @@ async def download_cover_letter(
     BytesIO(pdf_bytes),
     media_type="application/pdf",
     headers={
-      "Content-Disposition": f"attachment; filename=cv_{task_id}.pdf"
+      "Content-Disposition": f"attachment; filename=cover_letter_{task_id}.pdf"
     }
   )
