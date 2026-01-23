@@ -5,9 +5,16 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 export const GET = auth0.withApiAuthRequired(
-  async (_req: Request, context: { params: Promise<{ taskId: string }> }) => {
+  async (_req: Request, ctx: { params: Promise<Record<string, string | string[]>> } | undefined) => {
     try {
-      const params = await context.params;
+      const resolvedParams = await ctx?.params;
+
+      if (!resolvedParams?.taskId || typeof resolvedParams.taskId !== "string") {
+        return NextResponse.json(
+          { message: "Task ID is required" },
+          { status: 400 },
+        );
+      }
 
       const accessTokenResp = await auth0.getAccessToken({
         audience: process.env.AUTH0_AUDIENCE,
@@ -16,11 +23,11 @@ export const GET = auth0.withApiAuthRequired(
       const token =
         typeof accessTokenResp === "string"
           ? accessTokenResp
-          : (accessTokenResp as any)?.token ?? null;
+          : ((accessTokenResp as any)?.token ?? null);
 
       const res = await fetch(
         `${process.env.GATEWAY_URL}/api/ai/generate/cv/${encodeURIComponent(
-          params.taskId
+          resolvedParams.taskId,
         )}/status`,
         {
           headers: {
@@ -28,7 +35,7 @@ export const GET = auth0.withApiAuthRequired(
             Accept: "application/json",
           },
           cache: "no-store",
-        }
+        },
       );
 
       const contentType = res.headers.get("content-type") ?? "";
@@ -45,8 +52,8 @@ export const GET = auth0.withApiAuthRequired(
       console.error("AI status error:", err);
       return NextResponse.json(
         { message: err?.message ?? "Unknown error" },
-        { status: 500 }
+        { status: 500 },
       );
     }
-  }
+  },
 );

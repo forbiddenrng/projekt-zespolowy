@@ -69,7 +69,7 @@ async def verify_cv_task_ownership(
 
 
 async def check_cv_generation_rate_limit(
-  user_id: str,
+  user_id: str = Depends(get_user_id),
   cv_gen_service: CVGenerationService = Depends(get_cv_generation_service)
 ):
   """Middleware to check user limit for generating CV"""
@@ -95,7 +95,7 @@ async def check_cv_generation_rate_limit(
 
 
 async def check_letter_generation_rate_limit(
-  user_id: str,
+  user_id: str = Depends(get_user_id),
   letter_service: CoverLetterGenerationService = Depends(get_cover_letter_generation_service)
 ):
   """Middleware to check user limit for generating CV"""

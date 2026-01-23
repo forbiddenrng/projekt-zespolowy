@@ -134,7 +134,11 @@ export interface FullProfilePayload extends UserFormValues {
 }
 
 // CV Generation Types
-export type CVGenerationStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+export type CVGenerationStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "FAILED";
 
 export interface CVGenerationRequest {
   job_offer: string;
@@ -155,5 +159,35 @@ export interface CVStatusResponse {
 }
 
 export interface CVGenerationError {
+  detail: string;
+}
+
+// Cover Letter Generation Types
+export type CoverLetterGenerationStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "FAILED";
+
+export interface CoverLetterGenerationRequest {
+  job_offer: string;
+  company_info: string;
+}
+
+export interface CoverLetterGenerationResponse {
+  message: string;
+  task_id: string;
+  status: CoverLetterGenerationStatus;
+}
+
+export interface CoverLetterStatusResponse {
+  task_id: string;
+  status: CoverLetterGenerationStatus;
+  error?: string | null;
+  created_at?: string | null;
+  completed_at?: string | null;
+}
+
+export interface CoverLetterGenerationError {
   detail: string;
 }
