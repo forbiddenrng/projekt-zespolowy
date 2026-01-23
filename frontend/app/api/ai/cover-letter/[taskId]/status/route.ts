@@ -30,7 +30,7 @@ export const GET = auth0.withApiAuthRequired(
           : ((accessTokenResp as any)?.token ?? null);
 
       const res = await fetch(
-        `${process.env.GATEWAY_URL}/api/ai/generate/cover-letter/${taskId}/status`,
+        `${process.env.GATEWAY_URL}/api/ai/generate/cover-letter/${encodeURIComponent(taskId)}/status`,
         {
           method: "GET",
           headers: {
