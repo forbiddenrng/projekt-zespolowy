@@ -212,9 +212,12 @@ export function useCoverLetterGeneration(): UseCoverLetterGenerationReturn {
     }
 
     try {
-      const res = await fetch(`/api/ai/cover-letter/${taskId}/download`, {
-        credentials: "include",
-      });
+      const res = await fetch(
+        `/api/ai/cover-letter/${encodeURIComponent(taskId)}/download`,
+        {
+          credentials: "include",
+        },
+      );
 
       if (!res.ok) {
         const text = await res.text();

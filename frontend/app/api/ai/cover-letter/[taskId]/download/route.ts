@@ -30,7 +30,7 @@ export const GET = auth0.withApiAuthRequired(
           : ((accessTokenResp as any)?.token ?? null);
 
       const res = await fetch(
-        `${process.env.GATEWAY_URL}/api/ai/cover-letter/${taskId}/download`,
+        `${process.env.GATEWAY_URL}/api/ai/cover-letter/${encodeURIComponent(taskId)}/download`,
         {
           method: "GET",
           headers: {
@@ -57,7 +57,7 @@ export const GET = auth0.withApiAuthRequired(
         status: 200,
         headers: {
           "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename=cover_letter_${taskId}.pdf`,
+          "Content-Disposition": `attachment; filename=cover_letter_${encodeURIComponent(taskId)}.pdf`,
         },
       });
     } catch (error: any) {
