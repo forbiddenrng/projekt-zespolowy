@@ -7,7 +7,18 @@ export const fetchCache = "force-no-store";
 export const GET = auth0.withApiAuthRequired(
   async (req: Request, { params }: { params: Promise<{ taskId: string }> }) => {
     try {
-      const { taskId } = await params;
+      const resolvedParams = await params;
+      if (
+        !resolvedParams ||
+        typeof resolvedParams.taskId !== "string" ||
+        !resolvedParams.taskId
+      ) {
+        return NextResponse.json(
+          { detail: "Invalid or missing taskId" },
+          { status: 400 },
+        );
+      }
+      const { taskId } = resolvedParams;
 
       const accessTokenResp = await auth0.getAccessToken({
         audience: process.env.AUTH0_AUDIENCE,
