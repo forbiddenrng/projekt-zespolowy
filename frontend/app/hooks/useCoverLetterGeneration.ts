@@ -6,6 +6,7 @@ import type {
   CoverLetterGenerationResponse,
   CoverLetterStatusResponse,
 } from "@/app/ts/types";
+import { parseErrorDetail } from "@/app/lib/parseRateLimiterErrorDetail";
 
 interface UseCoverLetterGenerationReturn {
   taskId: string | null;
@@ -65,9 +66,9 @@ export function useCoverLetterGeneration(): UseCoverLetterGenerationReturn {
           try {
             errJson = JSON.parse(text);
           } catch {}
-          throw new Error(
-            errJson?.detail || `HTTP ${res.status}: ${text.slice(0, 120)}`,
-          );
+
+          const errorMessage = parseErrorDetail(errJson, res.status);
+          throw new Error(errorMessage);
         }
 
         const data: CoverLetterStatusResponse = await res.json();
@@ -157,19 +158,7 @@ export function useCoverLetterGeneration(): UseCoverLetterGenerationReturn {
             errJson = JSON.parse(text);
           } catch {}
 
-          let errorMessage = `HTTP ${response.status}`;
-          if (errJson?.detail) {
-            if (Array.isArray(errJson.detail)) {
-              errorMessage = errJson.detail
-                .map((e: any) => e.msg || e)
-                .join(", ");
-            } else if (typeof errJson.detail === "string") {
-              errorMessage = errJson.detail;
-            }
-          } else if (errJson?.message) {
-            errorMessage = errJson.message;
-          }
-
+          const errorMessage = parseErrorDetail(errJson, response.status);
           throw new Error(errorMessage);
         }
 
@@ -225,18 +214,8 @@ export function useCoverLetterGeneration(): UseCoverLetterGenerationReturn {
         try {
           errJson = JSON.parse(text);
         } catch {}
-        let errorMessage = `HTTP ${res.status}`;
-        if (errJson?.detail) {
-          if (Array.isArray(errJson.detail)) {
-            errorMessage = errJson.detail
-              .map((e: any) => e.msg || e)
-              .join(", ");
-          } else if (typeof errJson.detail === "string") {
-            errorMessage = errJson.detail;
-          }
-        } else if (errJson?.message) {
-          errorMessage = errJson.message;
-        }
+
+        const errorMessage = parseErrorDetail(errJson, res.status);
         throw new Error(errorMessage);
       }
 

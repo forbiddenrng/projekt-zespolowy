@@ -4,6 +4,7 @@ import type {
   CVStatusResponse,
   CVGenerationStatus,
 } from "@/app/ts/types";
+import { parseErrorDetail } from "@/app/lib/parseRateLimiterErrorDetail";
 
 interface UseCVGenerationReturn {
   taskId: string | null;
@@ -57,9 +58,9 @@ export function useCVGeneration(): UseCVGenerationReturn {
           try {
             errJson = JSON.parse(text);
           } catch {}
-          throw new Error(
-            errJson?.detail || errJson?.message || `HTTP ${response.status}`
-          );
+
+          const errorMessage = parseErrorDetail(errJson, response.status);
+          throw new Error(errorMessage);
         }
 
         const data: CVStatusResponse = await response.json();
@@ -96,7 +97,7 @@ export function useCVGeneration(): UseCVGenerationReturn {
         }
       }
     },
-    []
+    [],
   );
 
   useEffect(() => {
@@ -158,11 +159,9 @@ export function useCVGeneration(): UseCVGenerationReturn {
         try {
           errJson = JSON.parse(text);
         } catch {}
-        throw new Error(
-          errJson?.detail ||
-            errJson?.message ||
-            `HTTP ${response.status}: ${text.slice(0, 120)}`
-        );
+
+        const errorMessage = parseErrorDetail(errJson, response.status);
+        throw new Error(errorMessage);
       }
 
       const data: CVGenerationResponse = await response.json();
@@ -206,7 +205,16 @@ export function useCVGeneration(): UseCVGenerationReturn {
         credentials: "include",
       });
 
-      if (!res.ok) throw new Error(`Download failed ${res.status}`);
+      if (!res.ok) {
+        const text = await res.text();
+        let errJson: any = null;
+        try {
+          errJson = JSON.parse(text);
+        } catch {}
+
+        const errorMessage = parseErrorDetail(errJson, res.status);
+        throw new Error(errorMessage);
+      }
 
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
