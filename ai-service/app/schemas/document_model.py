@@ -32,7 +32,7 @@ class GenerateLetterRequest(BaseModel):
   job_offer: Optional[str] = Field(
     default="",
     description="Job offer text to tailor letter to"
-  ),
+  )
   company_info: Optional[str] = Field(
     default="",
     description="Company info text to tailor letter to"

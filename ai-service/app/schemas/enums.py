@@ -28,6 +28,6 @@ class SeniorityLevel(str, Enum):
 
 class TaskStatus(str, Enum):
   PENDING = "PENDING"
-  IN_PROGRESS = "IN_PROGRESS"
+  PROCESSING = "PROCESSING"
   FAILED = "FAILED"
   COMPLETED = "COMPLETED"

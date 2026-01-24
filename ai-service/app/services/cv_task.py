@@ -34,7 +34,7 @@ def _format_date(date_input) -> str:
       try:
         dt = datetime.fromisoformat(date_input.replace("T", " ").split(".")[0])
         return dt.strftime("%d-%m-%Y")
-      except:
+      except (ValueError, TypeError):
         pass
 
   except Exception as e:

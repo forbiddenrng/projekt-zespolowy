@@ -22,7 +22,7 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 tz_utc = timezone.utc
 tz_warsaw = ZoneInfo('Europe/Warsaw')
 
-def _conver_datetime_to_warsaw(dt: datetime) -> datetime:
+def _convert_datetime_to_warsaw(dt: datetime) -> datetime:
   if not dt:
     return dt
   if dt.tzinfo is None:
@@ -98,7 +98,7 @@ async def check_letter_generation_rate_limit(
   user_id: str = Depends(get_user_id),
   letter_service: CoverLetterGenerationService = Depends(get_cover_letter_generation_service)
 ):
-  """Middleware to check user limit for generating CV"""
+  """Middleware to check user limit for generating cover letter"""
   limit_check = await letter_service.check_generation_limit(
     user_id=user_id,
     limit=5,
@@ -208,7 +208,7 @@ async def search_cv_tasks(
     
     result = await cv_gen_service.search_tasks(
       user_id=user_id,
-      status=status,
+      status=status.upper(),
       skip=skip,
       limit=limit,
       sort_order=sort_direction
@@ -218,8 +218,8 @@ async def search_cv_tasks(
       TaskItem(
         task_id=str(task["_id"]),
         status=task["status"],
-        created_at=_conver_datetime_to_warsaw(task.get("created_at")),
-        completed_at=_conver_datetime_to_warsaw(task.get("completed_at")),
+        created_at=_convert_datetime_to_warsaw(task.get("created_at")),
+        completed_at=_convert_datetime_to_warsaw(task.get("completed_at")),
         error=task.get("error")
       )
       for task in result["tasks"]
@@ -256,8 +256,8 @@ async def get_cv_status(
     "task_id": task_id,
     "status": task["status"],
     "error": task.get("error"),
-    "created_at": _conver_datetime_to_warsaw(task.get("created_at")),
-    "completed_at": _conver_datetime_to_warsaw(task.get("completed_at"))
+    "created_at": _convert_datetime_to_warsaw(task.get("created_at")),
+    "completed_at": _convert_datetime_to_warsaw(task.get("completed_at"))
   }
   
 @router.get(
@@ -348,7 +348,7 @@ async def generate_cover_letter(
     401: {"model": ErrorResponse, "description": "Unauthorized"},
   }
 )
-async def search_cv_tasks(
+async def search_cover_letter_tasks(
   user_id: str = Depends(get_user_id),
   status: Optional[str] = Query(None, description="Filter by status: pending, processing, failed, completed"),
   skip: int = Query(0, ge=0, description="Number of records to skip"),
@@ -363,7 +363,7 @@ async def search_cv_tasks(
     
     result = await letter_service.search_tasks(
       user_id=user_id,
-      status=status,
+      status=status.upper(),
       skip=skip,
       limit=limit,
       sort_order=sort_direction
@@ -373,8 +373,8 @@ async def search_cv_tasks(
       TaskItem(
         task_id=str(task["_id"]),
         status=task["status"],
-        created_at=_conver_datetime_to_warsaw(task.get("created_at")),
-        completed_at=_conver_datetime_to_warsaw(task.get("completed_at")),
+        created_at=_convert_datetime_to_warsaw(task.get("created_at")),
+        completed_at=_convert_datetime_to_warsaw(task.get("completed_at")),
         error=task.get("error")
       )
       for task in result["tasks"]
@@ -411,8 +411,8 @@ async def get_cover_letter_status(
     "task_id": task_id,
     "status": task["status"],
     "error": task.get("error"),
-    "created_at": _conver_datetime_to_warsaw(task.get("created_at")),
-    "completed_at": _conver_datetime_to_warsaw(task.get("completed_at"))
+    "created_at": _convert_datetime_to_warsaw(task.get("created_at")),
+    "completed_at": _convert_datetime_to_warsaw(task.get("completed_at"))
   }
   
 @router.get(

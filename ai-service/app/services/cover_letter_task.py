@@ -32,7 +32,7 @@ async def generate_cover_letter_with_retry(user_data: dict, job_offer: str, comp
         await asyncio.sleep(3)
         continue
       else:
-        raise APIGenerationError(f"Failed to generate covering letter after {max_retries} attemps: {str(last_error)}")
+        raise APIGenerationError(f"Failed to generate covering letter after {max_retries} attempts: {str(last_error)}")
     except Exception as e:
       print(f"Non-retriable error: {str(e)}")
       raise
@@ -99,7 +99,7 @@ def generate_cover_letter_task(self, task_id: str, user_id: str, job_offer: str 
       "phone_number": user_data["phone_number"],
       "city": user_data["city"],
       "date": datetime.now(get_time()).strftime("%d.%m.%Y"),
-      "salution": generated_cover_letter_data["salution"],
+      "salutation": generated_cover_letter_data["salutation"],
       "introduction": generated_cover_letter_data["introduction"],
       "body": generated_cover_letter_data["body"],
       "closing": generated_cover_letter_data["closing"],

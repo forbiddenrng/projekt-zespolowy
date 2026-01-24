@@ -166,7 +166,7 @@ async def generate_cover_letter_data(user_info: dict, job_offer: str, company_in
 
     W odpowiedzi JSON masz zwrócić tylko następujące pola. Zwróć tylko jedną odpowiedź w formacie JSON i nie dodawaj żadnych innych komentarzy.
 
-    salution - zwrot grzecznościowy np. Szanowni Państwo. (krótki, maksymalnie 2 słowa)
+    salutation - zwrot grzecznościowy np. Szanowni Państwo. (krótki, maksymalnie 2 słowa)
 
     introduction - dlaczego piszesz dany list motywacyjny, na jakie stanowisko aplikujesz. Zaczynasz z małej litery bo jest to kontynuacja zdania rozpoczętego w salution. Na koniec introduction napisz jedno zdanie, które oznajmi rekruterowi że możesz wnieść do firmy coś od siebie. Ta część ma mieć od 3-4 zdań. 
 
@@ -179,16 +179,16 @@ async def generate_cover_letter_data(user_info: dict, job_offer: str, company_in
 
     schema = """
     {
-        "salution": "...",
+        "salutation": "...",
         "introduction": "...",
         "body": "...",
         "closing": "...",
-        "signature": "...",
+        "signature": "..."
     }
 
     Przykładowa odopowiedź: 
     {
-        "salution": "Szanowni Państwo,"
+        "salutation": "Szanowni Państwo,"
         "introduction": "piszę aby wyrazić zainteresowanie ofertą pracy",
         "body": "Podczas praktyk w firmie X uczesniczyłem w podobnym projekcie w który zaangażowany jest Wasza firma",
         "closing": "Uprzejmie dziękuję za czas poświęcony i rozważanie mojej aplikacji"
@@ -219,7 +219,7 @@ async def generate_cover_letter_data(user_info: dict, job_offer: str, company_in
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON response from API: {str(e)}")
     
-    required_fields = ["salution", "introduction", "body", "closing", "signature"]
+    required_fields = ["salutation", "introduction", "body", "closing", "signature"]
     missing_fields = []
     
     for field in required_fields:
