@@ -1,8 +1,5 @@
 // Helper function to parse error detail (429 rate limit returns object)
-export default function parseErrorDetail(
-  errJson: any,
-  defaultStatus: number,
-): string {
+export function parseErrorDetail(errJson: any, defaultStatus: number): string {
   // Check detail field first (429 rate limit uses this)
   if (errJson?.detail) {
     // If detail is an object with message field (rate limit format)
