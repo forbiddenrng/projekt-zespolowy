@@ -1,5 +1,6 @@
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, Field
+from typing import List, Optional
+
 
 class CVRequest(BaseModel):
     name: str
@@ -8,3 +9,7 @@ class CVRequest(BaseModel):
 
 class CVResponse(BaseModel):
     cv_text: str
+
+
+
+    

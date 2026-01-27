@@ -3,7 +3,6 @@ const { expressjwt: jwt } = require("express-jwt");
 const jwks = require("jwks-rsa");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 const cors = require("cors");
-const rateLimit = require("express-rate-limit");
 
 const app = express();
 require("dotenv").config();
@@ -14,7 +13,7 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization", "x-user"],
-  })
+  }),
 );
 
 app.get("/health", (req, res) => {
@@ -82,23 +81,13 @@ app.use(
         proxyReq.setHeader("x-user", JSON.stringify(userInfo));
       },
     },
-  })
+  }),
 );
-
-// rate limiter for AI endpoints
-const aiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutues
-  max: 10, // max 10 requests per IP in 15 min frame
-  message: { message: "Too many AI requests, please try again later" },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 
 // AI service - CV generation endpoints (/ai/*)
 app.use(
   "/api/ai",
   checkJwt,
-  aiLimiter,
   createProxyMiddleware({
     target: `${process.env.AI_SERVICE}`,
     changeOrigin: true,
@@ -111,7 +100,7 @@ app.use(
         proxyReq.setHeader("x-user", JSON.stringify(userInfo));
       },
     },
-  })
+  }),
 );
 
 // AI service - Job offers & preferences endpoints (/api/*)
@@ -130,7 +119,7 @@ app.use(
         proxyReq.setHeader("x-user", JSON.stringify(userInfo));
       },
     },
-  })
+  }),
 );
 
 const PORT = process.env.PORT || 4000;

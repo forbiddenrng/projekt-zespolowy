@@ -1,5 +1,5 @@
 from typing import Optional, List, Any
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 # from motor.motor_asyncio import AsyncDatabase
 from app.schemas.user_preferences import UserPreferencesCreate
 
@@ -7,6 +7,7 @@ class UserPreferencesService:
   def __init__(self, db: Any):
     self.db = db
     self.collection = db["user_preferences"]
+    self.tz = timezone(timedelta(hours=1))
 
   async def save_preferences(self, user_id: str, prefs: UserPreferencesCreate):
     """Create or update user preferencs"""
@@ -15,9 +16,9 @@ class UserPreferencesService:
       {
         "$set": {
             **prefs.model_dump(),
-            "updated_at": datetime.now()
+            "updated_at": datetime.now(self.tz)
         },
-        "$setOnInsert": {"created_at": datetime.now()}
+        "$setOnInsert": {"created_at": datetime.now(self.tz)}
       },
       upsert=True
     )

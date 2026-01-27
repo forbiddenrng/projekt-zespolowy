@@ -4,13 +4,13 @@ from datetime import datetime, timezone, timedelta
 from app.clients.mongodb_client import mongodb
 from bson import ObjectId
 
-class CVGenerationService:
+class CoverLetterGenerationService:
   def __init__(self):
-    self.collection = mongodb.db["cv_generation_tasks"]
+    self.collection = mongodb.db["cover_letter_generation_tasks"]
     self.tz = timezone(timedelta(hours=1))
     
   async def create_task(self, user_id: str, job_offer: str = ""):
-    """Utwórz rekord zadania w bazie danych"""
+    """Create task record in DB"""
     task = {
       "user_id": user_id,
       "job_offer": job_offer,
@@ -25,17 +25,17 @@ class CVGenerationService:
     return str(result.inserted_id)
   
   async def get_task(self, task_id: str):
-    """Pobierz status zadania"""
+    """Get task status"""
     try:
       task = await self.collection.find_one({"_id": ObjectId(task_id)})
       if task:
           task["_id"] = str(task["_id"])
       return task
-    except:
+    except Exception:
       return None
   
   async def update_task_status(self, task_id: str, status: str, **kwargs):
-    """Zaktualizuj status zadania"""
+    """Update task status"""
     try:
       await self.collection.update_one(
           {"_id": ObjectId(task_id)},
@@ -108,11 +108,9 @@ class CVGenerationService:
       "limit": limit,
       "count": len(tasks)
     }
-    
-  
   
   async def send_webhook(self, user_id: str, task_id: str, status: str, pdf_url: str = None):
-      """Wyślij powiadomienie przez webhook"""
+      """Send webhook"""
       from app.core.config import settings
       
       webhook_url = getattr(settings, "USER_SERVICE_WEBHOOK_URL", None)
@@ -121,7 +119,7 @@ class CVGenerationService:
         return
       
       payload = {
-        "event": "cv.generated",
+        "event": "cover_letter.generated",
         "user_id": user_id,
         "task_id": task_id,
         "status": status,
