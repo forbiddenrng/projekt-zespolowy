@@ -13,6 +13,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d userdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
   redis:
@@ -48,7 +53,11 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5050/health"]
+      test:
+        [
+          "CMD-SHELL",
+          'node -e ''require("http").get("http://localhost:5000/health", (res) => process.exit(res.statusCode === 200 ? 0 : 1))'' || exit 1',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -76,9 +85,14 @@ services:
       ai-service:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
-      interval: 30s
-      timeout: 10s
+      # Używamy Node.js dla Gatewaya
+      test:
+        [
+          "CMD-SHELL",
+          'node -e ''require("http").get("http://localhost:4000/health", (res) => process.exit(res.statusCode === 200 ? 0 : 1))'' || exit 1',
+        ]
+      interval: 10s
+      timeout: 5s
       retries: 3
       start_period: 10s
     networks:
@@ -96,8 +110,8 @@ services:
       - ./ai-service/.env
     environment:
       - PYTHONUNBUFFERED=1
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://ai-service-redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://ai-service-redis:6379/0
       - USER_SERVICE_URL=http://user-service:5000
       - API_BASE_URL=http://ai-service:8000
     volumes:
@@ -106,6 +120,16 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python3 -c ''import urllib.request; urllib.request.urlopen("http://localhost:8000/health").read()'' || exit 1',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     networks:
       - app-network

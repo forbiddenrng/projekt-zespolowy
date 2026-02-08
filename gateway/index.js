@@ -103,18 +103,20 @@ app.use(
   }),
 );
 
-// AI service - Job offers & preferences endpoints (/api/*)
 app.use(
   "/api/jobs",
   checkJwt,
   createProxyMiddleware({
-    target: `${process.env.AI_SERVICE}`,
+    target: process.env.AI_SERVICE,
     changeOrigin: true,
-    timeout: 30000,
-    proxyTimeout: 30000,
-    pathRewrite: (path) => `/api${path}`, // /preferences -> /api/preferences
+    pathRewrite: {
+      "^/api/jobs": "/api/jobs",
+    },
     on: {
       proxyReq: (proxyReq, req) => {
+        if (proxyReq.path === "/" || proxyReq.path === "") {
+          proxyReq.path = "/api/jobs";
+        }
         const userInfo = { id: req.auth.sub };
         proxyReq.setHeader("x-user", JSON.stringify(userInfo));
       },
