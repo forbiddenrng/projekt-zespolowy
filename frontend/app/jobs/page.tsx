@@ -3,6 +3,7 @@ import { JobsResponse } from "./components/JobOfferModel";
 import JobsClientInitializer from "./components/JobsClientInitializer";
 import JobFilters from "./components/JobFilters";
 import JobListWithPagination from "./components/JobListWithPagination";
+import RetryButton from "./components/RetryButton";
 
 async function getJobs(): Promise<JobsResponse> {
   const accessTokenResp = await auth0.getAccessToken({
@@ -14,7 +15,7 @@ async function getJobs(): Promise<JobsResponse> {
       ? accessTokenResp
       : ((accessTokenResp as any)?.token ?? null);
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_GATEWAY_URL}/api/jobs`, {
+  const res = await fetch(`${process.env.GATEWAY_URL}/api/jobs`, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "application/json",
@@ -66,12 +67,7 @@ export default async function JobsPage() {
           <p className="text-muted mb-6">
             Nie udało się załadować ofert pracy.
           </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-8 py-3 bg-primary text-white rounded-2xl font-bold hover:opacity-90"
-          >
-            Spróbuj ponownie
-          </button>
+          <RetryButton />
         </div>
       </div>
     );
