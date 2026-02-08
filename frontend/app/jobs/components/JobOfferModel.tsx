@@ -12,7 +12,7 @@ export interface JobCompany {
 export interface JobSalary {
   min_annual_salary: number | null;
   max_annual_salary: number | null;
-  salary_currency: string;
+  salary_currency?: string;
 }
 
 export interface JobModel {
@@ -22,12 +22,12 @@ export interface JobModel {
   date_posted: string;
   description: string;
   employment_statuses: string[];
-  hybrid: boolean;
+  hybrid?: boolean;
   location: JobLocation[];
-  remote: boolean;
+  remote?: boolean;
   salary: JobSalary;
-  seniority: string;
-  source_url: string;
+  seniority?: string;
+  source_url?: string;
   technology_slugs: string[];
   title: string;
   updated_at: string;
