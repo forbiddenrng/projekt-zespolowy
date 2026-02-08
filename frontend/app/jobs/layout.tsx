@@ -19,7 +19,6 @@ export default async function JobOfferLayout({
     <JobsProvider>
       <div className="min-h-screen bg-background">
         <UserNavigation user={user as any} />
-        {/* Odsunięcie treści od nawigacji */}
         <div className="pl-72">{children}</div>
       </div>
     </JobsProvider>

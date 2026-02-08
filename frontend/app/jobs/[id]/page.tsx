@@ -50,7 +50,6 @@ export default function JobDetailsPage() {
   return (
     <main className="min-h-screen bg-background py-12 px-8">
       <div className="max-w-5xl mx-auto">
-        {/* Powrót */}
         <Link
           href="/jobs"
           className="inline-flex items-center gap-2 text-muted hover:text-primary mb-8 transition-colors font-bold group"
@@ -59,7 +58,6 @@ export default function JobDetailsPage() {
           Powrót do ofert
         </Link>
 
-        {/* HEADER SEKTY */}
         <div className="bg-card_background border border-card_border rounded-[2.5rem] shadow-2xl overflow-hidden mb-8">
           <div className="p-8 md:p-12 bg-gradient-to-br from-secondary/40 to-transparent">
             <div className="flex flex-col md:flex-row gap-8 items-start justify-between">
@@ -78,7 +76,6 @@ export default function JobDetailsPage() {
                     </span>
                   )}
                 </div>
-                {/* Tytuł i Firma */}
                 <div className="space-y-2">
                   <h1 className="text-4xl font-black text-foreground leading-tight tracking-tight">
                     {job.title}
@@ -97,7 +94,6 @@ export default function JobDetailsPage() {
                 </div>
               </div>
 
-              {/* Akcja */}
               <a
                 href={job.source_url}
                 target="_blank"
@@ -109,7 +105,6 @@ export default function JobDetailsPage() {
             </div>
           </div>
 
-          {/* GRID INFORMACYJNY */}
           <div className="p-8 md:p-12 border-t border-card_border grid grid-cols-2 md:grid-cols-4 gap-6 bg-secondary/10">
             <div className="space-y-1">
               <p className="text-[10px] uppercase font-black text-muted tracking-widest flex items-center gap-1">
@@ -146,9 +141,7 @@ export default function JobDetailsPage() {
           </div>
         </div>
 
-        {/* TREŚĆ GŁÓWNA */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Opis Stanowiska */}
           <div className="lg:col-span-2 space-y-8">
             <div className="bg-card_background border border-card_border rounded-[2.5rem] p-8 md:p-10 shadow-sm">
               <h2 className="text-2xl font-black text-foreground mb-6 flex items-center gap-3">
@@ -160,7 +153,6 @@ export default function JobDetailsPage() {
               </div>
             </div>
 
-            {/* Technologie */}
             <div className="bg-card_background border border-card_border rounded-[2.5rem] p-8 shadow-sm">
               <h2 className="text-xl font-black text-foreground mb-6">
                 Technologie i tagi
@@ -178,7 +170,6 @@ export default function JobDetailsPage() {
             </div>
           </div>
 
-          {/* SIDEBAR */}
           <div className="space-y-6">
             <div className="bg-card_background border border-card_border rounded-[2.5rem] p-8 shadow-sm">
               <h3 className="font-black text-foreground mb-6 text-lg">
@@ -218,7 +209,6 @@ export default function JobDetailsPage() {
               </div>
             </div>
 
-            {/* Box Reklamowy / Info */}
             <div className="bg-primary p-8 rounded-[2.5rem] text-white shadow-lg shadow-primary/30 relative overflow-hidden group">
               <div className="relative z-10">
                 <h4 className="text-xl font-black mb-2">

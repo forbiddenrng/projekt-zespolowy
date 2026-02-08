@@ -35,12 +35,10 @@ export default async function JobsPage() {
 
     return (
       <>
-        {/* Synchronizacja danych serwer -> klient */}
         <JobsClientInitializer jobs={jobs} />
 
         <main className="min-h-screen bg-background py-12 px-8">
           <div className="max-w-5xl mx-auto">
-            {/* Nagłówek strony */}
             <div className="mb-10 space-y-2">
               <h1 className="text-5xl font-black text-foreground tracking-tight italic">
                 EXPLORE<span className="text-primary">.</span>
@@ -51,10 +49,8 @@ export default async function JobsPage() {
               </p>
             </div>
 
-            {/* Komponent filtrów (zawiera wyszukiwarkę i rozwijany panel) */}
             <JobFilters />
 
-            {/* Dynamiczna lista z paginacją, która renderuje JobRow pod spodem */}
             <JobListWithPagination />
           </div>
         </main>

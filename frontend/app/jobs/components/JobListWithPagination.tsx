@@ -12,12 +12,10 @@ export default function JobListWithPagination() {
   const { filteredJobs, searchQuery, sortBy } = useJobs();
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Resetujemy stronę do pierwszej przy każdej zmianie filtrów lub wyszukiwania
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, sortBy]);
 
-  // Obliczanie indeksów dla aktualnej strony
   const indexOfLastItem = currentPage * ITEMS_PER_PAGE;
   const indexOfFirstItem = indexOfLastItem - ITEMS_PER_PAGE;
   const currentItems = filteredJobs.slice(indexOfFirstItem, indexOfLastItem);
@@ -45,14 +43,12 @@ export default function JobListWithPagination() {
 
   return (
     <div className="space-y-6">
-      {/* Lista Ofert z animacją wejścia */}
       <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {currentItems.map((job) => (
           <JobRow key={job.id} job={job} />
         ))}
       </div>
 
-      {/* Paginacja */}
       <div className="pt-10 pb-20">
         <Pagination
           currentPage={currentPage}
@@ -60,7 +56,6 @@ export default function JobListWithPagination() {
           itemsPerPage={ITEMS_PER_PAGE}
           onPageChange={(page) => {
             setCurrentPage(page);
-            // Przewijanie do góry po zmianie strony dla lepszego UX
             window.scrollTo({ top: 0, behavior: "smooth" });
           }}
         />

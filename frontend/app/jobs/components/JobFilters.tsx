@@ -67,7 +67,6 @@ export default function JobFilters() {
           </div>
         </div>
 
-        {/* PANEL ZAAWANSOWANY */}
         <div
           className={`overflow-hidden transition-all duration-300 ease-in-out ${
             isAdvancedOpen
@@ -76,7 +75,6 @@ export default function JobFilters() {
           }`}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-6 border-t border-card_border">
-            {/* Seniority */}
             <div>
               <p className="text-[10px] font-black uppercase text-muted mb-4 tracking-[0.2em]">
                 Poziom doświadczenia
@@ -102,7 +100,6 @@ export default function JobFilters() {
               </div>
             </div>
 
-            {/* Tryb Pracy */}
             <div>
               <p className="text-[10px] font-black uppercase text-muted mb-4 tracking-[0.2em]">
                 Tryb pracy

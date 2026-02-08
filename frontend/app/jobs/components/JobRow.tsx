@@ -13,7 +13,6 @@ export default function JobRow({ job }: JobRowProps) {
   return (
     <div className="group relative bg-card_background border border-card_border hover:border-primary transition-all duration-300 rounded-2xl shadow-sm hover:shadow-xl overflow-hidden">
       <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
-        {/* Lewa strona: Logo i Dane */}
         <div className="flex items-center gap-5">
           <div className="w-16 h-16 bg-secondary rounded-xl flex items-center justify-center text-primary font-bold overflow-hidden border border-border group-hover:border-primary/30 transition-colors shrink-0">
             {company.logo_url ? (
@@ -45,7 +44,6 @@ export default function JobRow({ job }: JobRowProps) {
           </div>
         </div>
 
-        {/* Prawa strona: Zarobki i Przycisk */}
         <div className="flex flex-col md:items-end justify-center shrink-0 gap-4">
           <div className="text-right">
             <div className="text-green-500 font-black text-xl">
@@ -68,7 +66,6 @@ export default function JobRow({ job }: JobRowProps) {
         </div>
       </div>
 
-      {/* Dekoracyjny pasek na dole karty */}
       <div className="h-1 w-0 group-hover:w-full bg-primary transition-all duration-500" />
     </div>
   );

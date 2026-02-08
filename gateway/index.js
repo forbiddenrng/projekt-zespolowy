@@ -103,33 +103,20 @@ app.use(
   }),
 );
 
-// index.js w Gatewayu
-
-// Usuń stary blok app.use("/api/jobs", ...) i zastąp go tym:
 app.use(
   "/api/jobs",
   checkJwt,
   createProxyMiddleware({
     target: process.env.AI_SERVICE,
     changeOrigin: true,
-    // Kluczowa zmiana: nie używamy pathRewrite jako funkcji,
-    // tylko jako statycznego mapowania, lub pozwalamy mu przekazać całą ścieżkę.
     pathRewrite: {
       "^/api/jobs": "/api/jobs",
     },
     on: {
       proxyReq: (proxyReq, req) => {
-        // WYMUSZENIE ścieżki, jeśli middleware nadal próbuje być "zbyt mądry"
         if (proxyReq.path === "/" || proxyReq.path === "") {
           proxyReq.path = "/api/jobs";
         }
-
-        console.log("\n**************************************************");
-        console.log("2. GATEWAY PROXY LOG - PO POPRAWCE");
-        console.log("INCOMING URL:", req.originalUrl);
-        console.log("FIXED OUTGOING PATH:", proxyReq.path);
-        console.log("**************************************************\n");
-
         const userInfo = { id: req.auth.sub };
         proxyReq.setHeader("x-user", JSON.stringify(userInfo));
       },

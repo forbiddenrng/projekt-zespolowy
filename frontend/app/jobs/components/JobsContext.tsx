@@ -11,7 +11,6 @@ interface JobsContextType {
   setSearchQuery: (q: string) => void;
   sortBy: string;
   setSortBy: (s: string) => void;
-  // Nowe stany filtrów
   selectedSeniority: string | null;
   setSelectedSeniority: (s: string | null) => void;
   selectedWorkMode: string | null;
@@ -43,7 +42,6 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
   const filteredJobs = useMemo(() => {
     let result = [...jobs];
 
-    // 1. Wyszukiwanie tekstowe
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -54,14 +52,12 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
       );
     }
 
-    // 2. Filtr Seniority
     if (selectedSeniority) {
       result = result.filter(
         (j) => j.seniority.toLowerCase() === selectedSeniority.toLowerCase(),
       );
     }
 
-    // 3. Filtr Trybu pracy
     if (selectedWorkMode) {
       if (selectedWorkMode === "remote")
         result = result.filter((j) => j.remote);
@@ -71,7 +67,6 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
         result = result.filter((j) => !j.remote && !j.hybrid);
     }
 
-    // 4. Sortowanie
     result.sort((a, b) => {
       if (sortBy === "newest")
         return (
