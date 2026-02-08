@@ -196,7 +196,7 @@ export default function JobDetailsPage() {
                 <div className="flex items-center gap-3 mb-4">
                   <FiGlobe className="text-muted" />
                   <span className="text-sm text-muted">
-                    Kraj: {job.company.country || "Niepodano"}
+                    Kraj: {job.company.country || "Nie podano"}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">

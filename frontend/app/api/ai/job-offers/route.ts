@@ -19,14 +19,6 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
     const baseUrl = process.env.NEXT_PUBLIC_GATEWAY_URL?.replace(/\/$/, "");
     const gatewayUrl = `${baseUrl}/api/jobs?${searchParams.toString()}`;
 
-    // --- LOG START ---
-    console.log("\n**************************************************");
-    console.log("1. NEXT.JS ROUTE HANDLER LOG");
-    console.log("TARGET GATEWAY URL:", gatewayUrl);
-    console.log("HAS TOKEN:", !!token);
-    console.log("**************************************************\n");
-    // --- LOG END ---
-
     const res = await fetch(gatewayUrl, {
       method: "GET",
       headers: {
