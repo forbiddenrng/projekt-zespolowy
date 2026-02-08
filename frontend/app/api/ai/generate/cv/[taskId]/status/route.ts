@@ -5,31 +5,38 @@ export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 export const GET = auth0.withApiAuthRequired(
-  async (_req: Request, ctx: { params: Promise<Record<string, string | string[]>> } | undefined) => {
+  async (
+    _req: Request,
+    ctx: { params: Promise<Record<string, string | string[]>> } | undefined,
+  ) => {
     try {
       const resolvedParams = await ctx?.params;
 
-      if (!resolvedParams?.taskId || typeof resolvedParams.taskId !== "string") {
+      if (
+        !resolvedParams?.taskId ||
+        typeof resolvedParams.taskId !== "string"
+      ) {
         return NextResponse.json(
-          { message: "Task ID is required" },
+          { detail: "Invalid or missing task ID" },
           { status: 400 },
         );
       }
 
-      const accessTokenResp = await auth0.getAccessToken({
+      const { taskId } = resolvedParams;
+
+      const accessTokenResponse = await auth0.getAccessToken({
         audience: process.env.AUTH0_AUDIENCE,
       });
 
       const token =
-        typeof accessTokenResp === "string"
-          ? accessTokenResp
-          : ((accessTokenResp as any)?.token ?? null);
+        typeof accessTokenResponse === "string"
+          ? accessTokenResponse
+          : ((accessTokenResponse as any)?.token ?? null);
 
-      const res = await fetch(
-        `${process.env.GATEWAY_URL}/api/ai/generate/cv/${encodeURIComponent(
-          resolvedParams.taskId,
-        )}/status`,
+      const response = await fetch(
+        `${process.env.GATEWAY_URL}/api/ai/generate/cv/${encodeURIComponent(taskId)}/status`,
         {
+          method: "GET",
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
             Accept: "application/json",
@@ -38,20 +45,26 @@ export const GET = auth0.withApiAuthRequired(
         },
       );
 
-      const contentType = res.headers.get("content-type") ?? "";
-      const text = await res.text();
+      const contentType = response.headers.get("content-type") ?? "";
+      const responseText = await response.text();
 
       if (contentType.includes("application/json")) {
-        return NextResponse.json(JSON.parse(text), { status: res.status });
+        try {
+          const data = JSON.parse(responseText);
+          return NextResponse.json(data, { status: response.status });
+        } catch {
+          // Fallback if parsing fails
+        }
       }
-      return new NextResponse(text, {
-        status: res.status,
+
+      return new NextResponse(responseText, {
+        status: response.status,
         headers: { "Content-Type": contentType || "text/plain" },
       });
-    } catch (err: any) {
-      console.error("AI status error:", err);
+    } catch (error: any) {
+      console.error("CV status API error:", error);
       return NextResponse.json(
-        { message: err?.message ?? "Unknown error" },
+        { detail: error?.message ?? "Internal server error" },
         { status: 500 },
       );
     }

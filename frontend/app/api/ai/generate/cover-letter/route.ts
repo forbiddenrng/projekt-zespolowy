@@ -7,14 +7,14 @@ export const maxDuration = 120;
 
 export const POST = auth0.withApiAuthRequired(async (req: Request) => {
   try {
-    const accessTokenResp = await auth0.getAccessToken({
+    const accessTokenResponse = await auth0.getAccessToken({
       audience: process.env.AUTH0_AUDIENCE,
     });
 
     const token =
-      typeof accessTokenResp === "string"
-        ? accessTokenResp
-        : ((accessTokenResp as any)?.token ?? null);
+      typeof accessTokenResponse === "string"
+        ? accessTokenResponse
+        : ((accessTokenResponse as any)?.token ?? null);
 
     const body = await req.json();
 
@@ -22,7 +22,7 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
     try {
-      const res = await fetch(
+      const response = await fetch(
         `${process.env.GATEWAY_URL}/api/ai/generate/cover-letter`,
         {
           method: "POST",
@@ -37,10 +37,10 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
 
       clearTimeout(timeoutId);
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
-        return NextResponse.json(data, { status: res.status });
+      if (!response.ok) {
+        return NextResponse.json(data, { status: response.status });
       }
 
       return NextResponse.json(data);

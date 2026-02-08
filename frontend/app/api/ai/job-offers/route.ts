@@ -6,20 +6,20 @@ export const fetchCache = "force-no-store";
 
 export const GET = auth0.withApiAuthRequired(async (req: Request) => {
   try {
-    const accessTokenResp = await auth0.getAccessToken({
+    const accessTokenResponse = await auth0.getAccessToken({
       audience: process.env.AUTH0_AUDIENCE,
     });
 
     const token =
-      typeof accessTokenResp === "string"
-        ? accessTokenResp
-        : ((accessTokenResp as any)?.token ?? null);
+      typeof accessTokenResponse === "string"
+        ? accessTokenResponse
+        : ((accessTokenResponse as any)?.token ?? null);
 
     const { searchParams } = new URL(req.url);
     const baseUrl = process.env.NEXT_PUBLIC_GATEWAY_URL?.replace(/\/$/, "");
     const gatewayUrl = `${baseUrl}/api/jobs?${searchParams.toString()}`;
 
-    const res = await fetch(gatewayUrl, {
+    const response = await fetch(gatewayUrl, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -28,10 +28,18 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
       cache: "no-store",
     });
 
-    const data = await res.json();
+    const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status });
+    }
+
     return NextResponse.json(data);
-  } catch (err: any) {
-    console.error("DEBUG: Route error:", err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error: any) {
+    console.error("Jobs fetch API error:", error);
+    return NextResponse.json(
+      { detail: error.message || "Internal server error" },
+      { status: 500 },
+    );
   }
 });

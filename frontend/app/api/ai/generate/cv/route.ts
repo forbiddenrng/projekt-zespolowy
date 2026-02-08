@@ -7,14 +7,14 @@ export const maxDuration = 120;
 
 export const POST = auth0.withApiAuthRequired(async (req: Request) => {
   try {
-    const accessTokenResp = await auth0.getAccessToken({
+    const accessTokenResponse = await auth0.getAccessToken({
       audience: process.env.AUTH0_AUDIENCE,
     });
 
     const token =
-      typeof accessTokenResp === "string"
-        ? accessTokenResp
-        : (accessTokenResp as any)?.token ?? null;
+      typeof accessTokenResponse === "string"
+        ? accessTokenResponse
+        : ((accessTokenResponse as any)?.token ?? null);
 
     const body = await req.json();
 
@@ -22,43 +22,52 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
 
     try {
-      const res = await fetch(`${process.env.GATEWAY_URL}/api/ai/generate/cv`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      const response = await fetch(
+        `${process.env.GATEWAY_URL}/api/ai/generate/cv`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(body),
+          signal: controller.signal,
         },
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      });
+      );
 
       clearTimeout(timeoutId);
 
-      const contentType = res.headers.get("content-type") ?? "";
-      const text = await res.text();
+      const contentType = response.headers.get("content-type") ?? "";
+      const responseText = await response.text();
 
       if (contentType.includes("application/json")) {
-        return NextResponse.json(JSON.parse(text), { status: res.status });
+        try {
+          const data = JSON.parse(responseText);
+          return NextResponse.json(data, { status: response.status });
+        } catch {
+          // Fallback if parsing fails
+        }
       }
-      return new NextResponse(text, {
-        status: res.status,
+
+      return new NextResponse(responseText, {
+        status: response.status,
         headers: { "Content-Type": contentType || "text/plain" },
       });
-    } catch (fetchErr: any) {
+    } catch (fetchError: any) {
       clearTimeout(timeoutId);
-      if (fetchErr.name === "AbortError") {
+      if (fetchError.name === "AbortError") {
         return NextResponse.json(
-          { message: "Request timeout - generation is taking too long" },
-          { status: 504 }
+          { detail: "Request timeout - generation is taking too long" },
+          { status: 504 },
         );
       }
-      throw fetchErr;
+      throw fetchError;
     }
-  } catch (err: any) {
-    console.error("AI generate CV error:", err);
+  } catch (error: any) {
+    console.error("CV generation API error:", error);
     return NextResponse.json(
-      { message: err?.message ?? "Unknown error" },
-      { status: 500 }
+      { detail: error.message || "Internal server error" },
+      { status: 500 },
     );
   }
 });

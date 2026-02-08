@@ -3,47 +3,8 @@ import { auth0 } from "@/app/lib/auth0";
 import { APIClient } from "@/app/lib/apiClient";
 import { APIError } from "@/app/lib/errors";
 
-export const GET = auth0.withApiAuthRequired(
-  async (_req: Request): Promise<Response> => {
-    try {
-      const accessTokenResp = await auth0.getAccessToken({
-        audience: process.env.AUTH0_AUDIENCE,
-      });
-
-      const token =
-        typeof accessTokenResp === "string"
-          ? accessTokenResp
-          : (accessTokenResp as any)?.token ?? null;
-
-      const backendUrl = `${process.env.GATEWAY_URL}/users/profile`;
-      const gatewayRes = await fetch(backendUrl, {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          Accept: "application/json",
-        },
-      });
-
-      const contentType = gatewayRes.headers.get("content-type") ?? "";
-      const text = await gatewayRes.text();
-
-      if (contentType.includes("application/json")) {
-        return NextResponse.json(JSON.parse(text), {
-          status: gatewayRes.status,
-        });
-      } else {
-        return new NextResponse(text, {
-          status: gatewayRes.status,
-          headers: { "Content-Type": contentType || "text/plain" },
-        });
-      }
-    } catch (err: any) {
-      return NextResponse.json(
-        { message: err?.message ?? "Unknown error" },
-        { status: 500 }
-      );
-    }
-  }
-);
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export enum APIParams {
   abilities = "abilities",
@@ -54,87 +15,131 @@ export enum APIParams {
   links = "links",
 }
 
+export const GET = auth0.withApiAuthRequired(
+  async (_req: Request): Promise<Response> => {
+    try {
+      const accessTokenResponse = await auth0.getAccessToken({
+        audience: process.env.AUTH0_AUDIENCE,
+      });
+
+      const token =
+        typeof accessTokenResponse === "string"
+          ? accessTokenResponse
+          : ((accessTokenResponse as any)?.token ?? null);
+
+      const backendUrl = `${process.env.GATEWAY_URL}/users/profile`;
+      const response = await fetch(backendUrl, {
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          Accept: "application/json",
+        },
+      });
+
+      const contentType = response.headers.get("content-type") ?? "";
+      const responseText = await response.text();
+
+      if (contentType.includes("application/json")) {
+        try {
+          const data = JSON.parse(responseText);
+          return NextResponse.json(data, { status: response.status });
+        } catch {
+          // Fallback if parsing fails
+        }
+      }
+
+      return new NextResponse(responseText, {
+        status: response.status,
+        headers: { "Content-Type": contentType || "text/plain" },
+      });
+    } catch (error: any) {
+      console.error("Profile fetch API error:", error);
+      return NextResponse.json(
+        { detail: error?.message ?? "Internal server error" },
+        { status: 500 },
+      );
+    }
+  },
+);
+
 export const PUT = auth0.withApiAuthRequired(
   async (req: Request): Promise<Response> => {
     try {
-      const accessTokenResp = await auth0.getAccessToken({
+      const accessTokenResponse = await auth0.getAccessToken({
         audience: process.env.AUTH0_AUDIENCE,
       });
 
       const body = await req.json();
       const url = new URL(req.url);
       const resource = url.searchParams.get(
-        "resource"
+        "resource",
       ) as keyof typeof APIParams;
 
       if (!APIParams[resource]) {
         return NextResponse.json(
-          {
-            message: "Invalid resource parameter",
-          },
-          { status: 400 }
+          { detail: "Invalid resource parameter" },
+          { status: 400 },
         );
       }
 
       const token =
-        typeof accessTokenResp === "string"
-          ? accessTokenResp
-          : (accessTokenResp as any)?.token ?? null;
+        typeof accessTokenResponse === "string"
+          ? accessTokenResponse
+          : ((accessTokenResponse as any)?.token ?? null);
 
       const apiClient = new APIClient();
       const response = await apiClient.updateProfile(
         APIParams[resource],
         token,
-        body
+        body,
       );
 
       return NextResponse.json(response.data, { status: response.status });
-    } catch (err: any) {
-      if (err instanceof APIError) {
+    } catch (error: any) {
+      if (error instanceof APIError) {
         return NextResponse.json(
-          { message: err.userMessage, details: err.details },
-          { status: err.statusCode || 500 }
+          { detail: error.userMessage, details: error.details },
+          { status: error.statusCode || 500 },
         );
       }
-      console.error("Unexpected error: ", err);
+      console.error("Profile update (PUT) API error:", error);
       return NextResponse.json(
-        { message: "An unexpected error occurred. Please try again" },
-        { status: 500 }
+        { detail: "An unexpected error occurred. Please try again" },
+        { status: 500 },
       );
     }
-  }
+  },
 );
 
 export const PATCH = auth0.withApiAuthRequired(
   async (req: Request): Promise<Response> => {
     try {
-      const accessTokenResp = await auth0.getAccessToken({
+      const accessTokenResponse = await auth0.getAccessToken({
         audience: process.env.AUTH0_AUDIENCE,
       });
 
       const body = await req.json();
 
       const token =
-        typeof accessTokenResp === "string"
-          ? accessTokenResp
-          : (accessTokenResp as any)?.token ?? null;
+        typeof accessTokenResponse === "string"
+          ? accessTokenResponse
+          : ((accessTokenResponse as any)?.token ?? null);
 
       const apiClient = new APIClient();
       const response = await apiClient.updateUserInfo(token, body);
 
       return NextResponse.json(response.data, { status: response.status });
-    } catch (err: any) {
-      if (err instanceof APIError) {
+    } catch (error: any) {
+      if (error instanceof APIError) {
         return NextResponse.json(
-          { message: err.userMessage, details: err.details },
-          { status: err.statusCode || 500 }
+          { detail: error.userMessage, details: error.details },
+          { status: error.statusCode || 500 },
         );
       }
-      console.error("Unexpected error: ", err);
+      console.error("User info update (PATCH) API error:", error);
       return NextResponse.json(
-        { message: "An unexpected error occurred. Please try again" },
-        { status: 500 }
+        { detail: "An unexpected error occurred. Please try again" },
+        { status: 500 },
       );
     }
-  }
+  },
 );

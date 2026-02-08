@@ -8,28 +8,30 @@ export const GET = auth0.withApiAuthRequired(
   async (req: Request, { params }: { params: Promise<{ taskId: string }> }) => {
     try {
       const resolvedParams = await params;
+
       if (
         !resolvedParams ||
         typeof resolvedParams.taskId !== "string" ||
         !resolvedParams.taskId
       ) {
         return NextResponse.json(
-          { detail: "Invalid or missing taskId" },
+          { detail: "Invalid or missing task ID" },
           { status: 400 },
         );
       }
+
       const { taskId } = resolvedParams;
 
-      const accessTokenResp = await auth0.getAccessToken({
+      const accessTokenResponse = await auth0.getAccessToken({
         audience: process.env.AUTH0_AUDIENCE,
       });
 
       const token =
-        typeof accessTokenResp === "string"
-          ? accessTokenResp
-          : ((accessTokenResp as any)?.token ?? null);
+        typeof accessTokenResponse === "string"
+          ? accessTokenResponse
+          : ((accessTokenResponse as any)?.token ?? null);
 
-      const res = await fetch(
+      const response = await fetch(
         `${process.env.GATEWAY_URL}/api/ai/cover-letter/${encodeURIComponent(taskId)}/download`,
         {
           method: "GET",
@@ -39,19 +41,22 @@ export const GET = auth0.withApiAuthRequired(
         },
       );
 
-      if (!res.ok) {
-        const text = await res.text();
-        let errJson: any = null;
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorJson: any = null;
         try {
-          errJson = JSON.parse(text);
-        } catch {}
+          errorJson = JSON.parse(errorText);
+        } catch {
+          // Fallback if parsing fails
+        }
+
         return NextResponse.json(
-          { detail: errJson?.detail || `HTTP ${res.status}` },
-          { status: res.status },
+          { detail: errorJson?.detail || `HTTP ${response.status}` },
+          { status: response.status },
         );
       }
 
-      const pdfBuffer = await res.arrayBuffer();
+      const pdfBuffer = await response.arrayBuffer();
 
       return new NextResponse(pdfBuffer, {
         status: 200,

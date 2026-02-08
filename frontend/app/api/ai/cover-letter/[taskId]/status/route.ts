@@ -8,28 +8,30 @@ export const GET = auth0.withApiAuthRequired(
   async (req: Request, { params }: { params: Promise<{ taskId: string }> }) => {
     try {
       const resolvedParams = await params;
+
       if (
         !resolvedParams ||
         typeof resolvedParams.taskId !== "string" ||
         !resolvedParams.taskId
       ) {
         return NextResponse.json(
-          { detail: "Invalid or missing taskId" },
+          { detail: "Invalid or missing task ID" },
           { status: 400 },
         );
       }
+
       const { taskId } = resolvedParams;
 
-      const accessTokenResp = await auth0.getAccessToken({
+      const accessTokenResponse = await auth0.getAccessToken({
         audience: process.env.AUTH0_AUDIENCE,
       });
 
       const token =
-        typeof accessTokenResp === "string"
-          ? accessTokenResp
-          : ((accessTokenResp as any)?.token ?? null);
+        typeof accessTokenResponse === "string"
+          ? accessTokenResponse
+          : ((accessTokenResponse as any)?.token ?? null);
 
-      const res = await fetch(
+      const response = await fetch(
         `${process.env.GATEWAY_URL}/api/ai/generate/cover-letter/${encodeURIComponent(taskId)}/status`,
         {
           method: "GET",
@@ -40,10 +42,10 @@ export const GET = auth0.withApiAuthRequired(
         },
       );
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
-        return NextResponse.json(data, { status: res.status });
+      if (!response.ok) {
+        return NextResponse.json(data, { status: response.status });
       }
 
       return NextResponse.json(data);
