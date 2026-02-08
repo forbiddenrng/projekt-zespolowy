@@ -1,6 +1,7 @@
+import { auth0 } from "../lib/auth0";
 import UserNavigation from "../components/UserNavigation";
 import WelcomePage from "../components/WelcomePage";
-import { auth0 } from "../lib/auth0";
+import { JobsProvider } from "./components/JobsContext";
 
 export default async function JobOfferLayout({
   children,
@@ -10,12 +11,17 @@ export default async function JobOfferLayout({
   const session = await auth0.getSession();
   const user = session?.user;
 
-  if (!user) return <WelcomePage />;
+  if (!user) {
+    return <WelcomePage />;
+  }
 
   return (
-    <div className="min-h-screen bg-background pt-5">
-      <UserNavigation user={user} />
-      {children}
-    </div>
+    <JobsProvider>
+      <div className="min-h-screen bg-background">
+        <UserNavigation user={user as any} />
+        {/* Odsunięcie treści od nawigacji */}
+        <div className="pl-72">{children}</div>
+      </div>
+    </JobsProvider>
   );
 }
