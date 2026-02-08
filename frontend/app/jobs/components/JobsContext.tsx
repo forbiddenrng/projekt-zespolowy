@@ -1,11 +1,22 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
-import { JobModel } from "./JobOfferModel";
+import React, { createContext, useContext, useState, useMemo } from "react";
+import { JobModel } from "../components/JobOfferModel";
 
 interface JobsContextType {
   jobs: JobModel[];
   setJobs: (jobs: JobModel[]) => void;
+  filteredJobs: JobModel[];
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+  sortBy: string;
+  setSortBy: (s: string) => void;
+  // Nowe stany filtrów
+  selectedSeniority: string | null;
+  setSelectedSeniority: (s: string | null) => void;
+  selectedWorkMode: string | null;
+  setSelectedWorkMode: (m: string | null) => void;
+  clearFilters: () => void;
   getJobById: (id: string) => JobModel | undefined;
 }
 
@@ -13,11 +24,91 @@ const JobsContext = createContext<JobsContextType | undefined>(undefined);
 
 export function JobsProvider({ children }: { children: React.ReactNode }) {
   const [jobs, setJobs] = useState<JobModel[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [selectedSeniority, setSelectedSeniority] = useState<string | null>(
+    null,
+  );
+  const [selectedWorkMode, setSelectedWorkMode] = useState<string | null>(null);
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSelectedSeniority(null);
+    setSelectedWorkMode(null);
+    setSortBy("newest");
+  };
 
   const getJobById = (id: string) => jobs.find((j) => j.id === id);
 
+  const filteredJobs = useMemo(() => {
+    let result = [...jobs];
+
+    // 1. Wyszukiwanie tekstowe
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (j) =>
+          j.title.toLowerCase().includes(q) ||
+          j.company.name.toLowerCase().includes(q) ||
+          j.technology_slugs.some((t) => t.toLowerCase().includes(q)),
+      );
+    }
+
+    // 2. Filtr Seniority
+    if (selectedSeniority) {
+      result = result.filter(
+        (j) => j.seniority.toLowerCase() === selectedSeniority.toLowerCase(),
+      );
+    }
+
+    // 3. Filtr Trybu pracy
+    if (selectedWorkMode) {
+      if (selectedWorkMode === "remote")
+        result = result.filter((j) => j.remote);
+      if (selectedWorkMode === "hybrid")
+        result = result.filter((j) => j.hybrid);
+      if (selectedWorkMode === "office")
+        result = result.filter((j) => !j.remote && !j.hybrid);
+    }
+
+    // 4. Sortowanie
+    result.sort((a, b) => {
+      if (sortBy === "newest")
+        return (
+          new Date(b.date_posted).getTime() - new Date(a.date_posted).getTime()
+        );
+      if (sortBy === "salary_desc")
+        return (
+          (b.salary.max_annual_salary || 0) - (a.salary.max_annual_salary || 0)
+        );
+      if (sortBy === "salary_asc")
+        return (
+          (a.salary.min_annual_salary || 0) - (b.salary.min_annual_salary || 0)
+        );
+      return 0;
+    });
+
+    return result;
+  }, [jobs, searchQuery, sortBy, selectedSeniority, selectedWorkMode]);
+
   return (
-    <JobsContext.Provider value={{ jobs, setJobs, getJobById }}>
+    <JobsContext.Provider
+      value={{
+        jobs,
+        setJobs,
+        filteredJobs,
+        searchQuery,
+        setSearchQuery,
+        sortBy,
+        setSortBy,
+        selectedSeniority,
+        setSelectedSeniority,
+        selectedWorkMode,
+        setSelectedWorkMode,
+        clearFilters,
+        getJobById,
+      }}
+    >
       {children}
     </JobsContext.Provider>
   );
