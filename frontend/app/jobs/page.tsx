@@ -14,7 +14,7 @@ async function getJobs(): Promise<JobsResponse> {
       ? accessTokenResp
       : ((accessTokenResp as any)?.token ?? null);
 
-  const res = await fetch(`${process.env.NEXT_PUBLIC_GATEWAY_URL}/api/jobs`, {
+  const res = await fetch(`${process.env.GATEWAY_URL}/api/jobs`, {
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: "application/json",

@@ -46,15 +46,15 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
         (j) =>
-          j.title.toLowerCase().includes(q) ||
-          j.company.name.toLowerCase().includes(q) ||
-          j.technology_slugs.some((t) => t.toLowerCase().includes(q)),
+          j.title?.toLowerCase().includes(q) ||
+          j.company?.name?.toLowerCase().includes(q) ||
+          j.technology_slugs?.some((t) => t.toLowerCase().includes(q)),
       );
     }
 
     if (selectedSeniority) {
       result = result.filter(
-        (j) => j.seniority.toLowerCase() === selectedSeniority.toLowerCase(),
+        (j) => j.seniority?.toLowerCase() === selectedSeniority.toLowerCase(),
       );
     }
 
@@ -74,11 +74,13 @@ export function JobsProvider({ children }: { children: React.ReactNode }) {
         );
       if (sortBy === "salary_desc")
         return (
-          (b.salary.max_annual_salary || 0) - (a.salary.max_annual_salary || 0)
+          (b.salary?.max_annual_salary || 0) -
+          (a.salary?.max_annual_salary || 0)
         );
       if (sortBy === "salary_asc")
         return (
-          (a.salary.min_annual_salary || 0) - (b.salary.min_annual_salary || 0)
+          (a.salary?.min_annual_salary || 0) -
+          (b.salary?.min_annual_salary || 0)
         );
       return 0;
     });
