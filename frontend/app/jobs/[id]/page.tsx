@@ -17,6 +17,7 @@ import {
   FiExternalLink,
   FiCheckCircle,
 } from "react-icons/fi";
+import { getWorkModeLabel, mapEmploymentStatus, mapSeniority } from "../../lib/jobFormatters";
 
 export default function JobDetailsPage() {
   const { id } = useParams();
@@ -120,15 +121,15 @@ export default function JobDetailsPage() {
                 <FiBriefcase className="text-primary" /> Seniority
               </p>
               <p className="text-foreground font-bold capitalize">
-                {job.seniority}
+                {mapSeniority(job.seniority)}
               </p>
             </div>
             <div className="space-y-1">
               <p className="text-[10px] uppercase font-black text-muted tracking-widest flex items-center gap-1">
                 <FiClock className="text-primary" /> Work Mode
               </p>
-              <p className="text-foreground font-bold">
-                {job.remote ? "Remote" : job.hybrid ? "Hybrid" : "Office-based"}
+              <p className="text-foreground font-bold capitalize">
+                {getWorkModeLabel(job.remote, job.hybrid)}
               </p>
             </div>
             <div className="space-y-1">
@@ -183,8 +184,8 @@ export default function JobDetailsPage() {
                     className="flex items-center gap-3 p-3 bg-secondary/50 rounded-2xl border border-border"
                   >
                     <FiCheckCircle className="text-green-500 shrink-0" />
-                    <span className="text-foreground font-medium">
-                      {status}
+                    <span className="text-foreground font-medium capitalize">
+                      {mapEmploymentStatus(status)}
                     </span>
                   </div>
                 ))}
