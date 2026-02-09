@@ -14,7 +14,7 @@ import CancelButton from "./ui/CancelButton";
 import SaveButton from "./ui/SaveButton";
 import AddPosition from "./ui/AddPosition";
 
-interface EditLink{
+interface EditLink {
   id?: number;
   linkString: string;
 }
@@ -32,7 +32,7 @@ export default function EditLinksForm() {
     links: [],
   });
 
-  // Wczytaj dane z API
+  // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -41,13 +41,10 @@ export default function EditLinksForm() {
 
         if (data?.links && data.links.length > 0) {
           const normalizedLinks = data.links.map(
-            (link: {
-              id?: number;
-              linkString: string;
-            }) => ({
+            (link: { id?: number; linkString: string }) => ({
               id: link.id,
               linkString: link.linkString,
-            })
+            }),
           );
 
           setFormData({
@@ -59,7 +56,7 @@ export default function EditLinksForm() {
           });
         }
       } catch (err: any) {
-        setError("Błąd podczas wczytywania danych");
+        setError("Error loading link data");
       } finally {
         setLoading(false);
       }
@@ -70,7 +67,7 @@ export default function EditLinksForm() {
 
   const handleSubmit = async (
     values: EditLinksFormValues,
-    helpers: FormikHelpers<EditLinksFormValues>
+    helpers: FormikHelpers<EditLinksFormValues>,
   ) => {
     const { setSubmitting } = helpers;
 
@@ -83,25 +80,28 @@ export default function EditLinksForm() {
         linkString: link.linkString,
       }));
 
-      const res = await axios.put("/api/user/profile?resource=links", {
-        links: payload,
-      }, {
-        headers: {
-          "Content-Type": "application/json",
+      const res = await axios.put(
+        "/api/user/profile?resource=links",
+        {
+          links: payload,
         },
-      });
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-      if (res.data?.statusCode !== 200)
-        throw new Error("Błąd podczas zapisywania danych");
+      if (res.data?.statusCode !== 200) throw new Error("Error saving data");
 
-      setSuccessMessage("Linki zostały pomyślnie zaktualizowane!");
+      setSuccessMessage("Links updated successfully!");
 
-      // Przekieruj po 1.5 sekund
+      // Redirect after 1.5 seconds
       setTimeout(() => {
         router.push("/profile");
       }, 1500);
     } catch (err: any) {
-      setError("Błąd podczas zapisywania danych");
+      setError("An error occurred while saving data");
     } finally {
       setSubmitting(false);
     }
@@ -110,7 +110,7 @@ export default function EditLinksForm() {
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
-        <p className="text-muted">Ładowanie...</p>
+        <p className="text-muted">Loading...</p>
       </div>
     );
   }
@@ -118,11 +118,11 @@ export default function EditLinksForm() {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
       <h2 className="text-2xl font-semibold mb-6 text-foreground">
-        Edytuj linki
+        Edit Links
       </h2>
       <p className="text-muted mb-6">
-        Zmień swoje linki (np. LinkedIn, GitHub). Możesz dodać lub usunąć wiele
-        pozycji.
+        Update your social and professional links (e.g., LinkedIn, GitHub). You
+        can add or remove multiple entries.
       </p>
 
       {error && (
@@ -152,8 +152,8 @@ export default function EditLinksForm() {
                 <div className="space-y-6">
                   {values.links.length === 0 && (
                     <div className="p-4 bg-secondary border border-border rounded-lg text-sm text-muted">
-                      Nie dodałeś żadnych linków. Możesz dodać je klikając
-                      przycisk poniżej.
+                      No links added yet. You can add them by clicking the
+                      button below.
                     </div>
                   )}
 
@@ -162,7 +162,7 @@ export default function EditLinksForm() {
                       key={index}
                       className="p-5 bg-secondary border border-border rounded-lg space-y-4 relative"
                     >
-                      {/* Nagłówek karty */}
+                      {/* Card Header */}
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-medium text-foreground">
                           Link #{index + 1}
@@ -172,25 +172,25 @@ export default function EditLinksForm() {
                             type="button"
                             onClick={() => remove(index)}
                             className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-error/10 hover:bg-error/20 text-error transition-colors cursor-pointer duration-200"
-                            title="Usuń link"
+                            title="Remove link"
                           >
                             <FaTrash />
                           </button>
                         )}
                       </div>
 
-                      {/* Link */}
+                      {/* Link URL */}
                       <div>
                         <label
                           htmlFor={`links.${index}.linkString`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Link
+                          URL
                         </label>
                         <Field
                           id={`links.${index}.linkString`}
                           name={`links.${index}.linkString`}
-                          placeholder="np. https://github.com/twoj-uzytkownik"
+                          placeholder="e.g., https://github.com/your-username"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -202,13 +202,11 @@ export default function EditLinksForm() {
                     </div>
                   ))}
 
-                  {/* Przycisk dodawania */}
                   <AddPosition
                     onClick={() => push({ ...emptyLinks })}
-                    prompt="Dodaj kolejny link"
+                    prompt="Add another link"
                   />
 
-                  {/* Błąd walidacji tablicy */}
                   {typeof errors.links === "string" && (
                     <p className="text-sm text-error">{errors.links}</p>
                   )}
@@ -216,7 +214,6 @@ export default function EditLinksForm() {
               )}
             </FieldArray>
 
-            {/* Przyciski nawigacji */}
             <div className="flex justify-between gap-4 pt-6 border-t border-border">
               <CancelButton onClick={() => router.back()} />
               <SaveButton isSubmitting={isSubmitting} />

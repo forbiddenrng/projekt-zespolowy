@@ -20,64 +20,56 @@ interface UserFormProps {
 }
 
 export const userValidator = Yup.object({
-  name: Yup.string().required("Imię jest wymagane")
-  .min(2, "Imię musi mieć co najmniej 2 znaki")
-  .max(100, "Imię nie może być dłuższe niż 100 znaków"),
-  surname: Yup.string().required("Nazwisko jest wymagane")
-  .min(2, "Nazwisko musi mieć co najmniej 2 znaki")
-  .max(100, "Nazwisko nie może być dłuższe niż 100 znaków"),
+  name: Yup.string()
+    .required("First name is required")
+    .min(2, "First name must be at least 2 characters")
+    .max(100, "First name cannot exceed 100 characters"),
+  surname: Yup.string()
+    .required("Last name is required")
+    .min(2, "Last name must be at least 2 characters")
+    .max(100, "Last name cannot exceed 100 characters"),
   phoneNum: Yup.string()
-    .required("Numer telefonu jest wymagany")
-    .min(9, "Numer telefonu musi mieć co najmniej 9 znaków")
-    .max(20, "Numer telefonu nie może być dłuższy niż 20 znaków"),
+    .required("Phone number is required")
+    .min(9, "Phone number must be at least 9 characters")
+    .max(20, "Phone number cannot exceed 20 characters"),
   email: Yup.string()
-    .email("Niepoprawny email")
-    .required("Email jest wymagany"),
-  city: Yup.string().required("Nazwa Miasta jest wymagana")
-  .min(2, "Miasto musi mieć co najmniej 2 znaki")
-  .max(100, "Miasto nie może być dłuższe niż 100 znaków"),
-  profileSummary: Yup.string().optional().min(
-    20,
-    "Opis profilu musi być dłuższy niż 20 znaków"
-  ),
+    .email("Invalid email address")
+    .required("Email is required"),
+  city: Yup.string()
+    .required("City is required")
+    .min(2, "City must be at least 2 characters")
+    .max(100, "City cannot exceed 100 characters"),
+  profileSummary: Yup.string()
+    .optional()
+    .min(20, "Profile summary must be at least 20 characters"),
 });
 
-
-const emptyFormValues: UserFormValues  = { 
+const emptyFormValues: UserFormValues = {
   name: "",
   surname: "",
-  phoneNum:  "",
+  phoneNum: "",
   email: "",
-  city:  "",
+  city: "",
   profileSummary: "",
-}
+};
 
-/**
- * user - loaded from session
- * savedProfile - fetched from user-service
- * initialValues - values saved from form
- * Form values loading: initialValues (values already saved in form) -> savedProfile -> default values (empty string)
- */
-export default function UserForm({
-  user,
-  onNext,
-}: UserFormProps) {
-  const {updateUserInfo, wizardData} = useWizard();
+export default function UserForm({ user, onNext }: UserFormProps) {
+  const { updateUserInfo, wizardData } = useWizard();
 
   const initialFormValues = useMemo<UserFormValues>(() => {
     return {
       name: wizardData.userInfo?.name || user?.name || user?.given_name || "",
       surname: wizardData.userInfo?.surname || user?.family_name || "",
-      phoneNum:  wizardData.userInfo?.phoneNum || "",
+      phoneNum: wizardData.userInfo?.phoneNum || "",
       email: wizardData.userInfo?.email || user?.email || "",
-      city:  wizardData.userInfo?.city || "",
+      city: wizardData.userInfo?.city || "",
       profileSummary: wizardData.userInfo?.profileSummary || "",
     };
-  }, [user]);
+  }, [user, wizardData.userInfo]);
 
   const handleSubmit = async (
     values: UserFormValues,
-    helpers: FormikHelpers<UserFormValues>
+    helpers: FormikHelpers<UserFormValues>,
   ) => {
     const { setSubmitting } = helpers;
 
@@ -85,10 +77,9 @@ export default function UserForm({
       setSubmitting(true);
       updateUserInfo(values);
       onNext();
-
     } catch (err: any) {
       console.error("Submit error:", err);
-      alert("Wystąpił błąd podczas zapisu: " + (err?.message ?? "unknown"));
+      alert("An error occurred during save: " + (err?.message ?? "unknown"));
     } finally {
       setSubmitting(false);
     }
@@ -97,10 +88,10 @@ export default function UserForm({
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
       <h2 className="text-2xl font-semibold mb-6 text-foreground">
-        Dane osobowe
+        Personal Data
       </h2>
       <p className="text-muted mb-6">
-        Dodaj informacje o swoich danych osobowych.
+        Please provide your personal information.
       </p>
 
       <Formik
@@ -113,20 +104,20 @@ export default function UserForm({
       >
         {({ isSubmitting, resetForm }) => (
           <Form className="space-y-5">
-            {/* Imię */}
+            {/* First Name */}
             <div>
               <label
                 htmlFor="name"
                 className="block text-sm font-medium text-foreground mb-1"
               >
-                Imię
+                First Name
               </label>
               <Field
                 id="name"
                 name="name"
-                placeholder="Jan"
-                aria-label="Imię"
-                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
+                placeholder="John"
+                aria-label="First Name"
+                className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
                 name="name"
@@ -135,20 +126,20 @@ export default function UserForm({
               />
             </div>
 
-            {/* Nazwisko */}
+            {/* Last Name */}
             <div>
               <label
                 htmlFor="surname"
                 className="block text-sm font-medium text-foreground mb-1"
               >
-                Nazwisko
+                Last Name
               </label>
               <Field
                 id="surname"
                 name="surname"
-                placeholder="Kowalski"
-                aria-label="Nazwisko"
-                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
+                placeholder="Doe"
+                aria-label="Last Name"
+                className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
                 name="surname"
@@ -157,19 +148,19 @@ export default function UserForm({
               />
             </div>
 
-            {/* Telefon */}
+            {/* Phone */}
             <div>
               <label
                 htmlFor="phoneNum"
                 className="block text-sm font-medium text-foreground mb-1"
               >
-                Numer telefonu
+                Phone Number
               </label>
               <Field
                 id="phoneNum"
                 name="phoneNum"
-                placeholder="+48 600 000 000"
-                aria-label="Numer telefonu"
+                placeholder="+44 600 000 000"
+                aria-label="Phone Number"
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
@@ -191,9 +182,9 @@ export default function UserForm({
                 id="email"
                 name="email"
                 type="email"
-                placeholder="email@przyklad.pl"
+                placeholder="email@example.com"
                 aria-label="Email"
-                className={`w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all`}
+                className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
                 name="email"
@@ -202,19 +193,19 @@ export default function UserForm({
               />
             </div>
 
-            {/* Miasto */}
+            {/* City */}
             <div>
               <label
                 htmlFor="city"
                 className="block text-sm font-medium text-foreground mb-1"
               >
-                Miasto
+                City
               </label>
               <Field
                 id="city"
                 name="city"
-                placeholder="Warszawa"
-                aria-label="Miasto"
+                placeholder="London"
+                aria-label="City"
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
@@ -224,13 +215,13 @@ export default function UserForm({
               />
             </div>
 
-            {/* Podsumowanie */}
+            {/* Summary */}
             <div>
               <label
                 htmlFor="profileSummary"
                 className="block text-sm font-medium text-foreground mb-1"
               >
-                Krótki opis / podsumowanie
+                Profile Summary / Professional Description
               </label>
               <Field
                 as="textarea"
@@ -252,11 +243,11 @@ export default function UserForm({
                 onClick={() => resetForm({ values: emptyFormValues })}
                 className="px-6 py-3 bg-secondary border border-border text-foreground hover:bg-border rounded-lg font-medium transition-colors duration-200 cursor-pointer"
               >
-                Resetuj
+                Reset
               </button>
 
               <NextButton
-                prompt={isSubmitting ? "Zapisuje..." : "Dalej"}
+                prompt={isSubmitting ? "Saving..." : "Next"}
                 isSubmitting={isSubmitting}
               />
             </div>

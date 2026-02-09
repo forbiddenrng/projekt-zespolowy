@@ -19,7 +19,7 @@ import { LanguageLevel } from "@/app/ts/types";
 interface EditLanguage {
   id?: number;
   languageId: number;
-  level: LanguageLevel
+  level: LanguageLevel;
 }
 
 interface EditLanguagesFormValues {
@@ -36,18 +36,18 @@ export default function EditLanguagesForm() {
     languages: [],
   });
 
-  // Wczytaj dane z API
+  // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
 
-        // Wczytaj wszystkie dostępne języki
+        // Fetch all available languages
         const languagesRes = await axios.get("/api/user/language/get");
         const languages = languagesRes.data?.data || [];
         setAllLanguages(languages);
 
-        // Wczytaj języki użytkownika
+        // Fetch user languages
         const userRes = await axios.get("/api/user/get?resource=languages");
         const userData = userRes.data?.data;
 
@@ -55,13 +55,13 @@ export default function EditLanguagesForm() {
           const normalizedLanguages = userData.user_languages.map(
             (ul: {
               id?: number;
-              language: {id: number, name: string, code: string};
+              language: { id: number; name: string; code: string };
               level: LanguageLevel;
             }) => ({
               id: ul.id,
               languageId: ul.language.id,
-              level: ul.level, 
-            })
+              level: ul.level,
+            }),
           );
 
           setFormData({
@@ -73,7 +73,7 @@ export default function EditLanguagesForm() {
           });
         }
       } catch (err: any) {
-        setError("Błąd podczas wczytywania danych");
+        setError("Error loading language data");
       } finally {
         setLoading(false);
       }
@@ -84,7 +84,7 @@ export default function EditLanguagesForm() {
 
   const handleSubmit = async (
     values: EditLanguagesFormValues,
-    helpers: FormikHelpers<EditLanguagesFormValues>
+    helpers: FormikHelpers<EditLanguagesFormValues>,
   ) => {
     const { setSubmitting } = helpers;
 
@@ -98,25 +98,28 @@ export default function EditLanguagesForm() {
         level: lang.level,
       }));
 
-      const res = await axios.put("/api/user/profile?resource=languages", {
-        languages: payload,
-      }, {
-        headers: {
-          "Content-Type": "application/json",
+      const res = await axios.put(
+        "/api/user/profile?resource=languages",
+        {
+          languages: payload,
         },
-      });
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-      if (res.data?.statusCode !== 200)
-        throw new Error("Błąd podczas zapisywania danych");
+      if (res.data?.statusCode !== 200) throw new Error("Error saving data");
 
-      setSuccessMessage("Języki zostały pomyślnie zaktualizowane!");
+      setSuccessMessage("Languages updated successfully!");
 
-      // Przekieruj po 1.5 sekund
+      // Redirect after 1.5 seconds
       setTimeout(() => {
         router.push("/profile");
       }, 1500);
     } catch (err: any) {
-      setError("Błąd podczas zapisywania danych");
+      setError("An error occurred while saving data");
     } finally {
       setSubmitting(false);
     }
@@ -125,7 +128,7 @@ export default function EditLanguagesForm() {
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
-        <p className="text-muted">Ładowanie...</p>
+        <p className="text-muted">Loading...</p>
       </div>
     );
   }
@@ -133,11 +136,11 @@ export default function EditLanguagesForm() {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
       <h2 className="text-2xl font-semibold mb-6 text-foreground">
-        Edytuj języki
+        Edit Languages
       </h2>
       <p className="text-muted mb-6">
-        Zmień języki, które znasz. Możesz dodać, edytować lub usunąć wiele
-        pozycji i ustawić poziom znajomości.
+        Update the languages you know. You can add, edit, or remove entries and
+        set your proficiency level.
       </p>
 
       {error && (
@@ -167,8 +170,8 @@ export default function EditLanguagesForm() {
                 <div className="space-y-6">
                   {values.languages.length === 0 && (
                     <div className="p-4 bg-secondary border border-border rounded-lg text-sm text-muted">
-                      Nie dodałeś żadnych języków. Możesz dodać je klikając
-                      przycisk poniżej.
+                      No languages added yet. You can add them by clicking the
+                      button below.
                     </div>
                   )}
 
@@ -180,17 +183,16 @@ export default function EditLanguagesForm() {
                         key={index}
                         className="p-5 bg-secondary border border-border rounded-lg space-y-4 relative"
                       >
-                        {/* Nagłówek karty */}
                         <div className="flex justify-between items-center mb-4">
                           <h3 className="text-lg font-medium text-foreground">
-                            Język #{index + 1}
+                            Language #{index + 1}
                           </h3>
-                          {values.languages.length > 1 && (
+                          {values.languages.length > 0 && (
                             <button
                               type="button"
                               onClick={() => remove(index)}
                               className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-error/10 hover:bg-error/20 text-error transition-colors cursor-pointer duration-200"
-                              title="Usuń język"
+                              title="Remove language"
                             >
                               <FaTrash />
                             </button>
@@ -204,7 +206,7 @@ export default function EditLanguagesForm() {
                               htmlFor={`languages.${index}.languageId`}
                               className="block text-sm font-medium text-foreground mb-1"
                             >
-                              Język
+                              Language
                             </label>
 
                             <Field
@@ -213,17 +215,17 @@ export default function EditLanguagesForm() {
                               name={`languages.${index}.languageId`}
                               value={selectedId ?? ""}
                               onChange={(
-                                e: React.ChangeEvent<HTMLSelectElement>
+                                e: React.ChangeEvent<HTMLSelectElement>,
                               ) => {
                                 const val = e.target.value;
                                 setFieldValue(
                                   `languages.${index}.languageId`,
-                                  val === "" ? null : Number(val)
+                                  val === "" ? null : Number(val),
                                 );
                               }}
                               className="w-full p-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                             >
-                              <option value="">-- wybierz język --</option>
+                              <option value="">-- select language --</option>
                               {allLanguages.map((l) => (
                                 <option key={l.id} value={l.id}>
                                   {l.name} {l.code ? `(${l.code})` : ""}
@@ -244,7 +246,7 @@ export default function EditLanguagesForm() {
                               htmlFor={`languages.${index}.level`}
                               className="block text-sm font-medium text-foreground mb-1"
                             >
-                              Poziom znajomości
+                              Proficiency Level
                             </label>
 
                             <Field
@@ -271,13 +273,11 @@ export default function EditLanguagesForm() {
                     );
                   })}
 
-                  {/* Przycisk dodawania */}
                   <AddPosition
                     onClick={() => push({ ...emptyUserLanguage() })}
-                    prompt="Dodaj kolejny język"
+                    prompt="Add another language"
                   />
 
-                  {/* Błąd walidacji tablicy */}
                   {typeof errors.languages === "string" && (
                     <p className="text-sm text-error">{errors.languages}</p>
                   )}
@@ -285,7 +285,6 @@ export default function EditLanguagesForm() {
               )}
             </FieldArray>
 
-            {/* Przyciski nawigacji */}
             <div className="flex justify-between gap-4 pt-6 border-t border-border">
               <CancelButton onClick={() => router.back()} />
               <SaveButton isSubmitting={isSubmitting} />

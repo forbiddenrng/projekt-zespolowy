@@ -53,12 +53,10 @@ interface WizardData {
   certificates: Certificate[];
 }
 
-export default function ProfileWizard({
-  user,
-}: ProfileWizardProps) {
+export default function ProfileWizard({ user }: ProfileWizardProps) {
   const [currentStep, setCurrentStep] = useState<WizardStep>("user");
 
-  const {wizardData} = useWizard();
+  const { wizardData } = useWizard();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -72,14 +70,14 @@ export default function ProfileWizard({
   }, []);
 
   const steps: { key: WizardStep; label: string }[] = [
-    { key: "user", label: "Dane osobowe" },
-    { key: "education", label: "Edukacja" },
-    { key: "work", label: "Doświadczenie" },
-    { key: "abilities", label: "Umiejętności" },
-    { key: "languages", label: "Języki" },
-    { key: "links", label: "Linki" },
-    { key: "certificates", label: "Certyfikaty" },
-    { key: "summary", label: "Podsumowanie" },
+    { key: "user", label: "Personal Data" },
+    { key: "education", label: "Education" },
+    { key: "work", label: "Experience" },
+    { key: "abilities", label: "Skills" },
+    { key: "languages", label: "Languages" },
+    { key: "links", label: "Links" },
+    { key: "certificates", label: "Certificates" },
+    { key: "summary", label: "Summary" },
   ];
 
   const currentStepIndex = steps.findIndex((s) => s.key === currentStep);
@@ -98,7 +96,7 @@ export default function ProfileWizard({
         name: wizardData.userInfo.name,
         surname: wizardData.userInfo.surname,
         city: wizardData.userInfo.city,
-        profileSummary: wizardData.userInfo.profileSummary || null ,
+        profileSummary: wizardData.userInfo.profileSummary || null,
         education: wizardData.education,
         abilities: wizardData.abilities,
         certificates: wizardData.certificates,
@@ -121,7 +119,7 @@ export default function ProfileWizard({
       }
 
       await res.json();
-      
+
       router.push("/profile");
     } catch (err: any) {
       console.error("Submit error:", err);
@@ -130,15 +128,12 @@ export default function ProfileWizard({
     }
   };
 
-  // --- REF + auto-scroll dla kropek ---
   const stepsContainerRef = useRef<HTMLDivElement | null>(null);
   const stepRefs = useRef<Array<HTMLDivElement | null>>([]);
 
-  // Gdy zmieni się currentStepIndex, przewiń tak, aby aktywny step był wycentrowany.
   useEffect(() => {
     const el = stepRefs.current[currentStepIndex];
     if (el) {
-      // scrollIntoView wewnątrz kontenera (inline center)
       el.scrollIntoView({
         behavior: "smooth",
         inline: "center",
@@ -149,21 +144,18 @@ export default function ProfileWizard({
 
   return (
     <div className="space-y-8">
-      {/* Pasek postępu (auto-centrowanie aktywnego stepu, bez widocznego scrollbara) */}
       <div className="max-w-2xl mx-auto">
         <div
           ref={stepsContainerRef}
           className="wizard-steps overflow-x-auto -mx-2 px-2"
           style={{
-            // ukrywamy pasek przewijania na większości przeglądarek
             msOverflowStyle: "none",
             scrollbarWidth: "none",
           }}
         >
-          {/* CSS do ukrycia webkit-scrollbar */}
           <style>{`
-.wizard-steps::-webkit-scrollbar { display: none; }
-`}</style>
+            .wizard-steps::-webkit-scrollbar { display: none; }
+          `}</style>
 
           <div className="flex items-center justify-start mb-2 gap-6 min-w-max">
             {steps.map((step, index) => (
@@ -207,12 +199,8 @@ export default function ProfileWizard({
         </div>
       </div>
 
-      {/* Zawartość kroków */}
       {currentStep === "user" && (
-        <UserForm
-          user={user}
-          onNext={() => setCurrentStep("education")}
-        />
+        <UserForm user={user} onNext={() => setCurrentStep("education")} />
       )}
 
       {currentStep === "education" && (
@@ -271,8 +259,6 @@ export default function ProfileWizard({
   );
 }
 
-
-// Krok podsumowania
 function SummaryStep({
   data,
   allLanguages,
@@ -288,33 +274,33 @@ function SummaryStep({
 }) {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
-      <h2 className="text-2xl font-semibold mb-6 text-foreground">
-        Podsumowanie
-      </h2>
+      <h2 className="text-2xl font-semibold mb-6 text-foreground">Summary</h2>
 
-      {/* Dane osobowe */}
+      {/* Personal Data */}
       {data.userInfo && (
         <div className="mb-6 p-4 bg-secondary rounded-lg">
-          <h3 className="font-medium text-foreground mb-3">Dane osobowe</h3>
+          <h3 className="font-medium text-foreground mb-3">
+            Personal Information
+          </h3>
           <dl className="grid grid-cols-2 gap-2 text-sm">
-            <dt className="text-muted">Imię i nazwisko:</dt>
+            <dt className="text-muted">Name:</dt>
             <dd className="text-foreground">
               {data.userInfo.name} {data.userInfo.surname}
             </dd>
             <dt className="text-muted">Email:</dt>
             <dd className="text-foreground">{data.userInfo.email}</dd>
-            <dt className="text-muted">Telefon:</dt>
+            <dt className="text-muted">Phone:</dt>
             <dd className="text-foreground">{data.userInfo.phoneNum}</dd>
-            <dt className="text-muted">Miasto:</dt>
+            <dt className="text-muted">City:</dt>
             <dd className="text-foreground">{data.userInfo.city}</dd>
           </dl>
         </div>
       )}
 
-      {/* Edukacja */}
+      {/* Education */}
       <div className="mb-6 p-4 bg-secondary rounded-lg">
         <h3 className="font-medium text-foreground mb-3">
-          Edukacja ({data.education.length})
+          Education ({data.education.length})
         </h3>
         {data.education.map((edu, index) => (
           <div
@@ -326,19 +312,19 @@ function SummaryStep({
               {edu.major} • {edu.degree}
             </p>
             <p className="text-xs text-muted">
-              {new Date(edu.beginDate).toLocaleDateString("pl-PL")} –{" "}
+              {new Date(edu.beginDate).toLocaleDateString("en-US")} –{" "}
               {edu.endDate
-                ? new Date(edu.endDate).toLocaleDateString("pl-PL")
-                : "obecnie"}
+                ? new Date(edu.endDate).toLocaleDateString("en-US")
+                : "present"}
             </p>
           </div>
         ))}
       </div>
 
-      {/* Doświadczenie zawodowe */}
+      {/* Experience */}
       <div className="mb-6 p-4 bg-secondary rounded-lg">
         <h3 className="font-medium text-foreground mb-3">
-          Doświadczenie ({data.workExperience.length})
+          Experience ({data.workExperience.length})
         </h3>
         {data.workExperience.map((we, index) => (
           <div
@@ -349,22 +335,22 @@ function SummaryStep({
             <p className="text-sm text-muted">{we.position}</p>
             <p className="text-xs text-muted">
               {we.beginDate
-                ? new Date(we.beginDate).toLocaleDateString("pl-PL")
+                ? new Date(we.beginDate).toLocaleDateString("en-US")
                 : ""}{" "}
               –{" "}
               {we.endDate
-                ? new Date(we.endDate).toLocaleDateString("pl-PL")
-                : "obecnie"}
+                ? new Date(we.endDate).toLocaleDateString("en-US")
+                : "present"}
             </p>
             <p className="text-sm text-foreground mt-1">{we.description}</p>
           </div>
         ))}
       </div>
 
-      {/* Umiejętności */}
+      {/* Skills */}
       <div className="mb-6 p-4 bg-secondary rounded-lg">
         <h3 className="font-medium text-foreground mb-3">
-          Umiejętności ({data.abilities.length})
+          Skills ({data.abilities.length})
         </h3>
         <div className="flex flex-wrap gap-2">
           {data.abilities.map((ab, i) => (
@@ -378,10 +364,10 @@ function SummaryStep({
         </div>
       </div>
 
-      {/* Języki */}
+      {/* Languages */}
       <div className="mb-6 p-4 bg-secondary rounded-lg">
         <h3 className="font-medium text-foreground mb-3">
-          Języki ({data.languages.length})
+          Languages ({data.languages.length})
         </h3>
         <div className="space-y-2">
           {data.languages.map((l, i) => {
@@ -390,7 +376,7 @@ function SummaryStep({
               <div key={i} className="flex items-center justify-between">
                 <div>
                   <div className="font-medium text-foreground">
-                    {language?.name || "Nieznany język"}
+                    {language?.name || "Unknown Language"}
                   </div>
                   <div className="text-sm text-muted">{l.level}</div>
                 </div>
@@ -400,10 +386,10 @@ function SummaryStep({
         </div>
       </div>
 
-      {/* Linki */}
+      {/* Links */}
       <div className="mb-6 p-4 bg-secondary rounded-lg">
         <h3 className="font-medium text-foreground mb-3">
-          Linki ({data.links.length})
+          Links ({data.links.length})
         </h3>
         <div className="flex flex-wrap gap-2">
           {data.links.map((lin, i) => (
@@ -417,10 +403,10 @@ function SummaryStep({
         </div>
       </div>
 
-      {/* Certyfikaty */}
+      {/* Certificates */}
       <div className="mb-6 p-4 bg-secondary rounded-lg">
         <h3 className="font-medium text-foreground mb-3">
-          Certyfikaty ({data.certificates.length})
+          Certificates ({data.certificates.length})
         </h3>
         {data.certificates.map((cert, index) => (
           <div
@@ -430,18 +416,15 @@ function SummaryStep({
             <p className="font-medium text-foreground">{cert.name}</p>
             <p className="text-sm text-muted">{cert.issuer}</p>
             <p className="text-xs text-muted">
-              {new Date(cert.certificationDate).toLocaleDateString("pl-PL")} –{" "}
+              {new Date(cert.certificationDate).toLocaleDateString("en-US")}
             </p>
           </div>
         ))}
       </div>
 
-      {/* Przyciski */}
+      {/* Buttons */}
       <div className="flex justify-between gap-4 pt-6 border-t border-border">
-        <BackButton
-          prompt="Wstecz"
-          onBack={onBack}
-        />
+        <BackButton prompt="Back" onBack={onBack} />
 
         <button
           type="button"
@@ -450,10 +433,10 @@ function SummaryStep({
           className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
         >
           {isSubmitting ? (
-            "Zapisuję..."
+            "Saving..."
           ) : (
             <>
-              Zapisz profil
+              Save Profile
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-5 w-5"

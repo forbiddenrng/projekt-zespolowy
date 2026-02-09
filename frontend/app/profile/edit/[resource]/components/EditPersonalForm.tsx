@@ -23,21 +23,20 @@ const emptyFormValues: UserFormValues = {
   profileSummary: "",
 };
 
-export default function EditPersonalForm({
-  onSuccess,
-}: EditPersonalFormProps) {
+export default function EditPersonalForm({ onSuccess }: EditPersonalFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState<UserFormValues>(emptyFormValues);
 
-  // Wczytaj dane z API
+  // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await axios.get("/api/user/get");
-        if (res.data?.statusCode !== 200) throw new Error("Nie udało się pobrać danych");
+        if (res.data?.statusCode !== 200)
+          throw new Error("Failed to fetch data");
 
         const data = res.data?.data;
 
@@ -52,7 +51,7 @@ export default function EditPersonalForm({
           });
         }
       } catch (err: any) {
-        setError(err?.message || "Błąd podczas wczytywania danych");
+        setError(err?.message || "An error occurred while loading data");
       } finally {
         setLoading(false);
       }
@@ -63,7 +62,7 @@ export default function EditPersonalForm({
 
   const handleSubmit = async (
     values: UserFormValues,
-    helpers: FormikHelpers<UserFormValues>
+    helpers: FormikHelpers<UserFormValues>,
   ) => {
     const { setSubmitting } = helpers;
 
@@ -71,28 +70,32 @@ export default function EditPersonalForm({
       setSubmitting(true);
       setError(null);
 
-      const res = await axios.patch("/api/user/profile?resource=personal", {
-        name: values.name,
-        surname: values.surname,
-        phoneNumber: values.phoneNum,
-        city: values.city,
-        profileSummary: values.profileSummary || null
-      }, {
-        headers: {
-          "Content-Type": "application/json"
-        }
-      })
+      const res = await axios.patch(
+        "/api/user/profile?resource=personal",
+        {
+          name: values.name,
+          surname: values.surname,
+          phoneNumber: values.phoneNum,
+          city: values.city,
+          profileSummary: values.profileSummary || null,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-      if (res.data?.statusCode !== 200) throw new Error("Błąd podczas zapisywania danych");
+      if (res.data?.statusCode !== 200) throw new Error("Failed to save data");
 
-      setSuccessMessage("Dane zostały pomyślnie zaktualizowane!");
+      setSuccessMessage("Personal data updated successfully!");
 
-      // Przekieruj po 1.5 sekund
+      // Redirect after 1.5 seconds
       setTimeout(() => {
         router.push("/profile");
       }, 1500);
     } catch (err: any) {
-      setError("Błąd podczas zapisywania danych");
+      setError("An error occurred while saving data");
     } finally {
       setSubmitting(false);
     }
@@ -101,7 +104,7 @@ export default function EditPersonalForm({
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
-        <p className="text-muted">Ładowanie...</p>
+        <p className="text-muted">Loading...</p>
       </div>
     );
   }
@@ -109,11 +112,9 @@ export default function EditPersonalForm({
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
       <h2 className="text-2xl font-semibold mb-6 text-foreground">
-        Edytuj dane osobowe
+        Edit Personal Data
       </h2>
-      <p className="text-muted mb-6">
-        Zmień swoje informacje osobowe.
-      </p>
+      <p className="text-muted mb-6">Update your personal information.</p>
 
       {error && (
         <div className="mb-6 p-4 bg-error/10 border border-error text-error rounded-lg">
@@ -135,21 +136,21 @@ export default function EditPersonalForm({
         validateOnBlur={false}
         onSubmit={handleSubmit}
       >
-        {({ isSubmitting, resetForm }) => (
+        {({ isSubmitting }) => (
           <Form className="space-y-5">
-            {/* Imię */}
+            {/* First Name */}
             <div>
               <label
                 htmlFor="name"
                 className="block text-sm font-medium text-foreground mb-1"
               >
-                Imię
+                First Name
               </label>
               <Field
                 id="name"
                 name="name"
-                placeholder="Jan"
-                aria-label="Imię"
+                placeholder="John"
+                aria-label="First Name"
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
@@ -159,19 +160,19 @@ export default function EditPersonalForm({
               />
             </div>
 
-            {/* Nazwisko */}
+            {/* Last Name */}
             <div>
               <label
                 htmlFor="surname"
                 className="block text-sm font-medium text-foreground mb-1"
               >
-                Nazwisko
+                Last Name
               </label>
               <Field
                 id="surname"
                 name="surname"
-                placeholder="Kowalski"
-                aria-label="Nazwisko"
+                placeholder="Doe"
+                aria-label="Last Name"
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
@@ -181,19 +182,19 @@ export default function EditPersonalForm({
               />
             </div>
 
-            {/* Telefon */}
+            {/* Phone */}
             <div>
               <label
                 htmlFor="phoneNum"
                 className="block text-sm font-medium text-foreground mb-1"
               >
-                Numer telefonu
+                Phone Number
               </label>
               <Field
                 id="phoneNum"
                 name="phoneNum"
                 placeholder="+48 600 000 000"
-                aria-label="Numer telefonu"
+                aria-label="Phone Number"
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
@@ -216,7 +217,7 @@ export default function EditPersonalForm({
                 name="email"
                 type="email"
                 disabled={true}
-                placeholder="email@przyklad.pl"
+                placeholder="email@example.com"
                 aria-label="Email"
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-muted placeholder:text-muted focus:outline-none focus:ring-2 cursor-not-allowed focus:ring-primary focus:border-transparent transition-all"
               />
@@ -227,19 +228,19 @@ export default function EditPersonalForm({
               />
             </div>
 
-            {/* Miasto */}
+            {/* City */}
             <div>
               <label
                 htmlFor="city"
                 className="block text-sm font-medium text-foreground mb-1"
               >
-                Miasto
+                City
               </label>
               <Field
                 id="city"
                 name="city"
-                placeholder="Warszawa"
-                aria-label="Miasto"
+                placeholder="Warsaw"
+                aria-label="City"
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
               />
               <ErrorMessage
@@ -249,18 +250,19 @@ export default function EditPersonalForm({
               />
             </div>
 
-            {/* Podsumowanie */}
+            {/* Profile Summary */}
             <div>
               <label
                 htmlFor="profileSummary"
                 className="block text-sm font-medium text-foreground mb-1"
               >
-                Krótki opis / podsumowanie
+                Profile Summary
               </label>
               <Field
                 as="textarea"
                 id="profileSummary"
                 name="profileSummary"
+                placeholder="Tell us something about yourself..."
                 rows={5}
                 className="w-full p-3 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-vertical"
               />
@@ -272,12 +274,8 @@ export default function EditPersonalForm({
             </div>
 
             <div className="flex gap-4 justify-between pt-4">
-              <CancelButton
-                onClick={() => router.back()}
-              />
-              <SaveButton
-                isSubmitting={isSubmitting}
-              />
+              <CancelButton onClick={() => router.back()} />
+              <SaveButton isSubmitting={isSubmitting} />
             </div>
           </Form>
         )}

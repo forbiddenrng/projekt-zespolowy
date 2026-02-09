@@ -21,29 +21,26 @@ export const emptyLinks: Links = {
 
 export const linksSchema = Yup.object({
   linkString: Yup.string()
-  .required("Link jest wymagany")
-    .min(5, "Link musi mieć co najmniej 5 znaków")
-    .max(150, "Link nie może być dłuższy niż 150 znaków"),
+    .required("Link is required")
+    .min(5, "Link must be at least 5 characters")
+    .max(150, "Link cannot exceed 150 characters")
+    .url("Please enter a valid URL (e.g., https://...)"),
 });
 
 export const linksFormValidator = Yup.object({
-  links: Yup.array().of(linksSchema)
+  links: Yup.array().of(linksSchema),
 });
 
-export default function LinksForm({
-  onBack,
-  onNext,
-}: LinksFormProps) {
-  const {updateLinks, wizardData} = useWizard();
+export default function LinksForm({ onBack, onNext }: LinksFormProps) {
+  const { updateLinks, wizardData } = useWizard();
 
   const initialLinks: LinksFormValues = {
-    links: wizardData.links
-  }
-
+    links: wizardData.links.length > 0 ? wizardData.links : [{ ...emptyLinks }],
+  };
 
   const handleSubmit = (
     values: LinksFormValues,
-    helpers: FormikHelpers<LinksFormValues>
+    helpers: FormikHelpers<LinksFormValues>,
   ) => {
     const { setSubmitting } = helpers;
 
@@ -54,9 +51,10 @@ export default function LinksForm({
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
-      <h2 className="text-2xl font-semibold mb-6 text-foreground">Linki</h2>
+      <h2 className="text-2xl font-semibold mb-6 text-foreground">Links</h2>
       <p className="text-muted mb-6">
-        Dodaj swoje linki (np. LinkedIn, GitHub). Możesz dodać wiele pozycji.
+        Add your professional links (e.g., LinkedIn, GitHub, Portfolio). You can
+        add multiple entries.
       </p>
 
       <Formik
@@ -81,10 +79,12 @@ export default function LinksForm({
                         <h3 className="text-lg font-medium text-foreground">
                           Link #{index + 1}
                         </h3>
-                        <DeleteButton
-                          prompt="Usuń link"
-                          remove={() => remove(index)}
-                        />
+                        {values.links.length > 1 && (
+                          <DeleteButton
+                            prompt="Remove link"
+                            remove={() => remove(index)}
+                          />
+                        )}
                       </div>
 
                       <div>
@@ -92,12 +92,12 @@ export default function LinksForm({
                           htmlFor={`links.${index}.linkString`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Link
+                          URL
                         </label>
                         <Field
                           id={`links.${index}.linkString`}
                           name={`links.${index}.linkString`}
-                          placeholder="np. https://github.com/twoj-uzytkownik"
+                          placeholder="e.g., https://github.com/your-username"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -126,7 +126,7 @@ export default function LinksForm({
                         clipRule="evenodd"
                       />
                     </svg>
-                    Dodaj kolejny link
+                    Add another link
                   </button>
 
                   {typeof errors.links === "string" && (
@@ -137,9 +137,8 @@ export default function LinksForm({
             </FieldArray>
 
             <div className="flex justify-between gap-4 pt-6 border-t border-border">
-              <BackButton prompt={"Wstecz"} onBack={onBack} />
-
-              <NextButton prompt={"Dalej"} isSubmitting={isSubmitting} />
+              <BackButton prompt={"Back"} onBack={onBack} />
+              <NextButton prompt={"Next"} isSubmitting={isSubmitting} />
             </div>
           </Form>
         )}

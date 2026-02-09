@@ -20,23 +20,22 @@ export default function NoProfileFound() {
             />
           </svg>
         </div>
-        
+
         <h2 className="text-2xl font-bold text-foreground mb-3">
-          Nie znaleziono profilu
+          Profile Not Found
         </h2>
-        
+
         <p className="text-muted mb-6">
-          Wygląda na to, że nie masz jeszcze utworzonego profilu. 
-          Stwórz swój profil, aby w pełni korzystać z aplikacji.
+          It looks like you haven't created a profile yet. Set up your profile
+          to take full advantage of the application.
         </p>
-        
+
         <Link
           href="/profile/create"
           className="inline-block bg-primary hover:bg-primary-hover text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
         >
-          Utwórz profil
+          Create Profile
         </Link>
-        
       </div>
     </div>
   );

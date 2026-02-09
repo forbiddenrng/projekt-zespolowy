@@ -24,87 +24,83 @@ export const emptyEducation: Education = {
 };
 
 export const educationSchema = Yup.object({
-  schoolName: Yup.string().required("Nazwa szkoły jest wymagana")
-  .min(3, "Nazwa szkoły musi mieć co najmniej 3 znaki")
-  .max(100, "Nazwa szkoły nie może być dłuższa niż 100 znaków"),
-  major: Yup.string().required("Kierunek jest wymagany")
-  .min(3, "Kierunek musi mieć co najmniej 3 znaki")
-  .max(100, "Kierunek nie może być dłuższy niż 100 znaków"),
-  degree: Yup.string().required("Stopień jest wymagany")
-  .min(3, "Stopień musi mieć co najmniej 3 znaki")
-  .max(20, "Stopień nie może być dłuższy niż 20 znaków"),
+  schoolName: Yup.string()
+    .required("School name is required")
+    .min(3, "School name must be at least 3 characters")
+    .max(100, "School name cannot exceed 100 characters"),
+  major: Yup.string()
+    .required("Major/Field of study is required")
+    .min(3, "Major must be at least 3 characters")
+    .max(100, "Major cannot exceed 100 characters"),
+  degree: Yup.string()
+    .required("Degree is required")
+    .min(3, "Degree must be at least 3 characters")
+    .max(50, "Degree cannot exceed 50 characters"),
   beginDate: Yup.date()
-    .required("Data rozpoczęcia jest wymagana")
-    .typeError("Niepoprawny format daty")
-    .test('cant-above-this-date',
-      'Maksymalna data to dzisiaj',
-      (date) =>  {
-        return new Date() > date;
-  }),
+    .required("Start date is required")
+    .typeError("Invalid date format")
+    .test("cant-above-this-date", "Date cannot be in the future", (date) => {
+      return new Date() >= (date as Date);
+    }),
   endDate: Yup.date()
     .nullable()
-    .typeError("Niepoprawny format daty")
-    .min(Yup.ref("beginDate"), "Data zakończenia musi być późniejsza niż rozpoczęcia")
-    .test('cant-above-this-date',
-      'Maksymalna data to dzisiaj',
-      (date) =>  {
-        if (date === undefined || date === null) return true;
-        return new Date() > date;
-  }),
+    .typeError("Invalid date format")
+    .min(Yup.ref("beginDate"), "End date must be after the start date")
+    .test("cant-above-this-date", "Date cannot be in the future", (date) => {
+      if (date === undefined || date === null) return true;
+      return new Date() >= (date as Date);
+    }),
 });
 
 export const educationFormValidator = Yup.object({
-  education: Yup.array()
-    .of(educationSchema)
+  education: Yup.array().of(educationSchema),
 });
 
 export const formatDateForInput = (dateString: string | undefined): string => {
-  if(!dateString) return "";
+  if (!dateString) return "";
   try {
     const date = new Date(dateString);
-    if(isNaN(date.getTime())) return "";
+    if (isNaN(date.getTime())) return "";
     return date.toISOString().split("T")[0];
   } catch {
     return "";
   }
-}
+};
 
 export const degreeOptions = [
-  { value: "", label: "Wybierz stopień" },
-  { value: "podstawowe", label: "Podstawowe" },
-  { value: "gimnazjalne", label: "Gimnazjalne" },
-  { value: "średnie", label: "Średnie" },
-  { value: "licencjat", label: "Licencjat" },
-  { value: "inżynier", label: "Inżynier" },
-  { value: "magister", label: "Magister" },
-  { value: "doktor", label: "Doktor" },
-  { value: "inne", label: "Inne" },
+  { value: "", label: "Select degree" },
+  { value: "primary", label: "Primary" },
+  { value: "secondary", label: "Secondary" },
+  { value: "high_school", label: "High School" },
+  { value: "bachelor", label: "Bachelor's Degree" },
+  { value: "engineer", label: "Engineer's Degree" },
+  { value: "master", label: "Master's Degree" },
+  { value: "doctorate", label: "Doctorate" },
+  { value: "other", label: "Other" },
 ];
 
-export default function EducationForm({
-  onBack,
-  onNext,
-}: EducationFormProps) {
+export default function EducationForm({ onBack, onNext }: EducationFormProps) {
+  const { updateEducation, wizardData } = useWizard();
 
-  const {updateEducation, wizardData} = useWizard();
-
-  const normalizedEducation = wizardData.education.map(edu => ({
+  const normalizedEducation = wizardData.education.map((edu) => ({
     ...edu,
     beginDate: formatDateForInput(edu.beginDate),
-    endDate: formatDateForInput(edu.endDate)
+    endDate: formatDateForInput(edu.endDate),
   }));
 
   const initialValues: EducationFormValues = {
-    education: normalizedEducation.length > 0 ? normalizedEducation : [{ ...emptyEducation }],
+    education:
+      normalizedEducation.length > 0
+        ? normalizedEducation
+        : [{ ...emptyEducation }],
   };
 
   const handleSubmit = (
     values: EducationFormValues,
-    helpers: FormikHelpers<EducationFormValues>
+    helpers: FormikHelpers<EducationFormValues>,
   ) => {
     const { setSubmitting } = helpers;
-    
-    // Przekształć daty do formatu ISO
+
     const formattedEducation = values.education.map((edu) => ({
       ...edu,
       beginDate: new Date(edu.beginDate).toISOString(),
@@ -118,9 +114,10 @@ export default function EducationForm({
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
-      <h2 className="text-2xl font-semibold mb-6 text-foreground">Edukacja</h2>
+      <h2 className="text-2xl font-semibold mb-6 text-foreground">Education</h2>
       <p className="text-muted mb-6">
-        Dodaj informacje o swojej edukacji. Możesz dodać wiele pozycji.
+        Add information about your educational background. You can add multiple
+        entries.
       </p>
 
       <Formik
@@ -131,7 +128,7 @@ export default function EducationForm({
         validateOnBlur={false}
         onSubmit={handleSubmit}
       >
-        {({ values, isSubmitting, errors }) =>  (
+        {({ values, isSubmitting, errors }) => (
           <Form className="space-y-6">
             <FieldArray name="education">
               {({ push, remove }) => (
@@ -141,30 +138,27 @@ export default function EducationForm({
                       key={index}
                       className="p-5 bg-secondary border border-border rounded-lg space-y-4 relative"
                     >
-                      {/* Nagłówek karty */}
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-medium text-foreground">
-                          Edukacja #{index + 1}
+                          Education #{index + 1}
                         </h3>
                         <DeleteButton
-                          prompt="Usuń edukację"
-                          // index={index}
+                          prompt="Remove education"
                           remove={() => remove(index)}
                         />
                       </div>
 
-                      {/* Nazwa szkoły */}
                       <div>
                         <label
                           htmlFor={`education.${index}.schoolName`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Nazwa szkoły / uczelni
+                          School / University Name
                         </label>
                         <Field
                           id={`education.${index}.schoolName`}
                           name={`education.${index}.schoolName`}
-                          placeholder="np. Politechnika Warszawska"
+                          placeholder="e.g. Warsaw University of Technology"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -174,18 +168,17 @@ export default function EducationForm({
                         />
                       </div>
 
-                      {/* Kierunek */}
                       <div>
                         <label
                           htmlFor={`education.${index}.major`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Kierunek / Profil
+                          Major / Field of Study
                         </label>
                         <Field
                           id={`education.${index}.major`}
                           name={`education.${index}.major`}
-                          placeholder="np. Informatyka"
+                          placeholder="e.g. Computer Science"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -195,13 +188,12 @@ export default function EducationForm({
                         />
                       </div>
 
-                      {/* Stopień */}
                       <div>
                         <label
                           htmlFor={`education.${index}.degree`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Stopień / Tytuł
+                          Degree / Title
                         </label>
                         <Field
                           as="select"
@@ -222,15 +214,13 @@ export default function EducationForm({
                         />
                       </div>
 
-                      {/* Daty */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Data rozpoczęcia */}
                         <div>
                           <label
                             htmlFor={`education.${index}.beginDate`}
                             className="block text-sm font-medium text-foreground mb-1"
                           >
-                            Data rozpoczęcia
+                            Start Date
                           </label>
                           <Field
                             type="date"
@@ -245,14 +235,13 @@ export default function EducationForm({
                           />
                         </div>
 
-                        {/* Data zakończenia */}
                         <div>
                           <label
                             htmlFor={`education.${index}.endDate`}
                             className="block text-sm font-medium text-foreground mb-1"
                           >
-                            Data zakończenia{" "}
-                            <span className="text-muted">(opcjonalne)</span>
+                            End Date{" "}
+                            <span className="text-muted">(optional)</span>
                           </label>
                           <Field
                             type="date"
@@ -270,7 +259,6 @@ export default function EducationForm({
                     </div>
                   ))}
 
-                  {/* Przycisk dodawania */}
                   <button
                     type="button"
                     onClick={() => push({ ...emptyEducation })}
@@ -288,10 +276,9 @@ export default function EducationForm({
                         clipRule="evenodd"
                       />
                     </svg>
-                    Dodaj kolejną edukację
+                    Add another education entry
                   </button>
 
-                  {/* Błąd walidacji tablicy */}
                   {typeof errors.education === "string" && (
                     <p className="text-sm text-error">{errors.education}</p>
                   )}
@@ -299,17 +286,9 @@ export default function EducationForm({
               )}
             </FieldArray>
 
-            {/* Przyciski nawigacji */}
             <div className="flex justify-between gap-4 pt-6 border-t border-border">
-              <BackButton
-                prompt={"Wstecz"}
-                onBack={onBack}
-              />
-
-              <NextButton
-                prompt={"Dalej"}
-                isSubmitting={isSubmitting}
-              />
+              <BackButton prompt={"Back"} onBack={onBack} />
+              <NextButton prompt={"Next"} isSubmitting={isSubmitting} />
             </div>
           </Form>
         )}

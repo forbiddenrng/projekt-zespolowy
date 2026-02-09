@@ -20,45 +20,42 @@ export const emptyAbilities: Ability = {
 };
 
 export const abilitiesSchema = Yup.object({
-  name: Yup.string().required("Nazwa umiejętności jest wymagan")
-    .min(3, "Umiejętność musi mieć co najmniej 3 znaki")
-    .max(255, "Umiejętność nie może mieć więcej niż 255 znaków"),
+  name: Yup.string()
+    .required("Skill name is required")
+    .min(3, "Skill must be at least 3 characters")
+    .max(255, "Skill cannot exceed 255 characters"),
 });
 
 export const abilitiesFormValidator = Yup.object({
-  abilities: Yup.array()
-    .of(abilitiesSchema)
-    .min(1, "Dodaj co najmniej jedną pozycję umiejętności"),
+  abilities: Yup.array().of(abilitiesSchema).min(1, "Add at least one skill"),
 });
 
-export default function AbilitiesForm({
-  onBack,
-  onNext,
-}: AbilitiesFormProps) {
-  const {updateAbilities, wizardData} = useWizard();
+export default function AbilitiesForm({ onBack, onNext }: AbilitiesFormProps) {
+  const { updateAbilities, wizardData } = useWizard();
 
   const initialValues: AbilitiesFormValues = {
-    abilities: wizardData.abilities
+    abilities:
+      wizardData.abilities.length > 0
+        ? wizardData.abilities
+        : [{ ...emptyAbilities }],
   };
 
   const handleSubmit = (
     values: AbilitiesFormValues,
-    helpers: FormikHelpers<AbilitiesFormValues>
+    helpers: FormikHelpers<AbilitiesFormValues>,
   ) => {
     const { setSubmitting } = helpers;
 
-    updateAbilities(values.abilities)
+    updateAbilities(values.abilities);
     onNext();
     setSubmitting(false);
   };
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
-      <h2 className="text-2xl font-semibold mb-6 text-foreground">
-        Umiejętności
-      </h2>
+      <h2 className="text-2xl font-semibold mb-6 text-foreground">Skills</h2>
       <p className="text-muted mb-6">
-        Dodaj swoje umiejętności. Możesz dodać wiele pozycji.
+        Add your professional skills. You can add multiple items.
       </p>
 
       <Formik
@@ -67,7 +64,7 @@ export default function AbilitiesForm({
         validationSchema={abilitiesFormValidator}
         validateOnChange={false}
         validateOnBlur={false}
-        onSubmit={handleSubmit} // <-- używamy handleSubmit
+        onSubmit={handleSubmit}
       >
         {({ values, isSubmitting, errors }) => (
           <Form className="space-y-6">
@@ -81,11 +78,11 @@ export default function AbilitiesForm({
                     >
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-medium text-foreground">
-                          Umiejętność #{index + 1}
+                          Skill #{index + 1}
                         </h3>
                         {values.abilities.length > 1 && (
                           <DeleteButton
-                            prompt="Usuń umiejętność"
+                            prompt="Remove skill"
                             remove={() => remove(index)}
                           />
                         )}
@@ -96,12 +93,12 @@ export default function AbilitiesForm({
                           htmlFor={`abilities.${index}.name`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Nazwa umiejętności
+                          Skill Name
                         </label>
                         <Field
                           id={`abilities.${index}.name`}
                           name={`abilities.${index}.name`}
-                          placeholder="np. React, TypeScript, Docker"
+                          placeholder="e.g. React, TypeScript, Docker"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -130,7 +127,7 @@ export default function AbilitiesForm({
                         clipRule="evenodd"
                       />
                     </svg>
-                    Dodaj kolejną umiejętność
+                    Add another skill
                   </button>
 
                   {typeof errors.abilities === "string" && (
@@ -141,9 +138,8 @@ export default function AbilitiesForm({
             </FieldArray>
 
             <div className="flex justify-between gap-4 pt-6 border-t border-border">
-              <BackButton prompt={"Wstecz"} onBack={onBack} />
-
-              <NextButton prompt={"Dalej"} isSubmitting={isSubmitting} />
+              <BackButton prompt={"Back"} onBack={onBack} />
+              <NextButton prompt={"Next"} isSubmitting={isSubmitting} />
             </div>
           </Form>
         )}

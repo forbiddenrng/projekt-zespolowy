@@ -28,45 +28,47 @@ export const emptyUserLanguage = (): UserLanguage => ({
 });
 
 const languageSchema = Yup.object({
-  languageId: Yup.number().nullable().required("Wybierz język"),
-  level: Yup.mixed<LanguageLevel>().required("Wybierz poziom"),
+  languageId: Yup.number().nullable().required("Please select a language"),
+  level: Yup.mixed<LanguageLevel>().required("Please select a level"),
 });
 
 export const languagesFormValidator = Yup.object({
   languages: Yup.array()
     .of(languageSchema)
-    .min(1, "Dodaj co najmniej jeden język")
+    .min(1, "Add at least one language")
     .test(
       "unique-languageId",
-      "Nie możesz wybrać tego samego języka więcej niż raz.",
+      "You cannot select the same language more than once.",
       (languages) => {
         if (!languages) return true;
         const ids = languages
           .map((lang) => lang.languageId)
           .filter((id) => id !== null && id !== undefined);
         return new Set(ids).size === ids.length;
-      }
+      },
     ),
 });
 
 export default function UserLanguages({
   onBack,
   onNext,
-  allLanguages
+  allLanguages,
 }: UserLanguagesFormProps) {
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const {updateLanguages, wizardData} = useWizard();
+  const { updateLanguages, wizardData } = useWizard();
 
   const initialValues: UserLanguagesFormValues = {
-    languages: wizardData.languages
-  }
+    languages:
+      wizardData.languages.length > 0
+        ? wizardData.languages
+        : [{ ...emptyUserLanguage() }],
+  };
 
   const handleSubmit = (
     values: UserLanguagesFormValues,
-    helpers: FormikHelpers<UserLanguagesFormValues>
+    helpers: FormikHelpers<UserLanguagesFormValues>,
   ) => {
     const { setSubmitting } = helpers;
 
@@ -77,15 +79,14 @@ export default function UserLanguages({
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
-      <h2 className="text-2xl font-semibold mb-6 text-foreground">Języki</h2>
+      <h2 className="text-2xl font-semibold mb-6 text-foreground">Languages</h2>
       <p className="text-muted mb-4">
-        Dodaj języki, które znasz. Możesz dodać kilka pozycji i ustawić poziom
-        znajomości.
+        Add the languages you know. You can add several entries and set your
+        proficiency level for each.
       </p>
 
-
       {loading && (
-        <p className="text-sm text-muted mb-4">Ładowanie języków...</p>
+        <p className="text-sm text-muted mb-4">Loading languages...</p>
       )}
       {error && <p className="text-sm text-error mb-4">{error}</p>}
 
@@ -112,11 +113,11 @@ export default function UserLanguages({
                       >
                         <div className="flex justify-between items-center mb-4">
                           <h3 className="text-lg font-medium text-foreground">
-                            Język #{index + 1}
+                            Language #{index + 1}
                           </h3>
                           {values.languages.length > 1 && (
                             <DeleteButton
-                              prompt="Usuń język"
+                              prompt="Remove language"
                               remove={() => remove(index)}
                             />
                           )}
@@ -126,7 +127,7 @@ export default function UserLanguages({
                           {/* LANGUAGE SELECT */}
                           <div>
                             <label className="block text-sm font-medium text-foreground mb-1">
-                              Język
+                              Language
                             </label>
 
                             <Field
@@ -134,17 +135,17 @@ export default function UserLanguages({
                               name={`languages.${index}.languageId`}
                               value={selectedId ?? ""}
                               onChange={(
-                                e: React.ChangeEvent<HTMLSelectElement>
+                                e: React.ChangeEvent<HTMLSelectElement>,
                               ) => {
                                 const val = e.target.value;
                                 setFieldValue(
                                   `languages.${index}.languageId`,
-                                  val === "" ? null : Number(val)
+                                  val === "" ? null : Number(val),
                                 );
                               }}
-                              className="w-full p-3 bg-background border border-border rounded-lg"
+                              className="w-full p-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                             >
-                              <option value="">-- wybierz język --</option>
+                              <option value="">-- select language --</option>
                               {allLanguages.map((l) => (
                                 <option key={l.id} value={l.id}>
                                   {l.name} {l.code ? `(${l.code})` : ""}
@@ -162,13 +163,13 @@ export default function UserLanguages({
                           {/* LEVEL SELECT */}
                           <div>
                             <label className="block text-sm font-medium text-foreground mb-1">
-                              Poziom znajomości
+                              Proficiency Level
                             </label>
 
                             <Field
                               as="select"
                               name={`languages.${index}.level`}
-                              className="w-full p-3 bg-background border border-border rounded-lg"
+                              className="w-full p-3 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition-all"
                             >
                               {Object.values(LanguageLevel).map((lvl) => (
                                 <option key={lvl} value={lvl}>
@@ -191,9 +192,21 @@ export default function UserLanguages({
                   <button
                     type="button"
                     onClick={() => push({ ...emptyUserLanguage() })}
-                    className="w-full p-3 border-2 border-dashed border-border rounded-lg text-muted hover:text-foreground hover:border-primary transition-all"
+                    className="w-full p-3 border-2 border-dashed border-border rounded-lg text-muted hover:text-foreground hover:border-primary transition-all flex items-center justify-center gap-2"
                   >
-                    ➕ Dodaj kolejny język
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    Add another language
                   </button>
 
                   {typeof errors.languages === "string" && (
@@ -204,8 +217,8 @@ export default function UserLanguages({
             </FieldArray>
 
             <div className="flex justify-between gap-4 pt-6 border-t border-border">
-              <BackButton prompt={"Wstecz"} onBack={onBack} />
-              <NextButton prompt={"Dalej"} isSubmitting={isSubmitting} />
+              <BackButton prompt={"Back"} onBack={onBack} />
+              <NextButton prompt={"Next"} isSubmitting={isSubmitting} />
             </div>
           </Form>
         )}
