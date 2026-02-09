@@ -18,13 +18,16 @@ Dzięki integracji z modelami AI (OpenAI API) aplikacja analizuje oferty pracy i
 ### Generowanie listu motywacyjnego
 - Na podstawie profilu użytkownika i oferty pracy generowany jest **list motywacyjny** dopasowany stylistycznie i merytorycznie.  
 
+### Oferty pracy
+- Aplikacja zintegrowana jest z zewnętrzyn protalem dostarczającym oferty pracy [TheirStack](https://theirstack.com/en) 
+- Użytkownik ma dostęp do ofert pracy i może je pobierać, filtrować, aplikować itd.
+
+
+## Funkcjonalności, które zostaną dodane
+
 ### Ocena dokumentów
 - System AI ocenia jakość CV i listu motywacyjnego (np. spójność, język, dopasowanie do oferty).  
 - Użytkownik otrzymuje rekomendacje dotyczące poprawy dokumentów.  
-
-### Powiadomienia o ofertach pracy
-- Aplikacja **scrapuje popularne portale z ogłoszeniami** (np. [the-protocol.it](https://the-protocol.it))  
-- Wysyła powiadomienia o ofertach dopasowanych do profilu użytkownika.  
 
 ### Workspace
 - Zapisywanie ulubionych ofert pracy
@@ -38,11 +41,11 @@ Dzięki integracji z modelami AI (OpenAI API) aplikacja analizuje oferty pracy i
 | Warstwa | Technologia | Opis |
 |----------|--------------|------|
 | **Frontend** | [Next.js](https://nextjs.org/) + [React](https://react.dev/) | Interfejs użytkownika SPA/SSR |
-| **Backend** | [Node.js](https://nodejs.org/) + [Express](https://expressjs.com/) | Główne API, obsługa użytkowników i zapytań |
-| **AI Service** | [Python Flask](https://flask.palletsprojects.com/) | Komunikacja z modelami LLM (OpenAI API) |
+| **Backend** | [Node.js](https://nodejs.org/) + [Nest.js](https://nestjs.com/) | Główne API, obsługa użytkowników i zapytań |
+| **AI Service** | [Python Fast API](https://fastapi.tiangolo.com/) | Komunikacja z modelami LLM (OpenRouter) |
 | **Baza danych** | [PostgreSQL](https://www.postgresql.org.pl/) + [Prisma](https://www.prisma.io/) | Przechowywanie danych użytkowników i profili |
 | **Autoryzacja** | [Auth0](https://auth0.com/) | Logowanie, rejestracja i zarządzanie kontami |
-| **LLM API** | [OpenAI API](https://platform.openai.com/) | Generowanie i analiza tekstów (CV, list motywacyjny, oceny) |
+| **LLM API** | [OpenRouter](https://openrouter.ai/) | Generowanie i analiza tekstów (CV, list motywacyjny, oceny) |
 
 
 ---
@@ -52,10 +55,69 @@ Dzięki integracji z modelami AI (OpenAI API) aplikacja analizuje oferty pracy i
 
 ---
 
-## Flow backendowe
-![Flow backendowy](images/backend_flow.jpg)
+## Architektura systemu
+![Architektura systemu](images/System%20Design.jpg)
 
 ---
+
+## Architektura Mikroserwisowa
+
+
+### AI Service
+[Dokumentacja AI Service](ai-service/README.md)
+
+**Odpowiedzialny za:**
+- Generowanie spersonalizowanych dokumentów (CV i listów motywacyjnych) na podstawie profilu użytkownika i ofert pracy
+- Integracja z modelami LLM (OpenRouter)
+- Synchronizacja i zarządzanie ofertami pracy z zewnętrznych portali (TheirStack)
+
+**Technologia:** Python + FastAPI
+
+---
+
+### User Service
+[Dokumentacja User Service](user-service/README.md)
+
+**Odpowiedzialny za:**
+- Przechowywanie i zarządzanie danymi użytkowników (edukacja, doświadczenie, umiejętności, certyfikaty)
+- Zarządzanie profilami użytkowników
+- Obsługa operacji CRUD na danych użytkownika
+- Komunikacja z bazą danych (PostgreSQL + Prisma ORM)
+
+**Technologia:** Node.js + NestJS + PostgreSQL
+
+---
+
+### Gateway
+**Odpowiedzialny za:**
+- Kierowanie żądań HTTP na odpowiednie mikroserwisy (routing)
+- Load balancing i obsługa ruchu przychodzącego
+- Walidacja tokenów autoryzacyjnych
+
+**Technologia:** Node.js + Express
+
+---
+
+### Frontend
+**Odpowiedzialny za:**
+- Interfejs użytkownika webowej aplikacji
+- Logika prezentacji i interakcja z użytkownikiem
+- Komunikacja z API poprzez Gateway
+- Wyświetlanie generowanych dokumentów (CV, listy motywacyjne)
+- Przeglądanie i filtrowanie ofert pracy
+
+**Technologia:** Next.js + React + TypeScript
+
+---
+
+## Generowanie Dokumentów
+
+![Generowanie dokumentów](images/Document_Generation.jpg)
+
+
+## Integracja ofert pracy
+
+![Integracja ofert pracy](images/Jobs_Sync.jpg)
 
 ## Zespół 5
 
