@@ -16,7 +16,7 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
         : ((accessTokenResponse as any)?.token ?? null);
 
     const { searchParams } = new URL(req.url);
-    const baseUrl = process.env.NEXT_PUBLIC_GATEWAY_URL?.replace(/\/$/, "");
+    const baseUrl = process.env.GATEWAY_URL?.replace(/\/$/, "");
     const gatewayUrl = `${baseUrl}/api/jobs?${searchParams.toString()}`;
 
     const response = await fetch(gatewayUrl, {
