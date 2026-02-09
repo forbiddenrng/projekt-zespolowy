@@ -1,19 +1,16 @@
 import Feature from "./Feature";
-
 import LoginButton from "./LoginButton";
 import Navigation from "./Navigation";
-import {features} from "../data/data";
-
+import { features } from "../data/data";
 
 export default async function WelcomePage() {
-
   const featuresList = features.map((feature) => (
-    <Feature key={feature.id} {...feature}/>
-  ))
+    <Feature key={feature.id} {...feature} />
+  ));
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation user={null}/>
+      <Navigation user={null} />
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
@@ -23,24 +20,24 @@ export default async function WelcomePage() {
               JobMatch<span className="text-primary">.AI</span>
             </h1>
             <p className="text-xl lg:text-2xl text-muted mb-8 max-w-3xl mx-auto">
-              Inteligentny Generator CV i Listów Motywacyjnych
+              Intelligent AI Resume & Cover Letter Generator
             </p>
             <p className="text-lg text-muted mb-12 max-w-2xl mx-auto">
-              Zwiększ swoje szanse na wymarzoną pracę dzięki AI, które dopasowuje Twoje dokumenty do każdej oferty
+              Boost your chances of landing your dream job with AI that tailors
+              your documents to every application.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="px-8 py-4 bg-primary hover:bg-primary_hover text-white rounded-lg font-semibold text-lg transition-colors duration-200 shadow-lg">
                 <LoginButton>
-                  Rozpocznij za darmo
+                  <a>Get Started for Free </a>
                 </LoginButton>
               </button>
               <button className="px-8 py-4 bg-secondary text-foreground hover:bg-border rounded-lg font-semibold text-lg transition-colors duration-200 border border-border">
-                Zobacz jak to działa
+                See How It Works
               </button>
             </div>
           </div>
         </div>
-
 
         {/* Decorative gradient */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -z-10"></div>
@@ -51,10 +48,10 @@ export default async function WelcomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-4">
-              Główne funkcjonalności
+              Core Features
             </h2>
             <p className="text-lg text-muted max-w-2xl mx-auto">
-              Wszystko czego potrzebujesz, aby wyróżnić się w procesie rekrutacji
+              Everything you need to stand out in the recruitment process.
             </p>
           </div>
 
@@ -64,15 +61,15 @@ export default async function WelcomePage() {
         </div>
       </section>
 
-      {/* How it works */}
+      {/* How It Works Section */}
       <section className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-4">
-              Jak to działa?
+              How It Works
             </h2>
             <p className="text-lg text-muted max-w-2xl mx-auto">
-              Prosty proces w trzech krokach
+              A simple three-step process
             </p>
           </div>
 
@@ -82,10 +79,11 @@ export default async function WelcomePage() {
                 1
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">
-                Uzupełnij profil
+                Complete Your Profile
               </h3>
               <p className="text-muted">
-                Wprowadź swoje dane osobowe, wykształcenie, doświadczenie zawodowe i umiejętności
+                Enter your personal details, education, professional experience,
+                and skills.
               </p>
             </div>
 
@@ -94,10 +92,10 @@ export default async function WelcomePage() {
                 2
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">
-                Wklej ofertę pracy
+                Paste a Job Offer
               </h3>
               <p className="text-muted">
-                Skopiuj treść ogłoszenia z dowolnego portalu z ofertami pracy
+                Copy the job description from any job board or company website.
               </p>
             </div>
 
@@ -106,10 +104,11 @@ export default async function WelcomePage() {
                 3
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-3">
-                Pobierz dokumenty
+                Download Documents
               </h3>
               <p className="text-muted">
-                AI generuje spersonalizowane CV i list motywacyjny gotowe do wysłania
+                AI generates a personalized CV and cover letter ready to be
+                sent.
               </p>
             </div>
           </div>
@@ -120,13 +119,14 @@ export default async function WelcomePage() {
       <section className="py-20 bg-primary">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
-            Gotowy, aby zdobyć wymarzoną pracę?
+            Ready to Land Your Dream Job?
           </h2>
           <p className="text-xl text-white/90 mb-10">
-            Dołącz do tysięcy użytkowników, którzy już zwiększyli swoje szanse na rynku pracy
+            Join thousands of users who have already improved their chances in
+            the job market.
           </p>
           <button className="px-10 py-5 bg-white text-primary hover:bg-gray-100 rounded-lg font-semibold text-lg transition-colors duration-200 shadow-xl cursor-pointer">
-            Zacznij teraz - To darmowe!
+            Start Now - It's Free!
           </button>
         </div>
       </section>
@@ -136,12 +136,18 @@ export default async function WelcomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <p className="text-muted mb-4">
-              © 2025 JobMatch.AI - Wszystkie prawa zastrzeżone
+              © 2026 JobMatch.AI - All rights reserved
             </p>
             <div className="flex justify-center gap-6 text-sm text-muted">
-              <a href="#" className="hover:text-primary transition-colors">Polityka prywatności</a>
-              <a href="#" className="hover:text-primary transition-colors">Regulamin</a>
-              <a href="#" className="hover:text-primary transition-colors">Kontakt</a>
+              <a href="#" className="hover:text-primary transition-colors">
+                Privacy Policy
+              </a>
+              <a href="#" className="hover:text-primary transition-colors">
+                Terms of Service
+              </a>
+              <a href="#" className="hover:text-primary transition-colors">
+                Contact
+              </a>
             </div>
           </div>
         </div>

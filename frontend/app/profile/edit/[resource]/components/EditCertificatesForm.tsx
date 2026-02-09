@@ -23,7 +23,6 @@ interface EditCertificate {
   certificationDate: string; //ISO format
 }
 
-
 interface EditCertificatesFormValues {
   certificates: EditCertificate[];
 }
@@ -37,7 +36,7 @@ export default function EditCertificatesForm() {
     certificates: [],
   });
 
-  // Wczytaj dane z API
+  // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -56,7 +55,7 @@ export default function EditCertificatesForm() {
               name: cert.name,
               issuer: cert.issuer,
               certificationDate: formatDateForInput(cert.certification_date),
-            })
+            }),
           );
 
           setFormData({
@@ -68,7 +67,7 @@ export default function EditCertificatesForm() {
           });
         }
       } catch (err: any) {
-        setError("Błąd podczas wczytywania danych");
+        setError("Error loading data");
       } finally {
         setLoading(false);
       }
@@ -79,7 +78,7 @@ export default function EditCertificatesForm() {
 
   const handleSubmit = async (
     values: EditCertificatesFormValues,
-    helpers: FormikHelpers<EditCertificatesFormValues>
+    helpers: FormikHelpers<EditCertificatesFormValues>,
   ) => {
     const { setSubmitting } = helpers;
 
@@ -87,53 +86,51 @@ export default function EditCertificatesForm() {
       setSubmitting(true);
       setError(null);
 
-      // Filtrujemy puste wpisy (wszystkie pola puste)
+      // Filter out empty entries
       const nonEmpty = (cert: Certificate) =>
         (cert.name && cert.name.trim() !== "") ||
         (cert.issuer && cert.issuer.trim() !== "") ||
         (cert.certificationDate && cert.certificationDate.trim() !== "");
 
-      const payload = values.certificates
-        .filter(nonEmpty)
-        .map((cert) => {
-          // konwertuj datę do formatu ISO
-          let isoDate = "";
-          if (cert.certificationDate) {
-            const d = new Date(cert.certificationDate);
-            if (!isNaN(d.getTime())) {
-              isoDate = d.toISOString();
-            } else {
-              isoDate = "";
-            }
+      const payload = values.certificates.filter(nonEmpty).map((cert) => {
+        let isoDate = "";
+        if (cert.certificationDate) {
+          const d = new Date(cert.certificationDate);
+          if (!isNaN(d.getTime())) {
+            isoDate = d.toISOString();
           }
+        }
 
-          return {
-            id: cert.id,
-            name: cert.name?.trim() ?? "",
-            issuer: cert.issuer?.trim() ?? "",
-            certificationDate: isoDate,
-          };
-        });
-
-      const res = await axios.put("/api/user/profile?resource=certificates", {
-        certificates: payload,
-      }, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        return {
+          id: cert.id,
+          name: cert.name?.trim() ?? "",
+          issuer: cert.issuer?.trim() ?? "",
+          certificationDate: isoDate,
+        };
       });
 
-      if (res.data?.statusCode !== 200)
-        throw new Error("Błąd podczas zapisywania danych");
+      const res = await axios.put(
+        "/api/user/profile?resource=certificates",
+        {
+          certificates: payload,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-      setSuccessMessage("Certyfikaty zostały pomyślnie zaktualizowane!");
+      if (res.data?.statusCode !== 200) throw new Error("Error saving data");
 
-      // Przekieruj po 1.5 sekund
+      setSuccessMessage("Certificates updated successfully!");
+
+      // Redirect after 1.5 seconds
       setTimeout(() => {
         router.push("/profile");
       }, 1500);
     } catch (err: any) {
-      setError("Błąd podczas zapisywania danych");
+      setError("An error occurred while saving data");
     } finally {
       setSubmitting(false);
     }
@@ -142,7 +139,7 @@ export default function EditCertificatesForm() {
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
-        <p className="text-muted">Ładowanie...</p>
+        <p className="text-muted">Loading...</p>
       </div>
     );
   }
@@ -150,11 +147,10 @@ export default function EditCertificatesForm() {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
       <h2 className="text-2xl font-semibold mb-6 text-foreground">
-        Edytuj certyfikaty
+        Edit Certificates
       </h2>
       <p className="text-muted mb-6">
-        Zmień swoje certyfikaty. Możesz dodać, edytować lub usunąć wiele
-        pozycji.
+        Update your certificates. You can add, edit, or remove multiple entries.
       </p>
 
       {error && (
@@ -184,8 +180,8 @@ export default function EditCertificatesForm() {
                 <div className="space-y-6">
                   {values.certificates.length === 0 && (
                     <div className="p-4 bg-secondary border border-border rounded-lg text-sm text-muted">
-                      Nie dodałeś żadnych certyfikatów. Możesz dodać je klikając
-                      przycisk poniżej.
+                      No certificates added yet. You can add them by clicking
+                      the button below.
                     </div>
                   )}
 
@@ -194,35 +190,34 @@ export default function EditCertificatesForm() {
                       key={index}
                       className="p-5 bg-secondary border border-border rounded-lg space-y-4 relative"
                     >
-                      {/* Nagłówek karty */}
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-medium text-foreground">
-                          Certyfikat #{index + 1}
+                          Certificate #{index + 1}
                         </h3>
                         {values.certificates.length > 0 && (
                           <button
                             type="button"
                             onClick={() => remove(index)}
                             className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-error/10 hover:bg-error/20 text-error transition-colors cursor-pointer duration-200"
-                            title="Usuń certyfikat"
+                            title="Remove certificate"
                           >
                             <FaTrash />
                           </button>
                         )}
                       </div>
 
-                      {/* Nazwa certyfikatu */}
+                      {/* Certificate Name */}
                       <div>
                         <label
                           htmlFor={`certificates.${index}.name`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Nazwa certyfikatu
+                          Certificate Name
                         </label>
                         <Field
                           id={`certificates.${index}.name`}
                           name={`certificates.${index}.name`}
-                          placeholder="np. AWS Certified Developer"
+                          placeholder="e.g. AWS Certified Developer"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -232,18 +227,18 @@ export default function EditCertificatesForm() {
                         />
                       </div>
 
-                      {/* Wydawca */}
+                      {/* Issuer */}
                       <div>
                         <label
                           htmlFor={`certificates.${index}.issuer`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Wydawca
+                          Issuer
                         </label>
                         <Field
                           id={`certificates.${index}.issuer`}
                           name={`certificates.${index}.issuer`}
-                          placeholder="np. Amazon Web Services"
+                          placeholder="e.g. Amazon Web Services"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -253,13 +248,13 @@ export default function EditCertificatesForm() {
                         />
                       </div>
 
-                      {/* Data otrzymania */}
+                      {/* Date of Issue */}
                       <div>
                         <label
                           htmlFor={`certificates.${index}.certificationDate`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Data otrzymania
+                          Date of Issue
                         </label>
                         <Field
                           type="date"
@@ -276,13 +271,11 @@ export default function EditCertificatesForm() {
                     </div>
                   ))}
 
-                  {/* Przycisk dodawania */}
                   <AddPosition
                     onClick={() => push({ ...emptyCertificates })}
-                    prompt="Dodaj kolejny certyfikat"
+                    prompt="Add another certificate"
                   />
 
-                  {/* Błąd walidacji tablicy */}
                   {typeof errors.certificates === "string" && (
                     <p className="text-sm text-error">{errors.certificates}</p>
                   )}
@@ -290,7 +283,6 @@ export default function EditCertificatesForm() {
               )}
             </FieldArray>
 
-            {/* Przyciski nawigacji */}
             <div className="flex justify-between gap-4 pt-6 border-t border-border">
               <CancelButton onClick={() => router.back()} />
               <SaveButton isSubmitting={isSubmitting} />

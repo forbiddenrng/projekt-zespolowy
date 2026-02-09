@@ -13,21 +13,20 @@ export default function EditPage() {
   const params = useParams();
   const resource = params?.resource;
 
-  // Mapowanie resource na tytuły i komponenty
+  // Mapping resources to English titles
   const resourceConfig: Record<string, { title: string }> = {
-    personal: { title: "Dane osobowe" },
-    education: { title: "Edukacja" },
-    work: { title: "Doświadczenie zawodowe" },
-    abilities: { title: "Umiejętności" },
-    languages: { title: "Języki obce" },
-    links: { title: "Linki" },
-    certificates: { title: "Certyfikaty" },
+    personal: { title: "Personal Data" },
+    education: { title: "Education" },
+    work: { title: "Work Experience" },
+    abilities: { title: "Skills" },
+    languages: { title: "Languages" },
+    links: { title: "Links" },
+    certificates: { title: "Certificates" },
   };
 
-  const config = resourceConfig[resource as string] || { title: "Edycja" };
+  const config = resourceConfig[resource as string] || { title: "Edit" };
 
-
-    const renderComponent = () => {
+  const renderComponent = () => {
     switch (resource) {
       case "personal":
         return <EditPersonalForm />;
@@ -46,7 +45,9 @@ export default function EditPage() {
       default:
         return (
           <div className="max-w-4xl mx-auto p-6 bg-card-background border border-card-border rounded-lg">
-            <p className="text-muted">Komponent edycji dla "{resource}" jeszcze nie jest dostępny.</p>
+            <p className="text-muted">
+              The edit component for "{resource}" is not yet available.
+            </p>
           </div>
         );
     }
@@ -54,7 +55,8 @@ export default function EditPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-     {renderComponent()} 
+      <h1 className="sr-only">{config.title}</h1>
+      {renderComponent()}
     </div>
   );
 }

@@ -1,65 +1,86 @@
+import { NextResponse } from "next/server";
 import { auth0 } from "@/app/lib/auth0";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
 export const GET = auth0.withApiAuthRequired(
-  async (_req: Request, ctx: { params: Promise<Record<string, string | string[]>> } | undefined) => {
+  async (
+    _req: Request,
+    ctx: { params: Promise<Record<string, string | string[]>> } | undefined,
+  ) => {
     try {
       const resolvedParams = await ctx?.params;
 
-      if (!resolvedParams?.taskId || typeof resolvedParams.taskId !== "string") {
+      if (
+        !resolvedParams?.taskId ||
+        typeof resolvedParams.taskId !== "string"
+      ) {
         return NextResponse.json(
-          { message: "Task ID is required" },
+          { detail: "Invalid or missing task ID" },
           { status: 400 },
         );
       }
-      const accessTokenResp = await auth0.getAccessToken({
+
+      const { taskId } = resolvedParams;
+
+      const accessTokenResponse = await auth0.getAccessToken({
         audience: process.env.AUTH0_AUDIENCE,
       });
 
       const token =
-        typeof accessTokenResp === "string"
-          ? accessTokenResp
-          : ((accessTokenResp as any)?.token ?? null);
+        typeof accessTokenResponse === "string"
+          ? accessTokenResponse
+          : ((accessTokenResponse as any)?.token ?? null);
 
-      const res = await fetch(
-        `${process.env.GATEWAY_URL}/api/ai/cv/${encodeURIComponent(
-          resolvedParams.taskId,
-        )}/download`,
+      const response = await fetch(
+        `${process.env.GATEWAY_URL}/api/ai/cv/${encodeURIComponent(taskId)}/download`,
         {
+          method: "GET",
           headers: {
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
         },
       );
 
-      if (!res.ok) {
-        const text = await res.text();
-        return new Response(text, {
-          status: res.status,
-          headers: {
-            "Content-Type": res.headers.get("content-type") ?? "text/plain",
-          },
-        });
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorDetail: string;
+
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorDetail =
+            errorJson?.detail ||
+            errorJson?.message ||
+            `HTTP ${response.status}`;
+        } catch {
+          errorDetail =
+            errorText.trim().substring(0, 200) || `HTTP ${response.status}`;
+        }
+
+        return NextResponse.json(
+          { detail: errorDetail },
+          { status: response.status },
+        );
       }
 
-      const buf = await res.arrayBuffer();
-      return new Response(buf, {
+      const buffer = await response.arrayBuffer();
+      const filename = `cv_${taskId}.pdf`;
+      const encodedFilename = encodeURIComponent(filename);
+
+      return new NextResponse(buffer, {
         status: 200,
         headers: {
           "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename="cv-${resolvedParams.taskId}.pdf"`,
+          // Używamy RFC 5987 (filename*) dla maksymalnej kompatybilności przy zakodowanych znakach
+          "Content-Disposition": `attachment; filename="${filename}"; filename*=UTF-8''${encodedFilename}`,
         },
       });
-    } catch (err: any) {
-      console.error("AI download error:", err);
-      return new Response(
-        JSON.stringify({ message: err?.message ?? "Unknown error" }),
-        {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        },
+    } catch (error: any) {
+      console.error("CV download API error:", error);
+      return NextResponse.json(
+        { detail: error.message || "Internal server error" },
+        { status: 500 },
       );
     }
   },

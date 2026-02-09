@@ -53,25 +53,27 @@ export function useCoverLetterGeneration(): UseCoverLetterGenerationReturn {
       if (!isMountedRef.current) return null;
 
       try {
-        const res = await fetch(
+        const response = await fetch(
           `/api/ai/cover-letter/${taskIdToCheck}/status`,
           {
             credentials: "include",
           },
         );
 
-        if (!res.ok) {
-          const text = await res.text();
-          let errJson: any = null;
+        if (!response.ok) {
+          const text = await response.text();
+          let errorJson: any = null;
           try {
-            errJson = JSON.parse(text);
-          } catch {}
+            errorJson = JSON.parse(text);
+          } catch {
+            // Text is not JSON
+          }
 
-          const errorMessage = parseErrorDetail(errJson, res.status);
+          const errorMessage = parseErrorDetail(errorJson, response.status);
           throw new Error(errorMessage);
         }
 
-        const data: CoverLetterStatusResponse = await res.json();
+        const data: CoverLetterStatusResponse = await response.json();
 
         if (!isMountedRef.current) return null;
 
@@ -85,10 +87,10 @@ export function useCoverLetterGeneration(): UseCoverLetterGenerationReturn {
         }
 
         return data;
-      } catch (err: any) {
-        console.error("Cover letter status check error:", err);
+      } catch (error: any) {
+        console.error("Cover letter status check error:", error);
         if (!isMountedRef.current) return null;
-        setError(err.message || "Failed to check status");
+        setError(error.message || "Failed to check status");
         setIsLoading(false);
         return null;
       }
@@ -115,7 +117,7 @@ export function useCoverLetterGeneration(): UseCoverLetterGenerationReturn {
             clearInterval(pollingIntervalRef.current);
           pollingIntervalRef.current = null;
         }
-      } catch (e) {
+      } catch (error) {
         if (pollingIntervalRef.current)
           clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
@@ -153,12 +155,14 @@ export function useCoverLetterGeneration(): UseCoverLetterGenerationReturn {
 
         if (!response.ok) {
           const text = await response.text();
-          let errJson: any = null;
+          let errorJson: any = null;
           try {
-            errJson = JSON.parse(text);
-          } catch {}
+            errorJson = JSON.parse(text);
+          } catch {
+            // Text is not JSON
+          }
 
-          const errorMessage = parseErrorDetail(errJson, response.status);
+          const errorMessage = parseErrorDetail(errorJson, response.status);
           throw new Error(errorMessage);
         }
 
@@ -168,10 +172,10 @@ export function useCoverLetterGeneration(): UseCoverLetterGenerationReturn {
 
         setTaskId(data.task_id);
         setStatus(data.status);
-      } catch (err: any) {
-        console.error("Cover letter generation error:", err);
+      } catch (error: any) {
+        console.error("Cover letter generation error:", error);
         if (!isMountedRef.current) return;
-        setError(err.message || "Failed to generate cover letter");
+        setError(error.message || "Failed to generate cover letter");
         setIsLoading(false);
       }
     },
@@ -201,36 +205,38 @@ export function useCoverLetterGeneration(): UseCoverLetterGenerationReturn {
     }
 
     try {
-      const res = await fetch(
+      const response = await fetch(
         `/api/ai/cover-letter/${encodeURIComponent(taskId)}/download`,
         {
           credentials: "include",
         },
       );
 
-      if (!res.ok) {
-        const text = await res.text();
-        let errJson: any = null;
+      if (!response.ok) {
+        const text = await response.text();
+        let errorJson: any = null;
         try {
-          errJson = JSON.parse(text);
-        } catch {}
+          errorJson = JSON.parse(text);
+        } catch {
+          // Text is not JSON
+        }
 
-        const errorMessage = parseErrorDetail(errJson, res.status);
+        const errorMessage = parseErrorDetail(errorJson, response.status);
         throw new Error(errorMessage);
       }
 
-      const blob = await res.blob();
+      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `cover_letter_${taskId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `cover_letter_${taskId}.pdf`;
+      document.body.appendChild(anchor);
+      anchor.click();
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err: any) {
-      console.error("Cover letter download error:", err);
-      setError(err.message || "Failed to download cover letter");
+      document.body.removeChild(anchor);
+    } catch (error: any) {
+      console.error("Cover letter download error:", error);
+      setError(error.message || "Failed to download cover letter");
     }
   }, [taskId]);
 

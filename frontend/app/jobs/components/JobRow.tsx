@@ -34,7 +34,7 @@ export default function JobRow({ job }: JobRowProps) {
               <span className="font-bold text-primary/90">{company.name}</span>
               <span className="flex items-center gap-1">
                 <FiMapPin className="text-primary/60" />
-                {remote ? "Zdalnie" : location[0]?.display_name}
+                {remote ? "Remote" : location[0]?.display_name}
               </span>
               <span className="flex items-center gap-1">
                 <FiClock className="text-primary/60" />
@@ -52,7 +52,7 @@ export default function JobRow({ job }: JobRowProps) {
                 : "Salary Undisclosed"}
             </div>
             <p className="text-[10px] text-muted uppercase tracking-widest font-bold mt-1">
-              Roczne wynagrodzenie (brutto)
+              Annual Salary (Gross)
             </p>
           </div>
 
@@ -60,7 +60,7 @@ export default function JobRow({ job }: JobRowProps) {
             href={`/jobs/${id}`}
             className="flex items-center justify-center gap-2 px-6 py-2.5 bg-secondary hover:bg-primary text-foreground hover:text-white rounded-xl font-bold transition-all duration-200 border border-border hover:border-primary shadow-sm group/btn"
           >
-            Zobacz szczegóły
+            View Details
             <FiArrowRight className="group-hover/btn:translate-x-1 transition-transform" />
           </Link>
         </div>

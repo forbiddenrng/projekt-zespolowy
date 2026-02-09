@@ -22,8 +22,7 @@ interface EditEducation {
   major: string;
   degree: string;
   beginDate: string; // ISO format
-  endDate?: string; // ISO format, opcjonalne
-
+  endDate?: string; // ISO format, optional
 }
 
 interface EditEducationFormValues {
@@ -39,7 +38,7 @@ export default function EditEducationForm() {
     education: [{ ...emptyEducation }],
   });
 
-  // Wczytaj dane z API
+  // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -62,7 +61,7 @@ export default function EditEducationForm() {
               degree: edu.degree,
               beginDate: formatDateForInput(edu.begin_date),
               endDate: formatDateForInput(edu.end_date),
-            })
+            }),
           );
 
           setFormData({
@@ -74,7 +73,7 @@ export default function EditEducationForm() {
           });
         }
       } catch (err: any) {
-        setError("Błąd podczas wczytywania danych");
+        setError("Error loading education data");
       } finally {
         setLoading(false);
       }
@@ -85,7 +84,7 @@ export default function EditEducationForm() {
 
   const handleSubmit = async (
     values: EditEducationFormValues,
-    helpers: FormikHelpers<EditEducationFormValues>
+    helpers: FormikHelpers<EditEducationFormValues>,
   ) => {
     const { setSubmitting } = helpers;
 
@@ -93,37 +92,38 @@ export default function EditEducationForm() {
       setSubmitting(true);
       setError(null);
 
-      // Przekształć daty do formatu ISO i zmień nazwy pól na backend format
+      // Transform dates to ISO format and map to backend expected structure
       const payload = values.education.map((edu) => ({
         id: edu.id,
         schoolName: edu.schoolName,
         major: edu.major,
         degree: edu.degree,
         beginDate: new Date(edu.beginDate).toISOString(),
-        endDate: edu.endDate
-          ? new Date(edu.endDate).toISOString()
-          : undefined,
+        endDate: edu.endDate ? new Date(edu.endDate).toISOString() : undefined,
       }));
 
-      const res = await axios.put("/api/user/profile?resource=education", {
-        education: payload,
-      }, {
-        headers: {
-          "Content-Type": "application/json",
+      const res = await axios.put(
+        "/api/user/profile?resource=education",
+        {
+          education: payload,
         },
-      });
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-      if (res.data?.statusCode !== 200)
-        throw new Error("Błąd podczas zapisywania danych");
+      if (res.data?.statusCode !== 200) throw new Error("Error saving data");
 
-      setSuccessMessage("Edukacja została pomyślnie zaktualizowana!");
+      setSuccessMessage("Education updated successfully!");
 
-      // Przekieruj po 1.5 sekund
+      // Redirect after 1.5 seconds
       setTimeout(() => {
         router.push("/profile");
       }, 1500);
     } catch (err: any) {
-      setError("Błąd podczas zapisywania danych");
+      setError("An error occurred while saving data");
     } finally {
       setSubmitting(false);
     }
@@ -132,7 +132,7 @@ export default function EditEducationForm() {
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
-        <p className="text-muted">Ładowanie...</p>
+        <p className="text-muted">Loading...</p>
       </div>
     );
   }
@@ -140,11 +140,11 @@ export default function EditEducationForm() {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
       <h2 className="text-2xl font-semibold mb-6 text-foreground">
-        Edytuj edukację
+        Edit Education
       </h2>
       <p className="text-muted mb-6">
-        Zmień swoje informacje o edukacji. Możesz dodać lub usunąć wiele
-        pozycji.
+        Update your educational background. You can add or remove multiple
+        entries.
       </p>
 
       {error && (
@@ -177,35 +177,35 @@ export default function EditEducationForm() {
                       key={index}
                       className="p-5 bg-secondary border border-border rounded-lg space-y-4 relative"
                     >
-                      {/* Nagłówek karty */}
+                      {/* Card Header */}
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-medium text-foreground">
-                          Edukacja #{index + 1}
+                          Education #{index + 1}
                         </h3>
                         {values.education.length > 1 && (
                           <button
                             type="button"
                             onClick={() => remove(index)}
                             className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-error/10 hover:bg-error/20 text-error transition-colors cursor-pointer duration-200"
-                            title="Usuń edukację"
+                            title="Remove education"
                           >
                             <FaTrash />
                           </button>
                         )}
                       </div>
 
-                      {/* Nazwa szkoły */}
+                      {/* School Name */}
                       <div>
                         <label
                           htmlFor={`education.${index}.schoolName`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Nazwa szkoły / uczelni
+                          School / University Name
                         </label>
                         <Field
                           id={`education.${index}.schoolName`}
                           name={`education.${index}.schoolName`}
-                          placeholder="np. Politechnika Warszawska"
+                          placeholder="e.g. Warsaw University of Technology"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -215,18 +215,18 @@ export default function EditEducationForm() {
                         />
                       </div>
 
-                      {/* Kierunek */}
+                      {/* Major */}
                       <div>
                         <label
                           htmlFor={`education.${index}.major`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Kierunek / Profil
+                          Major / Field of Study
                         </label>
                         <Field
                           id={`education.${index}.major`}
                           name={`education.${index}.major`}
-                          placeholder="np. Informatyka"
+                          placeholder="e.g. Computer Science"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -236,13 +236,13 @@ export default function EditEducationForm() {
                         />
                       </div>
 
-                      {/* Stopień */}
+                      {/* Degree */}
                       <div>
                         <label
                           htmlFor={`education.${index}.degree`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Stopień / Tytuł
+                          Degree / Title
                         </label>
                         <Field
                           as="select"
@@ -263,15 +263,15 @@ export default function EditEducationForm() {
                         />
                       </div>
 
-                      {/* Daty */}
+                      {/* Dates */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Data rozpoczęcia */}
+                        {/* Start Date */}
                         <div>
                           <label
                             htmlFor={`education.${index}.beginDate`}
                             className="block text-sm font-medium text-foreground mb-1"
                           >
-                            Data rozpoczęcia
+                            Start Date
                           </label>
                           <Field
                             type="date"
@@ -286,14 +286,14 @@ export default function EditEducationForm() {
                           />
                         </div>
 
-                        {/* Data zakończenia */}
+                        {/* End Date */}
                         <div>
                           <label
                             htmlFor={`education.${index}.endDate`}
                             className="block text-sm font-medium text-foreground mb-1"
                           >
-                            Data zakończenia{" "}
-                            <span className="text-muted">(opcjonalne)</span>
+                            End Date{" "}
+                            <span className="text-muted">(optional)</span>
                           </label>
                           <Field
                             type="date"
@@ -311,13 +311,11 @@ export default function EditEducationForm() {
                     </div>
                   ))}
 
-                  {/* Przycisk dodawania */}
                   <AddPosition
                     onClick={() => push({ ...emptyEducation })}
-                    prompt="Dodaj kolejną edukację"
+                    prompt="Add another education entry"
                   />
 
-                  {/* Błąd walidacji tablicy */}
                   {typeof errors.education === "string" && (
                     <p className="text-sm text-error">{errors.education}</p>
                   )}
@@ -325,7 +323,6 @@ export default function EditEducationForm() {
               )}
             </FieldArray>
 
-            {/* Przyciski nawigacji */}
             <div className="flex justify-between gap-4 pt-6 border-t border-border">
               <CancelButton onClick={() => router.back()} />
               <SaveButton isSubmitting={isSubmitting} />

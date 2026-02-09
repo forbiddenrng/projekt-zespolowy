@@ -10,32 +10,34 @@ export const POST = auth0.withApiAuthRequired(async (req: Request) => {
   try {
     const body = await req.json();
 
-    // TOKEN DO GATEWAY
-    const accessTokenResp = await auth0.getAccessToken({
+    const accessTokenResponse = await auth0.getAccessToken({
       audience: process.env.AUTH0_AUDIENCE,
     });
 
     const token =
-      typeof accessTokenResp === "string"
-        ? accessTokenResp
-        : (accessTokenResp as any)?.token ?? null;
+      typeof accessTokenResponse === "string"
+        ? accessTokenResponse
+        : ((accessTokenResponse as any)?.token ?? null);
 
     const apiClient = new APIClient();
     const response = await apiClient.createProfile(token, body);
 
-    return NextResponse.json(response.data, {status: response.status})
-
-  } catch (err: any) {
-    if (err instanceof APIError){
+    return NextResponse.json(response.data, { status: response.status });
+  } catch (error: any) {
+    if (error instanceof APIError) {
       return NextResponse.json(
-        {message: err.userMessage, details: err.details},
-        {status: err.statusCode || 500}
-      )
+        {
+          detail: error.userMessage,
+          details: error.details,
+        },
+        { status: error.statusCode || 500 },
+      );
     }
-    console.error("Unexpected error: ", err);
+
+    console.error("Unexpected profile creation error:", error);
     return NextResponse.json(
-      { message: "An unexpected error occured. Please try again" },
-      { status: 500 }
+      { detail: "An unexpected error occurred. Please try again" },
+      { status: 500 },
     );
   }
 });

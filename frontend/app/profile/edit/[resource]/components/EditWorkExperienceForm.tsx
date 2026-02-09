@@ -15,13 +15,12 @@ import CancelButton from "./ui/CancelButton";
 import SaveButton from "./ui/SaveButton";
 import AddPosition from "./ui/AddPosition";
 
-
 interface EditWorkExp {
   id?: number;
   companyName: string;
   position: string;
   beginDate: string; // ISO format
-  endDate?: string; // ISO format, opcjonalne
+  endDate?: string; // ISO format, optional
   description: string;
 }
 
@@ -38,7 +37,7 @@ export default function EditWorkExperienceForm() {
     workExp: [{ ...emptyWorkExp }],
   });
 
-  // Wczytaj dane z API
+  // Fetch data from API
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -61,7 +60,7 @@ export default function EditWorkExperienceForm() {
               beginDate: formatDateForInput(work.begin_date),
               endDate: formatDateForInput(work.end_date),
               description: work.description,
-            })
+            }),
           );
 
           setFormData({
@@ -73,7 +72,7 @@ export default function EditWorkExperienceForm() {
           });
         }
       } catch (err: any) {
-        setError("Błąd podczas wczytywania danych");
+        setError("Error loading work experience data");
       } finally {
         setLoading(false);
       }
@@ -84,7 +83,7 @@ export default function EditWorkExperienceForm() {
 
   const handleSubmit = async (
     values: EditWorkExperienceFormValues,
-    helpers: FormikHelpers<EditWorkExperienceFormValues>
+    helpers: FormikHelpers<EditWorkExperienceFormValues>,
   ) => {
     const { setSubmitting } = helpers;
 
@@ -92,7 +91,7 @@ export default function EditWorkExperienceForm() {
       setSubmitting(true);
       setError(null);
 
-      // Przekształć daty do formatu ISO i zmień nazwy pól na backend format
+      // Transform dates to ISO and map to backend format
       const payload = values.workExp.map((work) => ({
         id: work.id,
         companyName: work.companyName,
@@ -104,25 +103,28 @@ export default function EditWorkExperienceForm() {
         description: work.description,
       }));
 
-      const res = await axios.put("/api/user/profile?resource=work", {
-        workExperiences: payload,
-      }, {
-        headers: {
-          "Content-Type": "application/json",
+      const res = await axios.put(
+        "/api/user/profile?resource=work",
+        {
+          workExperiences: payload,
         },
-      });
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
-      if (res.data?.statusCode !== 200)
-        throw new Error("Błąd podczas zapisywania danych");
+      if (res.data?.statusCode !== 200) throw new Error("Error saving data");
 
-      setSuccessMessage("Doświadczenie zawodowe zostało pomyślnie zaktualizowane!");
+      setSuccessMessage("Work experience updated successfully!");
 
-      // Przekieruj po 1.5 sekund
+      // Redirect after 1.5 seconds
       setTimeout(() => {
         router.push("/profile");
       }, 1500);
     } catch (err: any) {
-      setError("Błąd podczas zapisywania danych");
+      setError("An error occurred while saving data");
     } finally {
       setSubmitting(false);
     }
@@ -131,7 +133,7 @@ export default function EditWorkExperienceForm() {
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
-        <p className="text-muted">Ładowanie...</p>
+        <p className="text-muted">Loading...</p>
       </div>
     );
   }
@@ -139,11 +141,11 @@ export default function EditWorkExperienceForm() {
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card-background border border-card-border rounded-lg shadow-lg">
       <h2 className="text-2xl font-semibold mb-6 text-foreground">
-        Edytuj doświadczenie zawodowe
+        Edit Work Experience
       </h2>
       <p className="text-muted mb-6">
-        Zmień swoje doświadczenie zawodowe. Możesz dodać lub usunąć wiele
-        pozycji.
+        Update your professional history. You can add or remove multiple
+        entries.
       </p>
 
       {error && (
@@ -176,35 +178,35 @@ export default function EditWorkExperienceForm() {
                       key={index}
                       className="p-5 bg-secondary border border-border rounded-lg space-y-4 relative"
                     >
-                      {/* Nagłówek karty */}
+                      {/* Card Header */}
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-medium text-foreground">
-                          Doświadczenie #{index + 1}
+                          Experience #{index + 1}
                         </h3>
                         {values.workExp.length > 1 && (
                           <button
                             type="button"
                             onClick={() => remove(index)}
                             className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-error/10 hover:bg-error/20 text-error transition-colors cursor-pointer duration-200"
-                            title="Usuń doświadczenie"
+                            title="Remove experience"
                           >
                             <FaTrash />
                           </button>
                         )}
                       </div>
 
-                      {/* Nazwa firmy */}
+                      {/* Company Name */}
                       <div>
                         <label
                           htmlFor={`workExp.${index}.companyName`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Nazwa firmy
+                          Company Name
                         </label>
                         <Field
                           id={`workExp.${index}.companyName`}
                           name={`workExp.${index}.companyName`}
-                          placeholder="np. ABC Sp. z o.o."
+                          placeholder="e.g. ABC Inc."
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -214,18 +216,18 @@ export default function EditWorkExperienceForm() {
                         />
                       </div>
 
-                      {/* Stanowisko */}
+                      {/* Position */}
                       <div>
                         <label
                           htmlFor={`workExp.${index}.position`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Stanowisko
+                          Position
                         </label>
                         <Field
                           id={`workExp.${index}.position`}
                           name={`workExp.${index}.position`}
-                          placeholder="np. Inżynier Oprogramowania"
+                          placeholder="e.g. Software Engineer"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -235,15 +237,15 @@ export default function EditWorkExperienceForm() {
                         />
                       </div>
 
-                      {/* Daty */}
+                      {/* Dates */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Data rozpoczęcia */}
+                        {/* Start Date */}
                         <div>
                           <label
                             htmlFor={`workExp.${index}.beginDate`}
                             className="block text-sm font-medium text-foreground mb-1"
                           >
-                            Data rozpoczęcia
+                            Start Date
                           </label>
                           <Field
                             type="date"
@@ -258,14 +260,14 @@ export default function EditWorkExperienceForm() {
                           />
                         </div>
 
-                        {/* Data zakończenia */}
+                        {/* End Date */}
                         <div>
                           <label
                             htmlFor={`workExp.${index}.endDate`}
                             className="block text-sm font-medium text-foreground mb-1"
                           >
-                            Data zakończenia{" "}
-                            <span className="text-muted">(opcjonalne)</span>
+                            End Date{" "}
+                            <span className="text-muted">(optional)</span>
                           </label>
                           <Field
                             type="date"
@@ -281,19 +283,19 @@ export default function EditWorkExperienceForm() {
                         </div>
                       </div>
 
-                      {/* Opis */}
+                      {/* Description */}
                       <div>
                         <label
                           htmlFor={`workExp.${index}.description`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Opis obowiązków
+                          Responsibilities
                         </label>
                         <Field
                           as="textarea"
                           id={`workExp.${index}.description`}
                           name={`workExp.${index}.description`}
-                          placeholder="Opisz swoje obowiązki i osiągnięcia"
+                          placeholder="Describe your responsibilities and achievements"
                           rows={4}
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
                         />
@@ -306,13 +308,11 @@ export default function EditWorkExperienceForm() {
                     </div>
                   ))}
 
-                  {/* Przycisk dodawania */}
                   <AddPosition
                     onClick={() => push({ ...emptyWorkExp })}
-                    prompt="Dodaj kolejne doświadczenie"
+                    prompt="Add another experience"
                   />
 
-                  {/* Błąd walidacji tablicy */}
                   {typeof errors.workExp === "string" && (
                     <p className="text-sm text-error">{errors.workExp}</p>
                   )}
@@ -320,7 +320,6 @@ export default function EditWorkExperienceForm() {
               )}
             </FieldArray>
 
-            {/* Przyciski nawigacji */}
             <div className="flex justify-between gap-4 pt-6 border-t border-border">
               <CancelButton onClick={() => router.back()} />
               <SaveButton isSubmitting={isSubmitting} />

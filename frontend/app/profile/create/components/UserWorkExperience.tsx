@@ -24,33 +24,32 @@ export const emptyWorkExp: WorkExp = {
 };
 
 export const workExpSchema = Yup.object({
-  companyName: Yup.string().required("Nazwa firmy jest wymagana")
-  .min(3, "Nazwa firmy musi mieć co najmniej 3 znaki")
-  .max(100, "Nazwa firmy nie może być dłuższa niż 100 znaków"),
-  position: Yup.string().required("Stanowisko jest wymagane")
-  .min(3, "Stanowisko musi mieć co najmniej 3 znaki")
-  .max(100, "Stanowisko nie może być dłuższe niż 100 znaków"),
+  companyName: Yup.string()
+    .required("Company name is required")
+    .min(3, "Company name must be at least 3 characters")
+    .max(100, "Company name cannot exceed 100 characters"),
+  position: Yup.string()
+    .required("Position is required")
+    .min(3, "Position must be at least 3 characters")
+    .max(100, "Position cannot exceed 100 characters"),
   beginDate: Yup.date()
-    .required("Data rozpoczęcia jest wymagana")
-    .typeError("Niepoprawny format daty")
-    .test('is-valid-date', "Data nie może być późniejsza niż dzisiaj", (value) => {
+    .required("Start date is required")
+    .typeError("Invalid date format")
+    .test("is-valid-date", "Date cannot be in the future", (value) => {
       if (!value) return true;
-      return new Date(value) < new Date();
+      return new Date(value) <= new Date();
     }),
   endDate: Yup.date()
     .nullable()
-    .typeError("Niepoprawny format daty")
-    .min(
-      Yup.ref("beginDate"),
-      "Data zakończenia musi być późniejsza niż rozpoczęcia"
-    ),
-  description: Yup.string().required("Opis stanowiska jest wymagany")
-  .min(10, "Opis stanowiska musi mieć co najmniej 10 znaków"),
+    .typeError("Invalid date format")
+    .min(Yup.ref("beginDate"), "End date must be after the start date"),
+  description: Yup.string()
+    .required("Job description is required")
+    .min(10, "Description must be at least 10 characters"),
 });
 
 export const workExpFormValidator = Yup.object({
-  workExp: Yup.array()
-    .of(workExpSchema)
+  workExp: Yup.array().of(workExpSchema),
 });
 
 export const formatDateForInput = (dateString: string | undefined): string => {
@@ -64,12 +63,8 @@ export const formatDateForInput = (dateString: string | undefined): string => {
   }
 };
 
-export default function WorkExpForm({
-  onBack,
-  onNext,
-}: WorkExpFormProps) {
-
-  const {updateWorkExperience, wizardData} = useWizard();
+export default function WorkExpForm({ onBack, onNext }: WorkExpFormProps) {
+  const { updateWorkExperience, wizardData } = useWizard();
   const normalizedWorkExp = wizardData.workExperience.map((work) => ({
     ...work,
     beginDate: formatDateForInput(work.beginDate),
@@ -83,7 +78,7 @@ export default function WorkExpForm({
 
   const handleSubmit = (
     values: WorkExpFormValues,
-    helpers: FormikHelpers<WorkExpFormValues>
+    helpers: FormikHelpers<WorkExpFormValues>,
   ) => {
     const { setSubmitting } = helpers;
 
@@ -92,7 +87,7 @@ export default function WorkExpForm({
       beginDate: new Date(work.beginDate).toISOString(),
       endDate: work.endDate ? new Date(work.endDate).toISOString() : undefined,
     }));
-    
+
     updateWorkExperience(formattedWorkExp);
     onNext();
     setSubmitting(false);
@@ -101,11 +96,11 @@ export default function WorkExpForm({
   return (
     <div className="max-w-2xl mx-auto p-6 bg-card_background border border-card_border rounded-lg shadow-lg">
       <h2 className="text-2xl font-semibold mb-6 text-foreground">
-        Doświadczenie Zawodowe
+        Work Experience
       </h2>
       <p className="text-muted mb-6">
-        Dodaj informacje o swoim doświadczeniu zawodowym. Możesz dodać wiele
-        pozycji.
+        Add information about your professional experience. You can add multiple
+        entries.
       </p>
 
       <Formik
@@ -126,29 +121,28 @@ export default function WorkExpForm({
                       key={index}
                       className="p-5 bg-secondary border border-border rounded-lg space-y-4 relative"
                     >
-                      {/* Nagłówek karty */}
                       <div className="flex justify-between items-center mb-4">
                         <h3 className="text-lg font-medium text-foreground">
-                          Doświadczenie #{index + 1}
+                          Experience #{index + 1}
                         </h3>
                         <DeleteButton
-                          prompt="Usuń doświadczenie"
+                          prompt="Remove experience"
                           remove={() => remove(index)}
                         />
                       </div>
 
-                      {/* Nazwa firmy */}
+                      {/* Company Name */}
                       <div>
                         <label
                           htmlFor={`workExp.${index}.companyName`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Nazwa firmy
+                          Company Name
                         </label>
                         <Field
                           id={`workExp.${index}.companyName`}
                           name={`workExp.${index}.companyName`}
-                          placeholder="np. ABC Sp. z o.o."
+                          placeholder="e.g. Acme Corp"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -158,18 +152,18 @@ export default function WorkExpForm({
                         />
                       </div>
 
-                      {/* Stanowisko */}
+                      {/* Position */}
                       <div>
                         <label
                           htmlFor={`workExp.${index}.position`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Stanowisko
+                          Position
                         </label>
                         <Field
                           id={`workExp.${index}.position`}
                           name={`workExp.${index}.position`}
-                          placeholder="np. Inżynier Oprogramowania"
+                          placeholder="e.g. Software Engineer"
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                         />
                         <ErrorMessage
@@ -179,15 +173,15 @@ export default function WorkExpForm({
                         />
                       </div>
 
-                      {/* Daty */}
+                      {/* Dates */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Data rozpoczęcia */}
+                        {/* Start Date */}
                         <div>
                           <label
                             htmlFor={`workExp.${index}.beginDate`}
                             className="block text-sm font-medium text-foreground mb-1"
                           >
-                            Data rozpoczęcia
+                            Start Date
                           </label>
                           <Field
                             type="date"
@@ -202,14 +196,14 @@ export default function WorkExpForm({
                           />
                         </div>
 
-                        {/* Data zakończenia */}
+                        {/* End Date */}
                         <div>
                           <label
                             htmlFor={`workExp.${index}.endDate`}
                             className="block text-sm font-medium text-foreground mb-1"
                           >
-                            Data zakończenia{" "}
-                            <span className="text-muted">(opcjonalne)</span>
+                            End Date{" "}
+                            <span className="text-muted">(optional)</span>
                           </label>
                           <Field
                             type="date"
@@ -225,19 +219,19 @@ export default function WorkExpForm({
                         </div>
                       </div>
 
-                      {/* Opis */}
+                      {/* Description */}
                       <div>
                         <label
                           htmlFor={`workExp.${index}.description`}
                           className="block text-sm font-medium text-foreground mb-1"
                         >
-                          Opis obowiązków
+                          Description of Responsibilities
                         </label>
                         <Field
                           as="textarea"
                           id={`workExp.${index}.description`}
                           name={`workExp.${index}.description`}
-                          placeholder="Opisz swoje obowiązki i osiągnięcia"
+                          placeholder="Describe your responsibilities and achievements"
                           rows={4}
                           className="w-full p-3 bg-background border border-border rounded-lg text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
                         />
@@ -250,7 +244,6 @@ export default function WorkExpForm({
                     </div>
                   ))}
 
-                  {/* Przycisk dodawania */}
                   <button
                     type="button"
                     onClick={() => push({ ...emptyWorkExp })}
@@ -268,10 +261,9 @@ export default function WorkExpForm({
                         clipRule="evenodd"
                       />
                     </svg>
-                    Dodaj kolejne doświadczenie
+                    Add another experience entry
                   </button>
 
-                  {/* Błąd walidacji tablicy */}
                   {typeof errors.workExp === "string" && (
                     <p className="text-sm text-error">{errors.workExp}</p>
                   )}
@@ -279,11 +271,9 @@ export default function WorkExpForm({
               )}
             </FieldArray>
 
-            {/* Przyciski nawigacji */}
             <div className="flex justify-between gap-4 pt-6 border-t border-border">
-              <BackButton prompt={"Wstecz"} onBack={onBack} />
-
-              <NextButton prompt={"Dalej"} isSubmitting={isSubmitting} />
+              <BackButton prompt={"Back"} onBack={onBack} />
+              <NextButton prompt={"Next"} isSubmitting={isSubmitting} />
             </div>
           </Form>
         )}

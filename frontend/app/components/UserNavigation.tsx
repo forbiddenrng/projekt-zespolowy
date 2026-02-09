@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LogoutButton from "./LogoutButton";
@@ -40,13 +41,17 @@ export default function UserNavigation({ user }: NavigationProps) {
   const pathname = usePathname();
 
   const navItems = [
-    { href: "/dashboard", icon: <FiHome />, label: "Panel główny" },
-    { href: "/profile", icon: <FiUser />, label: "Dane użytkownika" },
-    { href: "/generate", icon: <FiFileText />, label: "Generowanie dokumentu" },
-    { href: "/evaluate", icon: <FiCheckCircle />, label: "Ocena dokumentów" },
-    { href: "/jobs", icon: <FiBriefcase />, label: "Oferty pracy" },
+    { href: "/dashboard", icon: <FiHome />, label: "Dashboard" },
+    { href: "/profile", icon: <FiUser />, label: "Profile" },
+    { href: "/generate", icon: <FiFileText />, label: "Generate Document" },
+    {
+      href: "/evaluate",
+      icon: <FiCheckCircle />,
+      label: "Document Evaluation",
+    },
+    { href: "/jobs", icon: <FiBriefcase />, label: "Job Offers" },
     { href: "/workspace", icon: <FiFolder />, label: "Workspace" },
-    { href: "/handbook", icon: <FiBookOpen />, label: "Poradnik" },
+    { href: "/handbook", icon: <FiBookOpen />, label: "Handbook" },
   ];
 
   return (
@@ -106,7 +111,7 @@ export default function UserNavigation({ user }: NavigationProps) {
             <span className="text-xl">
               <FiLogOut />
             </span>
-            <span className="font-medium">Wyloguj</span>
+            <span className="font-medium">Sign out</span>
           </button>
         </LogoutButton>
       </div>

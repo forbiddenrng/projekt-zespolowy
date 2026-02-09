@@ -23,17 +23,17 @@ export default async function GeneratePage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">
-          Generowanie dokumentów
+          Generate Documents
         </h1>
         <p className="text-muted">
-          Wykorzystaj AI, aby stworzyć profesjonalne dokumenty aplikacyjne
-          dopasowane do oferty pracy
+          Leverage AI to create professional application documents tailored to
+          any job offer
         </p>
       </div>
 
-      {/* Wybór typu dokumentu */}
+      {/* Document Type Selection */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Karta CV */}
+        {/* Resume Card */}
         <Link href="/generate/cv">
           <Card className="h-full hover:border-primary hover:shadow-lg transition-all cursor-pointer group">
             <CardHeader>
@@ -42,27 +42,27 @@ export default async function GeneratePage() {
                   <FiFileText className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Generuj CV</CardTitle>
+                  <CardTitle className="text-xl">Generate Resume</CardTitle>
                   <CardDescription>
-                    Stwórz profesjonalne CV w PDF
+                    Create a professional PDF resume
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                AI przeanalizuje Twój profil i ofertę pracy, aby stworzyć
-                spersonalizowane CV maksymalizujące Twoje szanse na sukces.
+                AI will analyze your profile and the job offer to create a
+                personalized resume that maximizes your chances of success.
               </p>
               <div className="flex items-center text-primary font-medium group-hover:gap-2 transition-all">
-                <span>Rozpocznij</span>
+                <span>Start Now</span>
                 <FiArrowRight className="ml-1 group-hover:translate-x-1 transition-transform" />
               </div>
             </CardContent>
           </Card>
         </Link>
 
-        {/* Karta List motywacyjny */}
+        {/* Cover Letter Card */}
         <Link href="/generate/cover-letter">
           <Card className="h-full hover:border-primary hover:shadow-lg transition-all cursor-pointer group">
             <CardHeader>
@@ -72,21 +72,21 @@ export default async function GeneratePage() {
                 </div>
                 <div>
                   <CardTitle className="text-xl">
-                    Generuj list motywacyjny
+                    Generate Cover Letter
                   </CardTitle>
                   <CardDescription>
-                    Stwórz profesjonalny list w PDF
+                    Create a professional PDF letter
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                AI stworzy spersonalizowany list motywacyjny dopasowany
-                stylistycznie i merytorycznie do oferty pracy oraz firmy.
+                AI will create a personalized cover letter tailored
+                stylistically and substantively to the job offer and company.
               </p>
               <div className="flex items-center text-accent font-medium group-hover:gap-2 transition-all">
-                <span>Rozpocznij</span>
+                <span>Start Now</span>
                 <FiArrowRight className="ml-1 group-hover:translate-x-1 transition-transform" />
               </div>
             </CardContent>

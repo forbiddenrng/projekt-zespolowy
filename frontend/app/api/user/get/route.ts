@@ -4,45 +4,46 @@ import { APIClient } from "@/app/lib/apiClient";
 import { APIError } from "@/app/lib/errors";
 
 export const dynamic = "force-dynamic";
-export const fetchCashe = "force-no-store";
-
+export const fetchCache = "force-no-store";
 
 export const GET = auth0.withApiAuthRequired(async (req: Request) => {
   try {
-
-    const accessTokenResp = await auth0.getAccessToken({
+    const accessTokenResponse = await auth0.getAccessToken({
       audience: process.env.AUTH0_AUDIENCE,
     });
 
     const token =
-      typeof accessTokenResp === "string"
-        ? accessTokenResp
-        : (accessTokenResp as any)?.token ?? null;
+      typeof accessTokenResponse === "string"
+        ? accessTokenResponse
+        : ((accessTokenResponse as any)?.token ?? null);
 
     const url = new URL(req.url);
-    const rotueParam = url.searchParams.get("resource") || "all"; // custom URL search params
+    const routeParam = url.searchParams.get("resource") || "all";
     // resource = all | abilities | certificates | education | languages | links | work
-    // default param is all
+    // default param is "all"
 
     const params = new URLSearchParams();
-    params.append(rotueParam, "true");
+    params.append(routeParam, "true");
 
     const apiClient = new APIClient();
     const response = await apiClient.getUser(token, params);
 
-    return NextResponse.json(response?.data, {status: response?.status})
-
-  } catch (err: any) {
-    if (err instanceof APIError){
+    return NextResponse.json(response?.data, { status: response?.status });
+  } catch (error: any) {
+    if (error instanceof APIError) {
       return NextResponse.json(
-        {message: err.userMessage, details: err.details},
-        {status: err.statusCode || 500}
-      )
+        {
+          detail: error.userMessage,
+          details: error.details,
+        },
+        { status: error.statusCode || 500 },
+      );
     }
-    console.error("Unexpected error: ", err);
+
+    console.error("Unexpected user fetch error:", error);
     return NextResponse.json(
-      { message: "An unexpected error occured. Please try again" },
-      { status: 500 }
+      { detail: "An unexpected error occurred. Please try again" },
+      { status: 500 },
     );
   }
 });

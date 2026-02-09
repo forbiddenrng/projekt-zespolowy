@@ -16,24 +16,23 @@ export const GET = auth0.withApiAuthRequired(async (req: Request) => {
     const token =
       typeof accessTokenResp === "string"
         ? accessTokenResp
-        : (accessTokenResp as any)?.token ?? null;
+        : ((accessTokenResp as any)?.token ?? null);
 
     const apiClient = new APIClient();
     const response = await apiClient.getAllLanguages(token);
 
-    return NextResponse.json(response?.data, {status: response?.status})
-
+    return NextResponse.json(response?.data, { status: response?.status });
   } catch (err: any) {
-    if (err instanceof APIError){
+    if (err instanceof APIError) {
       return NextResponse.json(
-        {message: err.userMessage, details: err.details},
-        {status: err.statusCode || 500}
-      )
+        { message: err.userMessage, details: err.details },
+        { status: err.statusCode || 500 },
+      );
     }
     console.error("Unexpected error: ", err);
     return NextResponse.json(
       { message: "An unexpected error occured. Please try again" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 });
