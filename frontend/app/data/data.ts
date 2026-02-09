@@ -1,35 +1,46 @@
-import { FeatureData } from "../ts/types"
+import { FeatureData } from "../ts/types";
 
 export const features: FeatureData[] = [
-  {id: 1, title: "Generowanie CV", description: "AI analizuje ofertę pracy i automatycznie dopasowuje Twoje dane, tworząc spersonalizowane CV w PDF maksymalizujące szanse na sukces.", iconColor: "primary"},
   {
-    id: 2, 
-    title: "List motywacyjny", 
-    description: "Generuj profesjonalne listy motywacyjne dopasowane stylistycznie i merytorycznie do każdej oferty pracy.",
-    iconColor: "accent"
+    id: 1,
+    title: "Resume Generation",
+    description:
+      "AI analyzes the job offer and automatically adjusts your data, creating a personalized PDF resume that maximizes your chances of success.",
+    iconColor: "primary",
   },
   {
-    id: 3, 
-    title: "Ocena dokumentów", 
-    description: "Otrzymuj szczegółową analizę jakości CV i listu motywacyjnego z rekomendacjami dotyczącymi poprawy.",
-    iconColor: "warning"
+    id: 2,
+    title: "Cover Letter",
+    description:
+      "Generate professional cover letters tailored stylistically and substantively to every specific job application.",
+    iconColor: "accent",
   },
   {
-    id: 4, 
-    title: "Powiadomienia o ofertach", 
-    description: "Automatyczne scrapowanie portali z pracą i powiadomienia o ofertach idealnie dopasowanych do Twojego profilu.",
-    iconColor: "success"
+    id: 3,
+    title: "Document Evaluation",
+    description:
+      "Receive a detailed quality analysis of your CV and cover letter with specific recommendations for improvement.",
+    iconColor: "warning",
   },
   {
-    id: 5, 
-    title: "Workspace", 
-    description: "Zapisuj ulubione oferty, twórz notatki, śledź status rekrutacji i integruj z kalendarzem Google.",
-    iconColor: "primary"
+    id: 4,
+    title: "Job Notifications",
+    description:
+      "Automatic scraping of job boards and notifications about offers perfectly matched to your professional profile.",
+    iconColor: "success",
   },
   {
-    id: 6, 
-    title: "Powered by AI", 
-    description: "Wykorzystujemy najnowsze modele OpenAI do inteligentnej analizy i dopasowania dokumentów aplikacyjnych.",
-    iconColor: "accent"
+    id: 5,
+    title: "Workspace",
+    description:
+      "Save favorite offers, create notes, track recruitment status, and integrate seamlessly with Google Calendar.",
+    iconColor: "primary",
   },
-]
+  {
+    id: 6,
+    title: "Powered by AI",
+    description:
+      "We utilize the latest OpenAI models for intelligent analysis and matching of application documents.",
+    iconColor: "accent",
+  },
+];

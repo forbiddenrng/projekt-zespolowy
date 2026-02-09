@@ -15,11 +15,11 @@ export default async function GenerateCoverLetterPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">
-          Generowanie listu motywacyjnego
+          Generate Cover Letter
         </h1>
         <p className="text-muted">
-          Wykorzystaj AI, aby stworzyć profesjonalny list motywacyjny dopasowany
-          do oferty pracy i firmy
+          Use AI to create a professional cover letter tailored to a specific
+          job offer and company
         </p>
       </div>
 

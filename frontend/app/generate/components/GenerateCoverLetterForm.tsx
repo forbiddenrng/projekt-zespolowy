@@ -45,7 +45,7 @@ export default function GenerateCoverLetterForm() {
     e.preventDefault();
 
     if (!jobOffer.trim()) {
-      alert("Proszę wkleić treść oferty pracy");
+      alert("Please paste the job offer content");
       return;
     }
 
@@ -82,21 +82,21 @@ export default function GenerateCoverLetterForm() {
   const getStatusLabel = () => {
     switch (status) {
       case "COMPLETED":
-        return "Ukończono";
+        return "Completed";
       case "FAILED":
-        return "Błąd";
+        return "Failed";
       case "PROCESSING":
-        return "Generowanie...";
+        return "Generating...";
       case "PENDING":
-        return "Oczekuje";
+        return "Pending";
       default:
-        return "Nieznany";
+        return "Unknown";
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Formularz generowania */}
+      {/* Generation Form */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -104,9 +104,9 @@ export default function GenerateCoverLetterForm() {
               <FiFileText className="w-6 h-6 text-primary" />
               <div>
                 <CardTitle>
-                  Wklej treść oferty pracy oraz informacje o firmie, a AI
-                  wygeneruje dla Ciebie spersonalizowany list motywacyjny w
-                  formacie PDF
+                  Paste the job offer content and company information, and AI
+                  will generate a personalized cover letter for you in PDF
+                  format
                 </CardTitle>
               </div>
             </div>
@@ -115,7 +115,7 @@ export default function GenerateCoverLetterForm() {
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Textarea dla oferty pracy */}
+            {/* Textarea for job offer */}
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <FiBriefcase className="w-4 h-4 text-muted-foreground" />
@@ -123,12 +123,12 @@ export default function GenerateCoverLetterForm() {
                   htmlFor="job-offer"
                   className="text-sm font-medium text-foreground"
                 >
-                  Treść oferty pracy
+                  Job Offer Content
                 </label>
               </div>
               <Textarea
                 id="job-offer"
-                placeholder="Wklej tutaj treść oferty pracy (stanowisko, wymagania, obowiązki...)"
+                placeholder="Paste the job offer content here (position, requirements, responsibilities...)"
                 value={jobOffer}
                 onChange={(e) => setJobOffer(e.target.value)}
                 rows={10}
@@ -137,7 +137,7 @@ export default function GenerateCoverLetterForm() {
               />
             </div>
 
-            {/* Textarea dla informacji o firmie */}
+            {/* Textarea for company info */}
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <FiInfo className="w-4 h-4 text-muted-foreground" />
@@ -145,12 +145,12 @@ export default function GenerateCoverLetterForm() {
                   htmlFor="company-info"
                   className="text-sm font-medium text-foreground"
                 >
-                  Informacje o firmie (opcjonalnie)
+                  Company Information (optional)
                 </label>
               </div>
               <Textarea
                 id="company-info"
-                placeholder="Wklej tutaj informacje o firmie (misja, wartości, kultura organizacyjna, projekty...)"
+                placeholder="Paste information about the company here (mission, values, culture, projects...)"
                 value={companyInfo}
                 onChange={(e) => setCompanyInfo(e.target.value)}
                 rows={6}
@@ -158,12 +158,12 @@ export default function GenerateCoverLetterForm() {
                 className="resize-none"
               />
               <p className="mt-1 text-xs text-muted-foreground">
-                Dodanie informacji o firmie pomoże AI stworzyć bardziej
-                spersonalizowany list motywacyjny
+                Providing company information helps AI create a more
+                personalized cover letter
               </p>
             </div>
 
-            {/* Przyciski akcji */}
+            {/* Action buttons */}
             <div className="flex gap-3">
               <Button
                 type="submit"
@@ -173,12 +173,12 @@ export default function GenerateCoverLetterForm() {
                 {isLoading ? (
                   <>
                     <FiRefreshCw className="animate-spin" />
-                    Generowanie...
+                    Generating...
                   </>
                 ) : (
                   <>
                     <FiFileText />
-                    Generuj list motywacyjny
+                    Generate Cover Letter
                   </>
                 )}
               </Button>
@@ -190,7 +190,7 @@ export default function GenerateCoverLetterForm() {
                   onClick={handleReset}
                   disabled={isLoading}
                 >
-                  Resetuj
+                  Reset
                 </Button>
               )}
             </div>
@@ -198,14 +198,14 @@ export default function GenerateCoverLetterForm() {
         </CardContent>
       </Card>
 
-      {/* Status generowania */}
+      {/* Generation Status */}
       {taskId && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <FiClock className="w-5 h-5 text-primary" />
-                <CardTitle className="text-lg">Status generowania</CardTitle>
+                <CardTitle className="text-lg">Generation Status</CardTitle>
               </div>
               <Badge className={getStatusColor()}>{getStatusLabel()}</Badge>
             </div>
@@ -215,21 +215,21 @@ export default function GenerateCoverLetterForm() {
             {/* Task ID */}
             <div className="flex items-center justify-between py-3 border-b border-border">
               <span className="text-sm font-medium text-muted-foreground">
-                ID zadania
+                Task ID
               </span>
               <code className="text-xs bg-secondary px-3 py-1 rounded font-mono">
                 {taskId}
               </code>
             </div>
 
-            {/* Daty */}
+            {/* Dates */}
             {createdAt && (
               <div className="flex items-center justify-between py-3 border-b border-border">
                 <span className="text-sm font-medium text-muted-foreground">
-                  Utworzono
+                  Created at
                 </span>
                 <span className="text-sm text-foreground">
-                  {new Date(createdAt).toLocaleString("pl-PL")}
+                  {new Date(createdAt).toLocaleString("en-US")}
                 </span>
               </div>
             )}
@@ -237,20 +237,20 @@ export default function GenerateCoverLetterForm() {
             {completedAt && (
               <div className="flex items-center justify-between py-3 border-b border-border">
                 <span className="text-sm font-medium text-muted-foreground">
-                  Ukończono
+                  Completed at
                 </span>
                 <span className="text-sm text-foreground">
-                  {new Date(completedAt).toLocaleString("pl-PL")}
+                  {new Date(completedAt).toLocaleString("en-US")}
                 </span>
               </div>
             )}
 
-            {/* Loading skeleton podczas generowania */}
+            {/* Loading skeleton during generation */}
             {status === "PROCESSING" && (
               <div className="space-y-3 pt-4">
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <FiRefreshCw className="animate-spin" />
-                  <span>Trwa generowanie listu motywacyjnego...</span>
+                  <span>Cover letter generation in progress...</span>
                 </div>
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-3/4" />
@@ -258,7 +258,7 @@ export default function GenerateCoverLetterForm() {
               </div>
             )}
 
-            {/* Przycisk pobierania PDF */}
+            {/* PDF Download Button */}
             {status === "COMPLETED" && (
               <div className="pt-4">
                 <Button
@@ -267,7 +267,7 @@ export default function GenerateCoverLetterForm() {
                   variant="default"
                 >
                   <FiDownload />
-                  Pobierz list motywacyjny (PDF)
+                  Download Cover Letter (PDF)
                 </Button>
               </div>
             )}
@@ -275,7 +275,7 @@ export default function GenerateCoverLetterForm() {
         </Card>
       )}
 
-      {/* Alert błędu */}
+      {/* Error Alert */}
       {error && (
         <Alert variant="destructive">
           <FiAlertCircle className="h-4 w-4" />
@@ -283,13 +283,12 @@ export default function GenerateCoverLetterForm() {
         </Alert>
       )}
 
-      {/* Alert sukcesu */}
+      {/* Success Alert */}
       {status === "COMPLETED" && !error && (
         <Alert className="border-green-500 bg-green-50 dark:bg-green-950">
           <FiCheckCircle className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800 dark:text-green-200">
-            List motywacyjny został pomyślnie wygenerowany! Możesz go teraz
-            pobrać.
+            Cover letter generated successfully! You can download it now.
           </AlertDescription>
         </Alert>
       )}

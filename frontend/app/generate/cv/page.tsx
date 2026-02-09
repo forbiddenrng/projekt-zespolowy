@@ -15,11 +15,11 @@ export default async function GenerateCVPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">
-          Generowanie CV
+          Generate Resume
         </h1>
         <p className="text-muted">
-          Wykorzystaj AI, aby stworzyć profesjonalne CV dopasowane do oferty
-          pracy
+          Leverage AI to create a professional resume tailored to a specific job
+          offer
         </p>
       </div>
 
