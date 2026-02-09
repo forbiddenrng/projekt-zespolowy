@@ -28,7 +28,9 @@ export default async function WelcomePage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button className="px-8 py-4 bg-primary hover:bg-primary_hover text-white rounded-lg font-semibold text-lg transition-colors duration-200 shadow-lg">
-                <LoginButton>Get Started for Free</LoginButton>
+                <LoginButton>
+                  <a>Get Started for Free </a>
+                </LoginButton>
               </button>
               <button className="px-8 py-4 bg-secondary text-foreground hover:bg-border rounded-lg font-semibold text-lg transition-colors duration-200 border border-border">
                 See How It Works

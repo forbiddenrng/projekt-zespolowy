@@ -43,15 +43,22 @@ export const GET = auth0.withApiAuthRequired(
 
       if (!response.ok) {
         const errorText = await response.text();
-        let errorJson: any = null;
+        let errorDetail: string;
+
         try {
-          errorJson = JSON.parse(errorText);
+          const errorJson = JSON.parse(errorText);
+          errorDetail =
+            errorJson?.detail ||
+            errorJson?.message ||
+            `HTTP ${response.status}`;
         } catch {
-          // Fallback if parsing fails
+          // Jeśli to nie JSON, używamy surowego tekstu (przyciętego do 200 znaków dla bezpieczeństwa)
+          errorDetail =
+            errorText.trim().substring(0, 200) || `HTTP ${response.status}`;
         }
 
         return NextResponse.json(
-          { detail: errorJson?.detail || `HTTP ${response.status}` },
+          { detail: errorDetail },
           { status: response.status },
         );
       }

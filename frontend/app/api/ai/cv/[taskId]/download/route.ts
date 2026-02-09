@@ -45,21 +45,35 @@ export const GET = auth0.withApiAuthRequired(
 
       if (!response.ok) {
         const errorText = await response.text();
-        return new NextResponse(errorText, {
-          status: response.status,
-          headers: {
-            "Content-Type":
-              response.headers.get("content-type") ?? "text/plain",
-          },
-        });
+        let errorDetail: string;
+
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorDetail =
+            errorJson?.detail ||
+            errorJson?.message ||
+            `HTTP ${response.status}`;
+        } catch {
+          errorDetail =
+            errorText.trim().substring(0, 200) || `HTTP ${response.status}`;
+        }
+
+        return NextResponse.json(
+          { detail: errorDetail },
+          { status: response.status },
+        );
       }
 
       const buffer = await response.arrayBuffer();
+      const filename = `cv_${taskId}.pdf`;
+      const encodedFilename = encodeURIComponent(filename);
+
       return new NextResponse(buffer, {
         status: 200,
         headers: {
           "Content-Type": "application/pdf",
-          "Content-Disposition": `attachment; filename="cv_${encodeURIComponent(taskId)}.pdf"`,
+          // Używamy RFC 5987 (filename*) dla maksymalnej kompatybilności przy zakodowanych znakach
+          "Content-Disposition": `attachment; filename="${filename}"; filename*=UTF-8''${encodedFilename}`,
         },
       });
     } catch (error: any) {

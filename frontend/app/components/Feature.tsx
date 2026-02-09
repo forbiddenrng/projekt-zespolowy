@@ -1,8 +1,20 @@
 const iconColorMap = {
-  accent: "bg-accent/10 text-accent",
-  primary: "bg-primary/10 text-primary",
-  success: "bg-success/10 text-success",
-  warning: "bg-warning/10 text-warning",
+  accent: {
+    bg: "bg-accent/10",
+    text: "text-accent",
+  },
+  primary: {
+    bg: "bg-primary/10",
+    text: "text-primary",
+  },
+  success: {
+    bg: "bg-success/10",
+    text: "text-success",
+  },
+  warning: {
+    bg: "bg-warning/10",
+    text: "text-warning",
+  },
 } as const;
 
 interface FeatureProps {
@@ -16,18 +28,15 @@ export default function Feature({
   description,
   iconColor = "accent",
 }: FeatureProps) {
-  const colorClasses = iconColorMap[iconColor];
-
-  // Destructuring for cleaner template logic
-  const [backgroundClass, textClass] = colorClasses.split(" ");
+  const { bg, text } = iconColorMap[iconColor];
 
   return (
     <div className="bg-card_background border border-card_border rounded-xl p-8 hover:shadow-xl transition-shadow duration-300">
       <div
-        className={`w-12 h-12 rounded-lg flex items-center justify-center mb-6 ${backgroundClass}`}
+        className={`w-12 h-12 rounded-lg flex items-center justify-center mb-6 ${bg}`}
       >
         <svg
-          className={`w-6 h-6 ${textClass}`}
+          className={`w-6 h-6 ${text}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
