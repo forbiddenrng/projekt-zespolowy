@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect, useCallback, useRef } from "react";
 import type {
   CVGenerationResponse,
@@ -54,12 +56,14 @@ export function useCVGeneration(): UseCVGenerationReturn {
 
         if (!response.ok) {
           const text = await response.text();
-          let errJson: any = null;
+          let errorJson: any = null;
           try {
-            errJson = JSON.parse(text);
-          } catch {}
+            errorJson = JSON.parse(text);
+          } catch {
+            // Text is not JSON
+          }
 
-          const errorMessage = parseErrorDetail(errJson, response.status);
+          const errorMessage = parseErrorDetail(errorJson, response.status);
           throw new Error(errorMessage);
         }
 
@@ -85,10 +89,10 @@ export function useCVGeneration(): UseCVGenerationReturn {
         }
 
         return data;
-      } catch (err: any) {
-        console.error("Status check error:", err);
+      } catch (error: any) {
+        console.error("CV status check error:", error);
         if (!isMountedRef.current) return;
-        setError(err.message || "Failed to check status");
+        setError(error.message || "Failed to check status");
         setIsLoading(false);
 
         if (pollingIntervalRef.current) {
@@ -100,6 +104,7 @@ export function useCVGeneration(): UseCVGenerationReturn {
     [],
   );
 
+  // Polling effect
   useEffect(() => {
     if (!taskId || !isMountedRef.current) return;
 
@@ -115,13 +120,16 @@ export function useCVGeneration(): UseCVGenerationReturn {
         return;
       }
       try {
-        const res = await checkStatus(taskId);
-        if (res && (res.status === "COMPLETED" || res.status === "FAILED")) {
+        const response = await checkStatus(taskId);
+        if (
+          response &&
+          (response.status === "COMPLETED" || response.status === "FAILED")
+        ) {
           if (pollingIntervalRef.current)
             clearInterval(pollingIntervalRef.current);
           pollingIntervalRef.current = null;
         }
-      } catch (e) {
+      } catch (error) {
         if (pollingIntervalRef.current)
           clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
@@ -155,12 +163,14 @@ export function useCVGeneration(): UseCVGenerationReturn {
 
       if (!response.ok) {
         const text = await response.text();
-        let errJson: any = null;
+        let errorJson: any = null;
         try {
-          errJson = JSON.parse(text);
-        } catch {}
+          errorJson = JSON.parse(text);
+        } catch {
+          // Text is not JSON
+        }
 
-        const errorMessage = parseErrorDetail(errJson, response.status);
+        const errorMessage = parseErrorDetail(errorJson, response.status);
         throw new Error(errorMessage);
       }
 
@@ -170,10 +180,10 @@ export function useCVGeneration(): UseCVGenerationReturn {
 
       setTaskId(data.task_id);
       setStatus(data.status);
-    } catch (err: any) {
-      console.error("CV generation error:", err);
+    } catch (error: any) {
+      console.error("CV generation error:", error);
       if (!isMountedRef.current) return;
-      setError(err.message || "Failed to generate CV");
+      setError(error.message || "Failed to generate CV");
       setIsLoading(false);
     }
   }, []);
@@ -201,32 +211,36 @@ export function useCVGeneration(): UseCVGenerationReturn {
     }
 
     try {
-      const res = await fetch(`/api/ai/cv/${taskId}/download`, {
+      const response = await fetch(`/api/ai/cv/${taskId}/download`, {
         credentials: "include",
       });
 
-      if (!res.ok) {
-        const text = await res.text();
-        let errJson: any = null;
+      if (!response.ok) {
+        const text = await response.text();
+        let errorJson: any = null;
         try {
-          errJson = JSON.parse(text);
-        } catch {}
+          errorJson = JSON.parse(text);
+        } catch {
+          // Text is not JSON
+        }
 
-        const errorMessage = parseErrorDetail(errJson, res.status);
+        const errorMessage = parseErrorDetail(errorJson, response.status);
         throw new Error(errorMessage);
       }
 
-      const blob = await res.blob();
+      const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `cv_${taskId}.pdf`;
-      a.click();
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `resume_${taskId}.pdf`; // Consistent with "Resume" naming
+      document.body.appendChild(anchor);
+      anchor.click();
       URL.revokeObjectURL(url);
-    } catch (err: any) {
-      console.error("Download error:", err);
+      document.body.removeChild(anchor);
+    } catch (error: any) {
+      console.error("Resume download error:", error);
       if (!isMountedRef.current) return;
-      setError(err.message || "Failed to download CV");
+      setError(error.message || "Failed to download CV");
     }
   }, [taskId]);
 

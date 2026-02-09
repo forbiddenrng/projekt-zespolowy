@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useJobs } from "../components/JobsContext";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -30,17 +31,17 @@ export default function JobDetailsPage() {
             <FiZap size={40} />
           </div>
           <h2 className="text-2xl font-black text-foreground mb-2">
-            Błąd ładowania
+            Loading Error
           </h2>
           <p className="text-muted mb-8">
-            Nie znaleziono danych oferty w pamięci podręcznej. Spróbuj odświeżyć
-            listę.
+            Job offer data was not found in the cache. Please try refreshing the
+            list.
           </p>
           <Link
             href="/jobs"
             className="inline-block w-full py-4 bg-primary text-white rounded-2xl font-bold hover:opacity-90 transition-all"
           >
-            Wróć do listy ofert
+            Back to Job List
           </Link>
         </div>
       </main>
@@ -55,7 +56,7 @@ export default function JobDetailsPage() {
           className="inline-flex items-center gap-2 text-muted hover:text-primary mb-8 transition-colors font-bold group"
         >
           <FiChevronLeft className="group-hover:-translate-x-1 transition-transform" />
-          Powrót do ofert
+          Back to Offers
         </Link>
 
         <div className="bg-card_background border border-card_border rounded-[2.5rem] shadow-2xl overflow-hidden mb-8">
@@ -100,7 +101,7 @@ export default function JobDetailsPage() {
                 rel="noopener noreferrer"
                 className="w-full md:w-auto px-8 py-4 bg-primary text-white rounded-2xl font-black text-center shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
               >
-                Aplikuj przez źródło <FiExternalLink />
+                Apply via Source <FiExternalLink />
               </a>
             </div>
           </div>
@@ -108,10 +109,10 @@ export default function JobDetailsPage() {
           <div className="p-8 md:p-12 border-t border-card_border grid grid-cols-2 md:grid-cols-4 gap-6 bg-secondary/10">
             <div className="space-y-1">
               <p className="text-[10px] uppercase font-black text-muted tracking-widest flex items-center gap-1">
-                <FiMapPin className="text-primary" /> Lokalizacja
+                <FiMapPin className="text-primary" /> Location
               </p>
               <p className="text-foreground font-bold">
-                {job.location[0]?.display_name || "Polska"}
+                {job.location[0]?.display_name || "Remote / International"}
               </p>
             </div>
             <div className="space-y-1">
@@ -124,18 +125,18 @@ export default function JobDetailsPage() {
             </div>
             <div className="space-y-1">
               <p className="text-[10px] uppercase font-black text-muted tracking-widest flex items-center gap-1">
-                <FiClock className="text-primary" /> Tryb pracy
+                <FiClock className="text-primary" /> Work Mode
               </p>
               <p className="text-foreground font-bold">
-                {job.remote ? "Zdalna" : job.hybrid ? "Hybrydowa" : "Biuro"}
+                {job.remote ? "Remote" : job.hybrid ? "Hybrid" : "Office-based"}
               </p>
             </div>
             <div className="space-y-1">
               <p className="text-[10px] uppercase font-black text-muted tracking-widest flex items-center gap-1">
-                <FiCalendar className="text-primary" /> Opublikowano
+                <FiCalendar className="text-primary" /> Posted At
               </p>
               <p className="text-foreground font-bold">
-                {new Date(job.date_posted).toLocaleDateString()}
+                {new Date(job.date_posted).toLocaleDateString("en-US")}
               </p>
             </div>
           </div>
@@ -146,7 +147,7 @@ export default function JobDetailsPage() {
             <div className="bg-card_background border border-card_border rounded-[2.5rem] p-8 md:p-10 shadow-sm">
               <h2 className="text-2xl font-black text-foreground mb-6 flex items-center gap-3">
                 <span className="w-1.5 h-8 bg-primary rounded-full"></span>
-                Opis stanowiska
+                Job Description
               </h2>
               <div className="prose prose-invert max-w-none text-foreground/80 leading-relaxed text-lg whitespace-pre-wrap">
                 {job.description}
@@ -155,7 +156,7 @@ export default function JobDetailsPage() {
 
             <div className="bg-card_background border border-card_border rounded-[2.5rem] p-8 shadow-sm">
               <h2 className="text-xl font-black text-foreground mb-6">
-                Technologie i tagi
+                Technologies & Tags
               </h2>
               <div className="flex flex-wrap gap-2">
                 {job.technology_slugs.map((slug) => (
@@ -173,7 +174,7 @@ export default function JobDetailsPage() {
           <div className="space-y-6">
             <div className="bg-card_background border border-card_border rounded-[2.5rem] p-8 shadow-sm">
               <h3 className="font-black text-foreground mb-6 text-lg">
-                Szczegóły zatrudnienia
+                Employment Details
               </h3>
               <div className="space-y-4">
                 {job.employment_statuses.map((status) => (
@@ -191,19 +192,19 @@ export default function JobDetailsPage() {
 
               <div className="mt-8 pt-8 border-t border-card_border">
                 <h4 className="font-bold text-foreground mb-4">
-                  Informacje o firmie
+                  Company Information
                 </h4>
                 <div className="flex items-center gap-3 mb-4">
                   <FiGlobe className="text-muted" />
                   <span className="text-sm text-muted">
-                    Kraj: {job.company.country || "Nie podano"}
+                    Country: {job.company.country || "Not specified"}
                   </span>
                 </div>
                 <div className="flex items-center gap-3">
                   <FiAward className="text-muted" />
                   <span className="text-sm text-muted">
-                    Zaktualizowano:{" "}
-                    {new Date(job.updated_at).toLocaleDateString()}
+                    Last Updated:{" "}
+                    {new Date(job.updated_at).toLocaleDateString("en-US")}
                   </span>
                 </div>
               </div>
@@ -211,18 +212,16 @@ export default function JobDetailsPage() {
 
             <div className="bg-primary p-8 rounded-[2.5rem] text-white shadow-lg shadow-primary/30 relative overflow-hidden group">
               <div className="relative z-10">
-                <h4 className="text-xl font-black mb-2">
-                  Pasujesz do tej oferty?
-                </h4>
+                <h4 className="text-xl font-black mb-2">Ready to Apply?</h4>
                 <p className="text-white/80 text-sm leading-relaxed mb-6">
-                  Użyj naszego generatora AI, aby stworzyć idealne CV dopasowane
-                  dokładnie pod te wymagania.
+                  Use our AI generator to create a perfect Resume and Cover
+                  Letter tailored specifically to these requirements.
                 </p>
                 <Link
                   href="/generate"
                   className="block w-full py-3 bg-white text-primary rounded-xl font-black text-center text-sm hover:bg-opacity-90 transition-all"
                 >
-                  Generuj dokumenty
+                  Generate Documents
                 </Link>
               </div>
               <FiZap className="absolute -right-4 -bottom-4 text-white/10 w-32 h-32 rotate-12 group-hover:scale-110 transition-transform" />

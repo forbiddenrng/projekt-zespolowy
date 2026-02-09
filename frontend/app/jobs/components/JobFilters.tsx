@@ -32,7 +32,7 @@ export default function JobFilters() {
             />
             <input
               type="text"
-              placeholder="Stanowisko, firma, technologia..."
+              placeholder="Job title, company, technology..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-14 pr-6 py-4 bg-secondary rounded-3xl border border-transparent focus:border-primary/50 focus:bg-card_background transition-all outline-none text-foreground font-semibold"
@@ -45,9 +45,9 @@ export default function JobFilters() {
               onChange={(e) => setSortBy(e.target.value)}
               className="appearance-none bg-secondary border border-transparent hover:border-card_border px-6 py-4 pr-12 rounded-3xl text-foreground font-bold cursor-pointer outline-none transition-all"
             >
-              <option value="newest">Najnowsze</option>
-              <option value="salary_desc">Płaca (Najwyższa)</option>
-              <option value="salary_asc">Płaca (Najniższa)</option>
+              <option value="newest">Newest</option>
+              <option value="salary_desc">Salary (Highest)</option>
+              <option value="salary_asc">Salary (Lowest)</option>
             </select>
 
             <button
@@ -59,7 +59,7 @@ export default function JobFilters() {
               }`}
             >
               <FiFilter />
-              <span className="hidden md:inline">Filtry</span>
+              <span className="hidden md:inline">Filters</span>
               {(selectedSeniority || selectedWorkMode) && (
                 <div className="w-2 h-2 bg-white rounded-full ml-1" />
               )}
@@ -67,6 +67,7 @@ export default function JobFilters() {
           </div>
         </div>
 
+        {/* Advanced Filters Drawer */}
         <div
           className={`overflow-hidden transition-all duration-300 ease-in-out ${
             isAdvancedOpen
@@ -77,7 +78,7 @@ export default function JobFilters() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-6 border-t border-card_border">
             <div>
               <p className="text-[10px] font-black uppercase text-muted mb-4 tracking-[0.2em]">
-                Poziom doświadczenia
+                Experience Level
               </p>
               <div className="flex flex-wrap gap-2">
                 {["Junior", "Mid", "Senior", "Lead"].map((level) => (
@@ -102,13 +103,13 @@ export default function JobFilters() {
 
             <div>
               <p className="text-[10px] font-black uppercase text-muted mb-4 tracking-[0.2em]">
-                Tryb pracy
+                Work Mode
               </p>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { id: "remote", label: "Zdalna" },
-                  { id: "hybrid", label: "Hybrydowa" },
-                  { id: "office", label: "Biuro" },
+                  { id: "remote", label: "Remote" },
+                  { id: "hybrid", label: "Hybrid" },
+                  { id: "office", label: "Office" },
                 ].map((mode) => (
                   <button
                     key={mode.id}
@@ -134,15 +135,15 @@ export default function JobFilters() {
           <div className="flex justify-end mt-8 pt-4 border-t border-card_border/50 gap-4">
             <button
               onClick={clearFilters}
-              className="flex items-center gap-2 text-sm font-bold text-muted hover:text-error transition-colors px-4"
+              className="flex items-center gap-2 text-sm font-bold text-muted hover:text-red-500 transition-colors px-4"
             >
-              <FiTrash2 /> Wyczyść filtry
+              <FiTrash2 /> Clear filters
             </button>
             <button
               onClick={() => setIsAdvancedOpen(false)}
               className="px-8 py-3 bg-foreground text-background rounded-2xl font-black text-sm hover:opacity-90 transition-all"
             >
-              Zamknij
+              Close
             </button>
           </div>
         </div>
@@ -150,11 +151,11 @@ export default function JobFilters() {
 
       <div className="px-6 flex items-center justify-between">
         <p className="text-sm text-muted">
-          Znaleziono{" "}
+          Found{" "}
           <span className="text-foreground font-black">
             {filteredJobs.length}
           </span>{" "}
-          ofert
+          offers
         </p>
       </div>
     </div>

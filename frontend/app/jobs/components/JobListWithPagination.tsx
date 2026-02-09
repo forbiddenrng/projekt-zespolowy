@@ -9,7 +9,7 @@ import { FiInbox } from "react-icons/fi";
 const ITEMS_PER_PAGE = 10;
 
 export default function JobListWithPagination() {
-  const { filteredJobs, searchQuery, sortBy } = useJobs();
+  const { filteredJobs, searchQuery, sortBy, clearFilters } = useJobs();
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
@@ -26,16 +26,18 @@ export default function JobListWithPagination() {
         <div className="w-24 h-24 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6 text-muted">
           <FiInbox size={48} />
         </div>
-        <h3 className="text-2xl font-black text-foreground">Brak wyników</h3>
+        <h3 className="text-2xl font-black text-foreground">
+          No results found
+        </h3>
         <p className="text-muted mt-2 max-w-xs mx-auto text-lg">
-          Nie znaleźliśmy żadnych ofert pasujących do Twoich kryteriów. Spróbuj
-          zmienić filtry.
+          We couldn't find any offers matching your criteria. Try changing the
+          filters.
         </p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={clearFilters}
           className="mt-8 px-8 py-3 bg-secondary hover:bg-border text-foreground font-bold rounded-xl transition-all"
         >
-          Wyczyść wszystko
+          Clear all filters
         </button>
       </div>
     );
@@ -61,13 +63,13 @@ export default function JobListWithPagination() {
         />
 
         <p className="text-center text-sm text-muted mt-6 font-medium">
-          Wyświetlasz{" "}
+          Showing{" "}
           <span className="text-foreground">{indexOfFirstItem + 1}</span> -{" "}
           <span className="text-foreground">
             {Math.min(indexOfLastItem, filteredJobs.length)}
           </span>{" "}
-          z <span className="text-foreground">{filteredJobs.length}</span>{" "}
-          dostępnych ofert
+          of <span className="text-foreground">{filteredJobs.length}</span>{" "}
+          available offers
         </p>
       </div>
     </div>

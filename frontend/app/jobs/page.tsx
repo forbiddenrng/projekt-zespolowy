@@ -44,8 +44,8 @@ export default async function JobsPage() {
                 EXPLORE<span className="text-primary">.</span>
               </h1>
               <p className="text-muted text-lg font-medium">
-                Przeglądaj najnowsze oferty pracy dopasowane do Twoich
-                umiejętności.
+                Browse the latest job offers tailored to your skills and
+                preferences.
               </p>
             </div>
 
@@ -61,17 +61,17 @@ export default async function JobsPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="bg-card_background p-10 rounded-[2.5rem] border border-red-500/20 text-center shadow-2xl">
           <h2 className="text-2xl font-black text-foreground mb-4">
-            Wystąpił błąd
+            An error occurred
           </h2>
           <p className="text-muted mb-6">
-            Nie udało się załadować ofert pracy.
+            We encountered a problem while loading job offers.
           </p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-8 py-3 bg-primary text-white rounded-2xl font-bold hover:opacity-90"
+          <a
+            href="/jobs"
+            className="inline-block px-8 py-3 bg-primary text-white rounded-2xl font-bold hover:opacity-90 transition-all"
           >
-            Spróbuj ponownie
-          </button>
+            Try again
+          </a>
         </div>
       </div>
     );
