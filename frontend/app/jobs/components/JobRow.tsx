@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { JobModel } from "./JobOfferModel";
 import { FiArrowRight, FiMapPin, FiClock } from "react-icons/fi";
+import { getWorkModeLabel, mapEmploymentStatus } from "../../lib/jobFormatters";
 
 interface JobRowProps {
   job: JobModel;
 }
 
 export default function JobRow({ job }: JobRowProps) {
-  const { id, title, company, salary, location, remote, employment_statuses } =
+  const { id, title, company, salary, location, remote, hybrid, employment_statuses } =
     job;
-
+  
   return (
     <div className="group relative bg-card_background border border-card_border hover:border-primary transition-all duration-300 rounded-2xl shadow-sm hover:shadow-xl overflow-hidden">
       <div className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -32,13 +33,16 @@ export default function JobRow({ job }: JobRowProps) {
             </h3>
             <div className="flex flex-wrap gap-x-4 gap-y-1 items-center text-sm mt-1.5 text-muted">
               <span className="font-bold text-primary/90">{company.name}</span>
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 capitalize">
                 <FiMapPin className="text-primary/60" />
-                {remote ? "Remote" : location[0]?.display_name}
+                {getWorkModeLabel(remote, hybrid)}{" "}
+                {getWorkModeLabel(remote, hybrid) === "office" && location[0]?.display_name
+                  ? `(${location[0]?.display_name})`
+                  : ""}
               </span>
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-1 capitalize">
                 <FiClock className="text-primary/60" />
-                {employment_statuses.join(", ")}
+                {employment_statuses.map(mapEmploymentStatus).join(", ")}
               </span>
             </div>
           </div>

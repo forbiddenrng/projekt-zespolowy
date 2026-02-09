@@ -81,21 +81,26 @@ export default function JobFilters() {
                 Experience Level
               </p>
               <div className="flex flex-wrap gap-2">
-                {["Junior", "Mid", "Senior", "Lead"].map((level) => (
+                {[
+                  { id: "junior", label: "Junior" },
+                  { id: "mid_level", label: "Mid" },
+                  { id: "senior", label: "Senior" },
+                  { id: "staff", label: "Lead" },
+                ].map((level) => (
                   <button
-                    key={level}
+                    key={level.id}
                     onClick={() =>
                       setSelectedSeniority(
-                        selectedSeniority === level ? null : level,
+                        selectedSeniority === level.id ? null : level.id,
                       )
                     }
                     className={`px-5 py-2.5 rounded-xl text-sm font-bold border transition-all ${
-                      selectedSeniority === level
+                      selectedSeniority === level.id
                         ? "bg-primary text-white border-primary shadow-md shadow-primary/20"
                         : "bg-secondary text-foreground border-transparent hover:border-card_border"
                     }`}
                   >
-                    {level}
+                    {level.label}
                   </button>
                 ))}
               </div>
