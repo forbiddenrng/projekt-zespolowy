@@ -1,20 +1,24 @@
+# Node.js 20-alpine base image
 FROM node:20-alpine
 
+# Set working directory
 WORKDIR /app
 
+# Copy package.json and package-lock.json
 COPY package*.json ./
-COPY prisma ./prisma/
 
-RUN npm install
+# Install dependencies
+RUN npm cache clean --force
+RUN npm install --legacy-peer-deps
 
+# Copy the rest of the application code
 COPY . .
 
-ARG DATABASE_URL="postgresql://placeholder:placeholder@placeholder:5432/placeholder"
-ENV DATABASE_URL=$DATABASE_URL
-
+# Generate Prisma Client code
 RUN npx prisma generate
-RUN npm run build
 
+# Expose the port the app runs on
 EXPOSE 5050
 
-CMD ["sh", "-c", "npx prisma db push && npm run start:prod"]
+# Command to run the app
+CMD [  "npm", "run", "start:migrate:prod" ]
