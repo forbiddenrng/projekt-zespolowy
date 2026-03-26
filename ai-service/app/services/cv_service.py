@@ -14,7 +14,7 @@ class CVService:
 
     
     def generate_cv_html(self, cv_data: dict) -> str:
-        """Wygeneruj PDF CV"""
+        """Generate cv HTML"""
         template_loader = FileSystemLoader(searchpath="app/services")
         template_env = Environment(loader=template_loader)
         template = template_env.get_template("template.html")
@@ -24,30 +24,27 @@ class CVService:
 
     
     async def save_pdf(self, user_id: str, task_id: str, pdf_html: str) -> str:
-        """Przechowaj PDF lokalnie"""
+        """Save pdf"""
         return await self._save_locally(user_id, task_id, pdf_html)
     
     async def _save_locally(self, user_id: str, task_id: str, pdf_html: str) -> str:
-        """Przechowaj PDF lokalnie w strukturze: storage/cvs/YYYY/MM/user_id/task_id.pdf"""
+        """Save pdf in: storage/cvs/YYYY/MM/user_id/task_id.pdf"""
         now = datetime.now(timezone.utc)
         user_dir = self.local_storage_path / str(now.year) / f"{now.month:02d}" / user_id
         user_dir.mkdir(parents=True, exist_ok=True)
         
         file_path = user_dir / f"{task_id}.pdf"
 
-        # async with aiofiles.open(file_path, "wb") as f:
-        #     await f.write(pdf_bytes)
-
         HTML(string=pdf_html).write_pdf(str(file_path))
         
         return f"{now.year}/{now.month:02d}/{user_id}/{task_id}.pdf"
     
     async def get_pdf(self, pdf_path: str) -> bytes:
-        """Pobierz PDF z dysku"""
+        """Get pdf"""
         return await self._get_locally(pdf_path)
     
     async def _get_locally(self, pdf_path: str) -> bytes:
-        """Pobierz PDF z dysku"""
+        """Get pdf from disk"""
         file_path = self.local_storage_path / pdf_path
         async with aiofiles.open(file_path, "rb") as f:
             return await f.read()

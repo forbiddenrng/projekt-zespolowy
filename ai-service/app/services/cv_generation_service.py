@@ -11,7 +11,7 @@ class CVGenerationService:
     self.tz = timezone(timedelta(hours=1))
     
   async def create_task(self, user_id: str, job_offer: str = ""):
-    """Utwórz rekord zadania w bazie danych"""
+    """Create task record in database"""
     task = {
       "user_id": user_id,
       "job_offer": job_offer,
@@ -26,7 +26,7 @@ class CVGenerationService:
     return str(result.inserted_id)
   
   async def get_task(self, task_id: str):
-    """Pobierz status zadania"""
+    """Get task status"""
     try:
       task = await self.collection.find_one({"_id": ObjectId(task_id)})
       if task:
@@ -36,7 +36,7 @@ class CVGenerationService:
       return None
   
   async def update_task_status(self, task_id: str, status: str, **kwargs):
-    """Zaktualizuj status zadania"""
+    """Update task status"""
     try:
       await self.collection.update_one(
           {"_id": ObjectId(task_id)},
@@ -113,7 +113,7 @@ class CVGenerationService:
   
   
   async def send_webhook(self, user_id: str, task_id: str, status: str, pdf_url: str = None):
-      """Wyślij powiadomienie przez webhook"""
+      """Send weebhook as a notification"""
       
       webhook_url = getattr(settings, "USER_SERVICE_WEBHOOK_URL", None)
       if not webhook_url:
