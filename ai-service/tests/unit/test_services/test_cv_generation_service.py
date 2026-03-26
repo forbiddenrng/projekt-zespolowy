@@ -2,22 +2,22 @@ import pytest
 from datetime import datetime, timezone, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 from bson import ObjectId
-from app.services.cover_letter_generation_service import CoverLetterGenerationService
+from app.services.cv_generation_service import CVGenerationService
 
 
 @pytest.mark.asyncio
-class TestCoverLetterGenerationService:
-    """Tests for CoverLetterGenerationService"""
+class TestCVGenerationService:
+    """Tests for CVGenerationService"""
 
     @pytest.fixture
-    def service(self, mock_mongodb_with_config_letter):
+    def service(self, mock_mongodb_with_config_cv):
         """Create service instance with mocked MongoDB"""
-        return CoverLetterGenerationService()
+        return CVGenerationService()
 
     @pytest.fixture
-    def mock_collection(self, mock_mongodb_with_config_letter):
+    def mock_collection(self, mock_mongodb_with_config_cv):
         """Get mocked collection"""
-        return mock_mongodb_with_config_letter.db.__getitem__.return_value
+        return mock_mongodb_with_config_cv.db.__getitem__.return_value
 
     # ============= create_task tests =============
     async def test_create_task_valid_data(self, service, mock_collection, sample_task_data):
@@ -359,7 +359,7 @@ class TestCoverLetterGenerationService:
     @pytest.mark.asyncio
     async def test_send_webhook_success(self, service):
         """send_webhook sends successful webhook"""
-        with patch('app.services.cover_letter_generation_service.ClientSession') as mock_session_class:
+        with patch('app.services.cv_generation_service.ClientSession') as mock_session_class:
             mock_response = AsyncMock()
             mock_response.status = 200
             
@@ -371,7 +371,7 @@ class TestCoverLetterGenerationService:
             
             mock_session_class.return_value = mock_session
 
-            with patch('app.services.cover_letter_generation_service.settings') as mock_settings:
+            with patch('app.services.cv_generation_service.settings') as mock_settings:
                 mock_settings.USER_SERVICE_WEBHOOK_URL = "http://localhost:8001/webhook"
                 
                 await service.send_webhook(
@@ -392,7 +392,7 @@ class TestCoverLetterGenerationService:
     @pytest.mark.asyncio
     async def test_send_webhook_no_url_configured(self, service):
         """send_webhook returns early if no webhook URL"""
-        with patch('app.services.cover_letter_generation_service.settings') as mock_settings:
+        with patch('app.services.cv_generation_service.settings') as mock_settings:
             mock_settings.USER_SERVICE_WEBHOOK_URL = None
             
             # Should not raise exception
@@ -405,7 +405,7 @@ class TestCoverLetterGenerationService:
     @pytest.mark.asyncio
     async def test_send_webhook_handles_error(self, service):
         """send_webhook handles connection errors gracefully"""
-        with patch('app.services.cover_letter_generation_service.ClientSession') as mock_session_class:
+        with patch('app.services.cv_generation_service.ClientSession') as mock_session_class:
             mock_session = AsyncMock()
             mock_session.__aenter__ = AsyncMock(return_value=mock_session)
             mock_session.__aexit__ = AsyncMock(return_value=None)
@@ -413,7 +413,7 @@ class TestCoverLetterGenerationService:
             
             mock_session_class.return_value = mock_session
 
-            with patch('app.services.cover_letter_generation_service.settings') as mock_settings:
+            with patch('app.services.cv_generation_service.settings') as mock_settings:
                 mock_settings.USER_SERVICE_WEBHOOK_URL = "http://localhost:8001/webhook"
                 
                 # Should not raise exception

@@ -38,12 +38,18 @@ def mock_mongodb():
   }
 
 @pytest.fixture
-def mock_mongodb_with_config(mock_mongodb):
+def mock_mongodb_with_config_letter(mock_mongodb):
   """Patch mongodb client for cover letter service"""
   with patch('app.services.cover_letter_generation_service.mongodb') as mock:
     mock.db = mock_mongodb["db"]
     yield mock
 
+@pytest.fixture
+def mock_mongodb_with_config_cv(mock_mongodb):
+  """Patch mongodb client for cover letter service"""
+  with patch('app.services.cv_generation_service.mongodb') as mock:
+    mock.db = mock_mongodb["db"]
+    yield mock
 
 
 @pytest.fixture
