@@ -45,8 +45,8 @@ jobs:
       with:
         name: coverage-report
         path: ai-service/htmlcov/
-    - name: Comment PR with Coverage
-      if: github.event_name == 'pull_request'
-      uses: py-cov-action/python-coverage-comment-action@v3
-      with:
-        GITHUB_TOKEN: ${{ github.token }}
+    # - name: Comment PR with Coverage
+    #   if: github.event_name == 'pull_request'
+    #   uses: py-cov-action/python-coverage-comment-action@v3
+    #   with:
+    #     GITHUB_TOKEN: ${{ github.token }}
