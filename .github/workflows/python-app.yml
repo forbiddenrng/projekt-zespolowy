@@ -9,14 +9,14 @@ on:
   pull_request:
     branches: [ "develop" ]
 
-permissions:
-  contents: write
-  pull-requests: write
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
     - uses: actions/checkout@v4
