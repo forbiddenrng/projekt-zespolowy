@@ -50,6 +50,7 @@ env/
 .pytest_cache/
 htmlcov/
 coverage.xml
+.coverage
 
 # ----------------------
 # Misc
