@@ -178,3 +178,19 @@ def sample_user_preferences():
       "seniority_levels": ["senior", "mid_level"],
       "countries": ["PL", "US"]
   }
+
+@pytest.fixture
+def mock_aiofiles_open():
+  """Factory for creating mock aiofiles.open async context manager"""
+  def _create_mock(file_content = b''):
+    mock_file = AsyncMock()
+    mock_file.read = AsyncMock(return_value=file_content)
+
+    async_cm = AsyncMock()
+    async_cm.__aenter__ = AsyncMock(return_value=mock_file)
+    async_cm.__aexit__ = AsyncMock(return_value=None)
+
+    return async_cm, mock_file
+  
+  return _create_mock
+
