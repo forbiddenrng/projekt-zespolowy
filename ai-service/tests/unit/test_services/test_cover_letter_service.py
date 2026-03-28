@@ -222,10 +222,20 @@ class TestCVService:
     pdf_path = "2026/03/test_user/test_task.pdf"
     fake_pdf_content = b"%PDF-1.4 fake pdf content"
 
+    mock_file = AsyncMock()
+    mock_file.read = AsyncMock(return_value=fake_pdf_content)
+
+    async_cm = AsyncMock()
+    async_cm.__aenter__ = AsyncMock(return_value = mock_file)
+    async_cm.__aexit__ = AsyncMock(return_value = None)
+
+
     with patch('app.services.cover_letter_service.aiofiles.open', new_callable=AsyncMock) as mock_open_func:
-      mock_file = AsyncMock()
-      mock_file.read = AsyncMock(return_value=fake_pdf_content)
-      mock_open_func.return_value.__aenter__.return_value = mock_file
+      mock_open_func.return_value = async_cm
+
+      # mock_file = AsyncMock()
+      # mock_file.read = AsyncMock(return_value=fake_pdf_content)
+      # mock_open_func.return_value.__aenter__.return_value = mock_file
 
       result = await cover_letter_service._get_locally(pdf_path)
 
