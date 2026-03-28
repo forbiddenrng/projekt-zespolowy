@@ -359,7 +359,7 @@ class TestCoverLetterService:
         assert task_id in pdf_path
         assert pdf_path.endswith('.pdf')
 
-        with patch('app.services.cover_letter_service.aiofiles.open', new_callable=AsyncMock) as mock_open_func:
+        with patch('app.services.cover_letter_service.aiofiles.open') as mock_open_func:
           async_cm, mock_file = mock_aiofiles_open(fake_pdf_content)
           mock_open_func.return_value = async_cm
 

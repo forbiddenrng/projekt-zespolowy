@@ -217,29 +217,27 @@ class TestCVService:
   # ===== _get_locally tests =====
   
   @pytest.mark.asyncio
-  async def test_get_locally_reads_file_from_disk(self, cv_service):
+  async def test_get_locally_reads_file_from_disk(self, cv_service, mock_aiofiles_open):
     """Test that _get_locally reads PDF file from disk"""
     pdf_path = "2026/03/test_user/test_task.pdf"
     fake_pdf_content = b"%PDF-1.4 fake pdf content"
 
-    with patch('app.services.cv_service.aiofiles.open', new_callable=AsyncMock) as mock_open_func:
-      mock_file = AsyncMock()
-      mock_file.read = AsyncMock(return_value=fake_pdf_content)
-      mock_open_func.return_value.__aenter__.return_value = mock_file
+    with patch('app.services.cv_service.aiofiles.open') as mock_open_func:
+      async_cm, mock_file = mock_aiofiles_open(fake_pdf_content)
+      mock_open_func.return_value = async_cm
 
       result = await cv_service._get_locally(pdf_path)
 
       assert result == fake_pdf_content
 
   @pytest.mark.asyncio
-  async def test_get_locally_constructs_correct_file_path(self, cv_service):
+  async def test_get_locally_constructs_correct_file_path(self, cv_service, mock_aiofiles_open):
     """Test that _get_locally uses correct full file path"""
     pdf_path = "2026/03/test_user/test_task.pdf"
 
-    with patch('app.services.cv_service.aiofiles.open', new_callable=AsyncMock) as mock_open_func:
-      mock_file = AsyncMock()
-      mock_file.read = AsyncMock(return_value=b"content")
-      mock_open_func.return_value.__aenter__.return_value = mock_file
+    with patch('app.services.cv_service.aiofiles.open') as mock_open_func:
+      async_cm, mock_file = mock_aiofiles_open(b"content")
+      mock_open_func.return_value = async_cm
 
       await cv_service._get_locally(pdf_path)
 
@@ -249,14 +247,13 @@ class TestCVService:
       assert str(expected_full_path) in str(call_args[0])
 
   @pytest.mark.asyncio
-  async def test_get_locally_opens_file_in_binary_mode(self, cv_service):
+  async def test_get_locally_opens_file_in_binary_mode(self, cv_service, mock_aiofiles_open):
       """Test that _get_locally opens file in binary read mode 'rb'"""
       pdf_path = "2026/03/test_user/test_task.pdf"
 
-      with patch('app.services.cv_service.aiofiles.open', new_callable=AsyncMock) as mock_open_func:
-        mock_file = AsyncMock()
-        mock_file.read = AsyncMock(return_value=b"content")
-        mock_open_func.return_value.__aenter__.return_value = mock_file
+      with patch('app.services.cv_service.aiofiles.open') as mock_open_func:
+        async_cm, mock_file = mock_aiofiles_open(b"content")
+        mock_open_func.return_value = async_cm
 
         await cv_service._get_locally(pdf_path)
 
@@ -264,15 +261,14 @@ class TestCVService:
         assert call_args[1] == "rb"
 
   @pytest.mark.asyncio
-  async def test_get_locally_returns_bytes(self, cv_service):
+  async def test_get_locally_returns_bytes(self, cv_service, mock_aiofiles_open):
     """Test that _get_locally returns bytes"""
     pdf_path = "2026/03/test_user/test_task.pdf"
     fake_pdf = b"PDF content bytes"
 
-    with patch('app.services.cv_service.aiofiles.open', new_callable=AsyncMock) as mock_open_func:
-      mock_file = AsyncMock()
-      mock_file.read = AsyncMock(return_value=fake_pdf)
-      mock_open_func.return_value.__aenter__.return_value = mock_file
+    with patch('app.services.cv_service.aiofiles.open') as mock_open_func:
+      async_cm, mock_file = mock_aiofiles_open(fake_pdf)
+      mock_open_func.return_value = async_cm
 
       result = await cv_service._get_locally(pdf_path)
 
@@ -280,20 +276,19 @@ class TestCVService:
       assert result == fake_pdf
 
   @pytest.mark.asyncio
-  async def test_get_locally_uses_async_file_operations(self, cv_service):
+  async def test_get_locally_uses_async_file_operations(self, cv_service, mock_aiofiles_open):
     """Test that _get_locally uses async file operations"""
     pdf_path = "2026/03/test_user/test_task.pdf"
 
-    with patch('app.services.cv_service.aiofiles.open', new_callable=AsyncMock) as mock_open_func:
-      mock_file = AsyncMock()
-      mock_file.read = AsyncMock(return_value=b"content")
-      mock_open_func.return_value.__aenter__.return_value = mock_file
+    with patch('app.services.cv_service.aiofiles.open') as mock_open_func:
+      async_cm, mock_file = mock_aiofiles_open(b"content")
+      mock_open_func.return_value = async_cm
 
       await cv_service._get_locally(pdf_path)
 
       mock_file.read.assert_called_once()
 
-    # ===== get_pdf tests =====
+  # ===== get_pdf tests =====
     
   @pytest.mark.asyncio
   async def test_get_pdf_delegates_to_get_locally(self, cv_service):
@@ -338,7 +333,7 @@ class TestCVService:
     # ===== Integration tests =====
     
   @pytest.mark.asyncio
-  async def test_full_cv_workflow(self, cv_service, sample_cv_data):
+  async def test_full_cv_workflow(self, cv_service, sample_cv_data, mock_aiofiles_open):
     """Test complete workflow: generate HTML -> save PDF -> get PDF"""
     user_id = "integration_user"
     task_id = "integration_task"
@@ -364,10 +359,9 @@ class TestCVService:
         assert task_id in pdf_path
         assert pdf_path.endswith('.pdf')
 
-        with patch('app.services.cv_service.aiofiles.open', new_callable=AsyncMock) as mock_open_func:
-          mock_file = AsyncMock()
-          mock_file.read = AsyncMock(return_value=fake_pdf_content)
-          mock_open_func.return_value.__aenter__.return_value = mock_file
+        with patch('app.services.cv_service.aiofiles.open') as mock_open_func:
+          async_cm, mock_file = mock_aiofiles_open(fake_pdf_content)
+          mock_open_func.return_value = async_cm
 
           retrieved_pdf = await cv_service.get_pdf(pdf_path)
           assert retrieved_pdf == fake_pdf_content
