@@ -131,59 +131,55 @@ class TestTransformExperience:
 
 
 class TestTransformCertificates:
-    """Test suite for _transform_certificates function"""
+  """Test suite for _transform_certificates function"""
 
-    def test_transform_single_certificate(self):
-        """Test transforming single certificate"""
-        certificates = [
-            {
-                "name": "AWS Solutions Architect",
-                "certification_date": "2023-06-15",
-                "issuer": "Amazon",
-            }
-        ]
+  @pytest.fixture
+  def mock_certificates_data(self):
+    """Mock data for certificates"""
+    return [
+      {
+        "name": "AWS Certified",
+        "certification_date": "2023-06-15",
+        "issuer": "Amazon",
+      },
+      {
+        "name": "GCP Professional",
+        "certification_date": "2024-01-20",
+        "issuer": "Google",
+      },
+    ]
 
-        result = _transform_certificates(certificates)
+  def test_transform_single_certificate(self, mock_certificates_data):
+    """Test transforming single certificate"""
+    certificates = mock_certificates_data[:1]
 
-        assert len(result) == 1
-        assert result[0]["name"] == "AWS Solutions Architect"
-        assert result[0]["certification_date"] == "15-06-2023"
-        assert result[0]["issuer"] == "Amazon"
+    result = _transform_certificates(certificates)
 
-    def test_transform_multiple_certificates(self):
-        """Test transforming multiple certificates"""
-        certificates = [
-            {
-                "name": "AWS Certified",
-                "certification_date": "2023-06-15",
-                "issuer": "Amazon",
-            },
-            {
-                "name": "GCP Professional",
-                "certification_date": "2024-01-20",
-                "issuer": "Google",
-            },
-        ]
+    assert len(result) == 1
+    assert result[0]["name"] == "AWS Certified"
+    assert result[0]["certification_date"] == "15-06-2023"
+    assert result[0]["issuer"] == "Amazon"
 
-        result = _transform_certificates(certificates)
+  def test_transform_multiple_certificates(self, mock_certificates_data):
+    """Test transforming multiple certificates"""
 
-        assert len(result) == 2
-        assert result[0]["issuer"] == "Amazon"
-        assert result[1]["issuer"] == "Google"
+    result = _transform_certificates(mock_certificates_data)
 
-    def test_transform_certificates_with_missing_fields(self):
-        """Test transforming certificates with missing fields"""
-        certificates = [
-            {
-                "name": "Some Cert",
-            }
-        ]
+    assert len(result) == 2
+    assert result[0]["issuer"] == "Amazon"
+    assert result[1]["issuer"] == "Google"
 
-        result = _transform_certificates(certificates)
+  def test_transform_certificates_with_missing_fields(self, mock_certificates_data):
+      """Test transforming certificates with missing fields"""
+      certificates = mock_certificates_data[:1]
+      certificates[0].pop("certification_date")
+      certificates[0].pop("issuer")
 
-        assert result[0]["name"] == "Some Cert"
-        assert result[0]["certification_date"] == ""
-        assert result[0]["issuer"] == ""
+      result = _transform_certificates(certificates)
+
+      assert result[0]["name"] == "AWS Certified"
+      assert result[0]["certification_date"] == ""
+      assert result[0]["issuer"] == ""
 
 
 class TestTransformLanguages:
