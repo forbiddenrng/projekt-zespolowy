@@ -1,5 +1,6 @@
-import aiohttp
+from aiohttp import ClientSession, ClientTimeout
 import os
+from app.core.config import settings
 from datetime import datetime, timezone, timedelta
 from app.clients.mongodb_client import mongodb
 from bson import ObjectId
@@ -10,7 +11,7 @@ class CVGenerationService:
     self.tz = timezone(timedelta(hours=1))
     
   async def create_task(self, user_id: str, job_offer: str = ""):
-    """Utwórz rekord zadania w bazie danych"""
+    """Create task record in database"""
     task = {
       "user_id": user_id,
       "job_offer": job_offer,
@@ -25,7 +26,7 @@ class CVGenerationService:
     return str(result.inserted_id)
   
   async def get_task(self, task_id: str):
-    """Pobierz status zadania"""
+    """Get task status"""
     try:
       task = await self.collection.find_one({"_id": ObjectId(task_id)})
       if task:
@@ -35,7 +36,7 @@ class CVGenerationService:
       return None
   
   async def update_task_status(self, task_id: str, status: str, **kwargs):
-    """Zaktualizuj status zadania"""
+    """Update task status"""
     try:
       await self.collection.update_one(
           {"_id": ObjectId(task_id)},
@@ -112,8 +113,7 @@ class CVGenerationService:
   
   
   async def send_webhook(self, user_id: str, task_id: str, status: str, pdf_url: str = None):
-      """Wyślij powiadomienie przez webhook"""
-      from app.core.config import settings
+      """Send weebhook as a notification"""
       
       webhook_url = getattr(settings, "USER_SERVICE_WEBHOOK_URL", None)
       if not webhook_url:
@@ -129,9 +129,9 @@ class CVGenerationService:
         "timestamp": datetime.now(self.tz).isoformat(),
       }
       
-      async with aiohttp.ClientSession() as session:
+      async with ClientSession() as session:
         try:
-          async with session.post(webhook_url, json=payload, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+          async with session.post(webhook_url, json=payload, timeout=ClientTimeout(total=10)) as resp:
               print(f"Webhook sent: {resp.status}")
         except Exception as e:
           print(f"Webhook error: {e}")

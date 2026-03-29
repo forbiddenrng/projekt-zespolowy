@@ -1,8 +1,12 @@
-import aiohttp
+# import aiohttp
+from aiohttp import ClientSession, ClientTimeout
 import os
 from datetime import datetime, timezone, timedelta
 from app.clients.mongodb_client import mongodb
 from bson import ObjectId
+from app.core.config import settings
+
+
 
 class CoverLetterGenerationService:
   def __init__(self):
@@ -111,7 +115,6 @@ class CoverLetterGenerationService:
   
   async def send_webhook(self, user_id: str, task_id: str, status: str, pdf_url: str = None):
       """Send webhook"""
-      from app.core.config import settings
       
       webhook_url = getattr(settings, "USER_SERVICE_WEBHOOK_URL", None)
       if not webhook_url:
@@ -127,9 +130,9 @@ class CoverLetterGenerationService:
         "timestamp": datetime.now(self.tz).isoformat(),
       }
       
-      async with aiohttp.ClientSession() as session:
+      async with ClientSession() as session:
         try:
-          async with session.post(webhook_url, json=payload, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+          async with session.post(webhook_url, json=payload, timeout=ClientTimeout(total=10)) as resp:
               print(f"Webhook sent: {resp.status}")
         except Exception as e:
           print(f"Webhook error: {e}")

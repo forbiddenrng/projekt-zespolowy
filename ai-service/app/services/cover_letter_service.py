@@ -14,7 +14,7 @@ class CoverLetterService:
 
     
   def generate_cover_letter_html(self, cover_letter_data: dict) -> str:
-    """Wygeneruj HTML listu motywacyjnego"""
+    """Generate cover letter HTML"""
     template_loader = FileSystemLoader(searchpath="app/services")
     template_env = Environment(loader=template_loader)
     template = template_env.get_template("cover_letter_template.html")
@@ -24,11 +24,11 @@ class CoverLetterService:
 
     
   async def save_pdf(self, user_id: str, task_id: str, pdf_html: str) -> str:
-    """Przechowaj PDF lokalnie"""
+    """Save pdf locally"""
     return await self._save_locally(user_id, task_id, pdf_html)
     
   async def _save_locally(self, user_id: str, task_id: str, pdf_html: str) -> str:
-    """Przechowaj PDF lokalnie w strukturze: storage/cover_letters/YYYY/MM/user_id/task_id.pdf"""
+    """Save pdf in storage/cover_letters/YYYY/MM/user_id/task_id.pdf"""
     now = datetime.now(timezone.utc)
     user_dir = self.local_storage_path / str(now.year) / f"{now.month:02d}" / user_id
     user_dir.mkdir(parents=True, exist_ok=True)
@@ -40,11 +40,11 @@ class CoverLetterService:
     return f"{now.year}/{now.month:02d}/{user_id}/{task_id}.pdf"
     
   async def get_pdf(self, pdf_path: str) -> bytes:
-    """Pobierz PDF z dysku"""
+    """Get pdf"""
     return await self._get_locally(pdf_path)
     
   async def _get_locally(self, pdf_path: str) -> bytes:
-    """Pobierz PDF z dysku"""
+    """Get pdf from disk"""
     file_path = self.local_storage_path / pdf_path
     async with aiofiles.open(file_path, "rb") as f:
         return await f.read()
