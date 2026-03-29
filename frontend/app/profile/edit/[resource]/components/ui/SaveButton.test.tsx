@@ -33,10 +33,7 @@ describe("SaveButton Component", () => {
 
   it("powinien nakładać odpowiednie klasy stylujące Tailwind CSS", () => {
     render(<SaveButton isSubmitting={false} />);
-
     const button = screen.getByRole("button", { name: /Save/i });
-
-    // Weryfikujemy kluczowe klasy odpowiedzialne za układ, kolory i stany
     expect(button).toHaveClass(
       "flex",
       "items-center",
