@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch, call
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.services.cover_letter_task import (
   generate_cover_letter_with_retry,
@@ -66,7 +66,7 @@ class TestGenerateCoverLetterWithRetry:
       assert "Failed to generate covering letter after 3 attempts" in str(exc_info.value)
       assert mock_gen.call_count == 3
 
-  async def test_generate_covr_letters_raises_non_retriable_error_immediately(self, mock_user_data, mock_job_offer, mock_company_info):
+  async def test_generate_cover_letters_raises_non_retriable_error_immediately(self, mock_user_data, mock_job_offer, mock_company_info):
     """Test non-retriable errors are raised immediately"""
 
     with patch("app.services.cover_letter_task.generate_cover_letter_data", new_callable=AsyncMock) as mock_gen:
@@ -225,7 +225,7 @@ class TestGenerateCoverLetterTask:
           task_id="task123",
           user_id="user123",
           job_offer="Senior Python Developer",
-          company_info="Compay info"
+          company_info="Company info"
       )
 
     # Verify status updated to FAILED
@@ -291,7 +291,7 @@ class TestGenerateCoverLetterTask:
       # Check webhook send calls
       webhook_calls = mock_services["cover_letter_gen_service"].send_webhook.call_args_list
       
-      # Should be called twice: once on failure path (if any) or on success
+      # Should be called at least once: once on failure path (if any) or on success
       assert len(webhook_calls) > 0
       
       # Last call should be successful completion

@@ -1,5 +1,5 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch, call
+from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.services.cv_task import (
   generate_cv_with_retry,
@@ -288,7 +288,7 @@ class TestGenerateCVTask:
       # Check webhook send calls
       webhook_calls = mock_services["cv_gen_service"].send_webhook.call_args_list
       
-      # Should be called twice: once on failure path (if any) or on success
+      # Should be called at least once: once on failure path (if any) or on success
       assert len(webhook_calls) > 0
       
       # Last call should be successful completion

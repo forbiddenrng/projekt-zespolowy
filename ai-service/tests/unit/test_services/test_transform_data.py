@@ -121,13 +121,13 @@ class TestTransformExperience:
     assert result[0]["end_date"] == "Obecnie"
 
   def test_transform_multiple_experiences(self, mock_experience_data):
-      """Test transforming multiple experience entries"""
+    """Test transforming multiple experience entries"""
 
-      result = _transform_experience(mock_experience_data)
+    result = _transform_experience(mock_experience_data)
 
-      assert len(result) == 2
-      assert result[0]["position"] == mock_experience_data[0]["position"]
-      assert result[1]["position"] == mock_experience_data[1]["position"]
+    assert len(result) == 2
+    assert result[0]["position"] == mock_experience_data[0]["position"]
+    assert result[1]["position"] == mock_experience_data[1]["position"]
 
 
 class TestTransformCertificates:
@@ -170,16 +170,16 @@ class TestTransformCertificates:
     assert result[1]["issuer"] == "Google"
 
   def test_transform_certificates_with_missing_fields(self, mock_certificates_data):
-      """Test transforming certificates with missing fields"""
-      certificates = mock_certificates_data[:1]
-      certificates[0].pop("certification_date")
-      certificates[0].pop("issuer")
+    """Test transforming certificates with missing fields"""
+    certificates = mock_certificates_data[:1]
+    certificates[0].pop("certification_date")
+    certificates[0].pop("issuer")
 
-      result = _transform_certificates(certificates)
+    result = _transform_certificates(certificates)
 
-      assert result[0]["name"] == "AWS Certified"
-      assert result[0]["certification_date"] == ""
-      assert result[0]["issuer"] == ""
+    assert result[0]["name"] == "AWS Certified"
+    assert result[0]["certification_date"] == ""
+    assert result[0]["issuer"] == ""
 
 
 class TestTransformLanguages:
