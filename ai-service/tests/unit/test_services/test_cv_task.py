@@ -13,88 +13,90 @@ from app.services.cv_task import (
 
 @pytest.mark.asyncio
 class TestGenerateCVWithRetry:
-    """Test suite for generate_cv_with_retry function"""
+  """Test suite for generate_cv_with_retry function"""
 
-    async def test_generate_cv_success_on_first_attempt(self):
-        """Test successful generation on first attempt"""
-        user_data = {"name": "John"}
-        job_offer = "Senior Developer"
-        expected_result = {"summary": "Test", "quick_summary": "Test Quick"}
+  @pytest.fixture
+  def mock_user_data(self):
+    return {"name": "John"}
+  
+  @pytest.fixture
+  def mock_job_offer(self):
+    return "Senior Developer"
+  
+  @pytest.fixture
+  def mock_expected_result(self):
+    return {"summary": "Test", "quick_summary": "Test Quick"}
 
-        with patch("app.services.cv_task.generate_cv_data", new_callable=AsyncMock) as mock_gen:
-            mock_gen.return_value = expected_result
+  async def test_generate_cv_success_on_first_attempt(self, mock_user_data, mock_job_offer, mock_expected_result):
+    """Test successful generation on first attempt"""
 
-            result = await generate_cv_with_retry(user_data, job_offer)
+    with patch("app.services.cv_task.generate_cv_data", new_callable=AsyncMock) as mock_gen:
+      mock_gen.return_value = mock_expected_result
 
-            assert result == expected_result
-            mock_gen.assert_called_once_with(user_data, job_offer)
+      result = await generate_cv_with_retry(mock_user_data, mock_job_offer)
 
-    async def test_generate_cv_retry_on_value_error_then_success(self):
-        """Test retry mechanism on ValueError then success"""
-        user_data = {"name": "John"}
-        job_offer = "Senior Developer"
-        expected_result = {"summary": "Test", "quick_summary": "Test Quick"}
+      assert result == mock_expected_result
+      mock_gen.assert_called_once_with(mock_user_data, mock_job_offer)
 
-        with patch("app.services.cv_task.generate_cv_data", new_callable=AsyncMock) as mock_gen:
-            mock_gen.side_effect = [
-                ValueError("Invalid JSON"),
-                ValueError("Invalid JSON"),
-                expected_result,
-            ]
+  async def test_generate_cv_retry_on_value_error_then_success(self, mock_user_data, mock_job_offer, mock_expected_result):
+    """Test retry mechanism on ValueError then success"""
 
-            result = await generate_cv_with_retry(user_data, job_offer, max_retries=3)
+    with patch("app.services.cv_task.generate_cv_data", new_callable=AsyncMock) as mock_gen:        
+      mock_gen.side_effect = [
+        ValueError("Invalid JSON"),
+        ValueError("Invalid JSON"),
+        mock_expected_result,
+      ]
 
-            assert result == expected_result
-            assert mock_gen.call_count == 3
+      result = await generate_cv_with_retry(mock_user_data, mock_job_offer, max_retries=3)
 
-    async def test_generate_cv_raises_api_error_after_max_retries(self):
-        """Test APIGenerationError raised after max retries"""
-        user_data = {"name": "John"}
-        job_offer = "Senior Developer"
+      assert result == mock_expected_result
+      assert mock_gen.call_count == 3
 
-        with patch("app.services.cv_task.generate_cv_data", new_callable=AsyncMock) as mock_gen:
-            mock_gen.side_effect = ValueError("Invalid JSON")
+  async def test_generate_cv_raises_api_error_after_max_retries(self, mock_user_data, mock_job_offer):
+    """Test APIGenerationError raised after max retries"""
 
-            with pytest.raises(APIGenerationError) as exc_info:
-                await generate_cv_with_retry(user_data, job_offer, max_retries=3)
+    with patch("app.services.cv_task.generate_cv_data", new_callable=AsyncMock) as mock_gen:
+      mock_gen.side_effect = ValueError("Invalid JSON")
 
-            assert "Failed to generate CV after 3 attempts" in str(exc_info.value)
-            assert mock_gen.call_count == 3
+      with pytest.raises(APIGenerationError) as exc_info:
+        await generate_cv_with_retry(mock_user_data, mock_job_offer, max_retries=3)
 
-    async def test_generate_cv_raises_non_retriable_error_immediately(self):
-        """Test non-retriable errors are raised immediately"""
-        user_data = {"name": "John"}
-        job_offer = "Senior Developer"
+      assert "Failed to generate CV after 3 attempts" in str(exc_info.value)
+      assert mock_gen.call_count == 3
 
-        with patch("app.services.cv_task.generate_cv_data", new_callable=AsyncMock) as mock_gen:
-            mock_gen.side_effect = RuntimeError("Database connection error")
+  async def test_generate_cv_raises_non_retriable_error_immediately(self, mock_user_data, mock_job_offer):
+    """Test non-retriable errors are raised immediately"""
 
-            with pytest.raises(RuntimeError):
-                await generate_cv_with_retry(user_data, job_offer, max_retries=3)
+    with patch("app.services.cv_task.generate_cv_data", new_callable=AsyncMock) as mock_gen:
+      mock_gen.side_effect = RuntimeError("Database connection error")
 
-            # Should be called only once for non-retriable errors
-            assert mock_gen.call_count == 1
+      with pytest.raises(RuntimeError):
+        await generate_cv_with_retry(mock_user_data, mock_job_offer, max_retries=3)
 
-    async def test_generate_cv_retry_timing(self):
-        """Test that retry waits 3 seconds between attempts"""
-        user_data = {"name": "John"}
-        job_offer = "Senior Developer"
-        expected_result = {"summary": "Test"}
+      # Should be called only once for non-retriable errors
+      assert mock_gen.call_count == 1
 
-        with patch("app.services.cv_task.generate_cv_data", new_callable=AsyncMock) as mock_gen:
-            with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
-                mock_gen.side_effect = [
-                    ValueError("Error"),
-                    ValueError("Error"),
-                    expected_result,
-                ]
+  async def test_generate_cv_retry_timing(self):
+      """Test that retry waits 3 seconds between attempts"""
+      user_data = {"name": "John"}
+      job_offer = "Senior Developer"
+      expected_result = {"summary": "Test"}
 
-                result = await generate_cv_with_retry(user_data, job_offer, max_retries=3)
+      with patch("app.services.cv_task.generate_cv_data", new_callable=AsyncMock) as mock_gen:
+          with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+              mock_gen.side_effect = [
+                  ValueError("Error"),
+                  ValueError("Error"),
+                  expected_result,
+              ]
 
-                assert result == expected_result
-                # Should sleep between retries (2 times for 3 attempts)
-                assert mock_sleep.call_count == 2
-                mock_sleep.assert_called_with(3)
+              result = await generate_cv_with_retry(user_data, job_offer, max_retries=3)
+
+              assert result == expected_result
+              # Should sleep between retries (2 times for 3 attempts)
+              assert mock_sleep.call_count == 2
+              mock_sleep.assert_called_with(3)
 
 
 @pytest.mark.asyncio
