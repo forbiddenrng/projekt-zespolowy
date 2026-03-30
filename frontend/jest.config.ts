@@ -1,12 +1,13 @@
-import nextJest from "next/jest";
+import type { Config } from "jest";
+const nextJest = require("next/jest");
 
 const createJestConfig = nextJest({
   dir: "./",
 });
 
-const config = {
+const config: Config = {
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   testEnvironment: "jest-environment-jsdom",
 };
 
-export default createJestConfig(config);
+module.exports = createJestConfig(config);

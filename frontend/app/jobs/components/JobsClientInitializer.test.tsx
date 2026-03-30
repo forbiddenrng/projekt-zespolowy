@@ -3,7 +3,6 @@ import { render } from "@testing-library/react";
 import JobsClientInitializer from "./JobsClientInitializer";
 import { useJobs } from "./JobsContext";
 import { JobModel } from "./JobOfferModel";
-import { mock } from "node:test";
 
 jest.mock("../components/JobsContext");
 

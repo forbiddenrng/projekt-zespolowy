@@ -1,5 +1,5 @@
-import React, { use } from "react";
-import { renderHook, act, render } from "@testing-library/react";
+import React from "react";
+import { renderHook, act } from "@testing-library/react";
 import { JobsProvider, useJobs } from "./JobsContext";
 import { JobModel } from "./JobOfferModel";
 
