@@ -183,129 +183,129 @@ class TestTransformCertificates:
 
 
 class TestTransformLanguages:
-    """Test suite for _transform_languages function"""
+  """Test suite for _transform_languages function"""
 
-    def test_transform_single_language(self):
-        """Test transforming single language"""
-        languages = [
-            {
-                "language": {"name": "English"},
-                "level": "Native",
-            }
-        ]
+  @pytest.fixture
+  def mock_languages_data(self):
+    return [
+      {"language": {"name": "English"}, "level": "Native"},
+      {"language": {"name": "Polish"}, "level": "Fluent"},
+      {"language": {"name": "German"}, "level": "Intermediate"},
+    ]
 
-        result = _transform_languages(languages)
+  def test_transform_single_language(self, mock_languages_data):
+    """Test transforming single language"""
+    languages = mock_languages_data[:1]
 
-        assert len(result) == 1
-        assert result[0]["name"] == "English"
-        assert result[0]["level"] == "Native"
+    result = _transform_languages(languages)
 
-    def test_transform_multiple_languages(self):
-        """Test transforming multiple languages"""
-        languages = [
-            {"language": {"name": "English"}, "level": "Native"},
-            {"language": {"name": "Polish"}, "level": "Fluent"},
-            {"language": {"name": "German"}, "level": "Intermediate"},
-        ]
+    assert len(result) == 1
+    assert result[0]["name"] == "English"
+    assert result[0]["level"] == "Native"
 
-        result = _transform_languages(languages)
+  def test_transform_multiple_languages(self, mock_languages_data):
+    """Test transforming multiple languages"""
 
-        assert len(result) == 3
-        assert result[0]["name"] == "English"
-        assert result[1]["name"] == "Polish"
-        assert result[2]["name"] == "German"
+    result = _transform_languages(mock_languages_data)
 
-    def test_transform_languages_with_missing_language_field(self):
-        """Test transforming language with missing language object"""
-        languages = [
-            {
-                "level": "Fluent",
-            }
-        ]
+    assert len(result) == 3
+    assert result[0]["name"] == "English"
+    assert result[1]["name"] == "Polish"
+    assert result[2]["name"] == "German"
 
-        result = _transform_languages(languages)
+  def test_transform_languages_with_missing_language_field(self, mock_languages_data):
+    """Test transforming language with missing language object"""
+    languages = mock_languages_data[:1]
+    languages[0].pop("language")
 
-        assert result[0]["name"] == ""
-        assert result[0]["level"] == "Fluent"
+    result = _transform_languages(languages)
+
+    assert result[0]["name"] == ""
+    assert result[0]["level"] == "Native"
 
 
 class TestTransformCVData:
-    """Test suite for _transform_cv_data function"""
+  """Test suite for _transform_cv_data function"""
 
-    def test_transform_cv_data_complete(self):
-        """Test transforming complete CV data"""
-        generated_cv_data = {
-            "summary": "Experienced developer",
-            "quick_summary": "Dev with 5 years experience",
-            "links": ["https://github.com/user"],
+  @pytest.fixture
+  def mock_generated_cv_data(self):
+    return {
+      "summary": "Experienced developer",
+      "quick_summary": "Dev with 5 years experience",
+      "links": ["https://github.com/user"],
+    }
+  
+
+  @pytest.fixture
+  def mock_user_data(self):
+    return {
+      "abilities": [
+        {"name": "Python"},
+        {"name": "JavaScript"},
+      ],
+      "user_languages": [
+        {"language": {"name": "English"}, "level": "Native"},
+      ],
+      "certificates": [
+        {
+          "name": "AWS Cert",
+          "certification_date": "2023-06-15",
+          "issuer": "Amazon",
         }
-
-        user_data = {
-            "abilities": [
-                {"name": "Python"},
-                {"name": "JavaScript"},
-            ],
-            "user_languages": [
-                {"language": {"name": "English"}, "level": "Native"},
-            ],
-            "certificates": [
-                {
-                    "name": "AWS Cert",
-                    "certification_date": "2023-06-15",
-                    "issuer": "Amazon",
-                }
-            ],
-            "work_experiences": [
-                {
-                    "position": "Dev",
-                    "company": "Corp",
-                    "start_date": "2020-01-01",
-                    "end_date": None,
-                    "description": "Working",
-                }
-            ],
-            "education": [
-                {
-                    "degree": "Bachelor",
-                    "major": "CS",
-                    "school_name": "Uni",
-                    "start_date": "2015-09-01",
-                    "end_date": "2019-06-30",
-                }
-            ],
+      ],
+      "work_experiences": [
+        {
+          "position": "Dev",
+          "company": "Corp",
+          "start_date": "2020-01-01",
+          "end_date": None,
+          "description": "Working",
         }
-
-        result = _transform_cv_data(generated_cv_data, user_data)
-
-        assert result["summary"] == "Experienced developer"
-        assert result["quick_summary"] == "Dev with 5 years experience"
-        assert result["skills"] == ["Python", "JavaScript"]
-        assert len(result["languages"]) == 1
-        assert len(result["certificates"]) == 1
-        assert len(result["experience"]) == 1
-        assert len(result["education"]) == 1
-        assert result["links"] == ["https://github.com/user"]
-
-    def test_transform_cv_data_with_empty_collections(self):
-        """Test transforming CV data with empty collections"""
-        generated_cv_data = {
-            "summary": "Summary",
-            "quick_summary": "Quick",
-            "links": [],
+      ],
+      "education": [
+        {
+          "degree": "Bachelor",
+          "major": "CS",
+          "school_name": "Uni",
+          "start_date": "2015-09-01",
+          "end_date": "2019-06-30",
         }
+      ],
+    }
+  
 
-        user_data = {
-            "abilities": [],
-            "user_languages": [],
-            "certificates": [],
-            "work_experiences": [],
-            "education": [],
-        }
 
-        result = _transform_cv_data(generated_cv_data, user_data)
 
-        assert result["skills"] == []
-        assert result["languages"] == []
-        assert result["certificates"] == []
-        assert result["experience"] == []
-        assert result["education"] == []
+  def test_transform_cv_data_complete(self, mock_generated_cv_data, mock_user_data):
+    """Test transforming complete CV data"""
+
+    result = _transform_cv_data(mock_generated_cv_data, mock_user_data)
+
+    assert result["summary"] == "Experienced developer"
+    assert result["quick_summary"] == "Dev with 5 years experience"
+    assert result["skills"] == ["Python", "JavaScript"]
+    assert len(result["languages"]) == 1
+    assert len(result["certificates"]) == 1
+    assert len(result["experience"]) == 1
+    assert len(result["education"]) == 1
+    assert result["links"] == ["https://github.com/user"]
+
+  def test_transform_cv_data_with_empty_collections(self, mock_generated_cv_data):
+    """Test transforming CV data with empty collections"""
+    mock_generated_cv_data["links"] = []
+
+    user_data = {
+      "abilities": [],
+      "user_languages": [],
+      "certificates": [],
+      "work_experiences": [],
+      "education": [],
+    }
+
+    result = _transform_cv_data(mock_generated_cv_data, user_data)
+
+    assert result["skills"] == []
+    assert result["languages"] == []
+    assert result["certificates"] == []
+    assert result["experience"] == []
+    assert result["education"] == []
