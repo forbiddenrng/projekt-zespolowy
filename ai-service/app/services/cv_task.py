@@ -1,5 +1,5 @@
 from app.core.celery_config import celery_app
-# from app.services.cv_service import CVService
+from app.services.cv_service import CVService
 from app.services.cv_generation_service import CVGenerationService
 from app.clients.userservice_client import UserServiceClient
 from app.clients.mongodb_client import mongodb
