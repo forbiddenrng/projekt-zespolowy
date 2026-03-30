@@ -12,7 +12,7 @@ describe("SectionHeader Component", () => {
 
   it("nie powinien renderować kontenera ikony, jeśli prop icon nie został przekazny", () => {
     const { container } = render(<SectionHeader title="Sekcja Bez Ikony" />);
-    const iconWrapper = container.querySelector(".text-primety");
+    const iconWrapper = container.querySelector(".text-primary");
     expect(iconWrapper).not.toBeInTheDocument();
   });
 
