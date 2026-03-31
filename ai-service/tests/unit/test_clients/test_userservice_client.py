@@ -171,12 +171,16 @@ class TestUserServiceClient:
           response=mock_response
       )
 
+      mock_response.raise_for_status.side_effect = error
+
       mock_client = AsyncMock()
-      mock_client.get = AsyncMock(side_effect=error)
+      mock_client.get = AsyncMock(return_value=mock_response)
       mock_client_class.return_value.__aenter__.return_value = mock_client
 
       with pytest.raises(httpx.HTTPStatusError):
         await user_service_client.get_user_data("test123")
+
+      mock_response.raise_for_status.assert_called_once()
 
   @pytest.mark.asyncio
   async def test_get_user_data_raises_on_http_500_error(
@@ -194,12 +198,17 @@ class TestUserServiceClient:
           response=mock_response
       )
 
+      mock_response.raise_for_status.side_effect = error
+
+
       mock_client = AsyncMock()
-      mock_client.get = AsyncMock(side_effect=error)
+      mock_client.get = AsyncMock(return_value=mock_response)
       mock_client_class.return_value.__aenter__.return_value = mock_client
 
       with pytest.raises(httpx.HTTPStatusError):
         await user_service_client.get_user_data("test123")
+
+      mock_response.raise_for_status.assert_called_once()
 
   @pytest.mark.asyncio
   async def test_get_user_data_raises_on_general_exception(

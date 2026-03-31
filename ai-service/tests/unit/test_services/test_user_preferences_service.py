@@ -81,7 +81,7 @@ class TestUserPreferencesService:
     ]
   
 
-    # ===== save_preferences tests =====
+  # ===== save_preferences tests =====
 
   async def test_save_preferences_creates_new_document(self, service, sample_user_id, sample_preferences_data, mock_db):
     """Test that save_preferences creates a new user preferences document"""

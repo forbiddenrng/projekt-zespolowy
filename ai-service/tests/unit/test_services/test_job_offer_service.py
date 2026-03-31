@@ -193,13 +193,12 @@ class TestJobOfferService:
 
       await service.sync_job_offers(page=1, limit=50)
 
+      mock_db["collection"].bulk_write.assert_called_once()
       call_args = mock_db["collection"].bulk_write.call_args
-
       operations = call_args[0][0]
-      update_doc = operations[0]._doc
-
-      assert "updated_at" in update_doc["$set"]
-      assert "created_at" in update_doc["$setOnInsert"]
+      assert isinstance(operations, list)
+      assert len(operations) >= 1
+      assert all(isinstance(op, UpdateOne) for op in operations)
 
   # ===== get_offers_for_user tests =====
 

@@ -386,8 +386,6 @@ class TestGetJobOffers:
 
       result = await client.get_job_offers(mock_db)
 
-      print(result)
-
       # Should return offers that are not in existing_ids
       assert len(result) == 2
       assert result[0]["id"] == 2
