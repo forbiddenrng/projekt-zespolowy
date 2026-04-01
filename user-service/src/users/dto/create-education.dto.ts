@@ -14,7 +14,7 @@ export class CreateEducationDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  userId: string;
+  userId?: string;
 
   @IsString()
   @MinLength(3)
@@ -33,12 +33,12 @@ export class CreateEducationDto {
 
   @IsDateString()
   @MaxNow({ message: 'maximal allowed date for beginDate is now' })
-  beginDate: Date;
+  beginDate: string;
 
   @IsOptional()
   @IsDateString()
   @MaxNow({ message: 'maximal allowed date for endDate is now' })
-  endDate?: Date;
+  endDate?: string;
 }
 
 // used when creating education with user simultaneously

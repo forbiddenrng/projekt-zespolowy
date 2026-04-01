@@ -6,7 +6,7 @@ export class CreateLinkDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  userId: number;
+  userId?: string;
 
   @IsString()
   @MinLength(5)
