@@ -8,20 +8,20 @@ on:
 
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      ai_service: ${{ steps.filter.outputs.ai_service }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            ai_service:
-              - 'ai-service/**'
+  # changes:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     ai_service: ${{ steps.filter.outputs.ai_service }}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: dorny/paths-filter@v3
+  #       id: filter
+  #       with:
+  #         filters: |
+  #           ai_service:
+  #             - 'ai-service/**'
   build:
-
+    # needs: changes
     runs-on: ubuntu-latest
     permissions:
       contents: write
