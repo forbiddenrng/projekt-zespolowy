@@ -21,7 +21,7 @@ async def get_preferences_service() -> UserPreferencesService:
 
 
 async def get_user_id(x_user: Optional[str] = Header(None)) -> str:
-    if not x_user:
+    if not x_user or not x_user.strip():
         raise HTTPException(
             status_code=401,
             detail="No X-User header"
