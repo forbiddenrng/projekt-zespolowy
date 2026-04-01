@@ -10,9 +10,7 @@ jobs:
   ai-service:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
-      actions: read
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
