@@ -399,3 +399,6 @@ class TestGenerateCoverLetterData:
       prompt = call_args.kwargs['messages'][1]['content']
       assert isinstance(prompt, str)
       assert "Jane Doe" in prompt or "Tech Corp" in prompt
+
+
+      
