@@ -215,6 +215,27 @@ describe('user-service integration (users + languages)', () => {
         .expect(400);
     });
 
+    it('returns profile absence for current and public user lookups when user does not exist', async () => {
+      await request(app.getHttpServer())
+        .get('/users/profile-exists')
+        .set('x-user', xUserHeader('auth0|missing-profile'))
+        .expect(200)
+        .expect({
+          statusCode: 200,
+          message: 'User not found',
+          data: { exists: false },
+        });
+
+      await request(app.getHttpServer())
+        .get('/users/auth0|missing-profile/profile-exists')
+        .expect(200)
+        .expect({
+          statusCode: 200,
+          message: 'User not found',
+          data: { exists: false },
+        });
+    });
+
     it('returns current user with selective relations only when requested', async () => {
       const user = await prisma.user.create({
         data: {
@@ -267,6 +288,19 @@ describe('user-service integration (users + languages)', () => {
       expect(allResponse.body.data.user_languages).toHaveLength(1);
     });
 
+    it('rejects GET /users/me without x-user and returns 404 for missing users on GET /users/me and GET /users/:id', async () => {
+      await request(app.getHttpServer()).get('/users/me').expect(400);
+
+      await request(app.getHttpServer())
+        .get('/users/me')
+        .set('x-user', xUserHeader('auth0|missing-me'))
+        .expect(404);
+
+      await request(app.getHttpServer())
+        .get('/users/auth0|missing-public')
+        .expect(404);
+    });
+
     it('updates current user profile and maps Prisma unique conflicts to 409', async () => {
       const user = await createUserRecord(prisma, {
         auth0_id: 'auth0|update-me',
@@ -305,6 +339,19 @@ describe('user-service integration (users + languages)', () => {
         .expect(409);
 
       expect(conflictResponse.body.statusCode).toBe(409);
+    });
+
+    it('rejects PATCH /users/me without x-user and returns 404 when current user does not exist', async () => {
+      await request(app.getHttpServer())
+        .patch('/users/me')
+        .send({ city: 'Sopot' })
+        .expect(400);
+
+      await request(app.getHttpServer())
+        .patch('/users/me')
+        .set('x-user', xUserHeader('auth0|missing-update'))
+        .send({ city: 'Sopot' })
+        .expect(404);
     });
 
     it('deletes users and cascades related records', async () => {
@@ -580,6 +627,138 @@ describe('user-service integration (users + languages)', () => {
         .expect(404);
 
       expect(response.body.message).toBe('User not found');
+    });
+
+    it('allows replacing an existing language by omitting its id and recreating the same language', async () => {
+      const user = await prisma.user.create({
+        data: {
+          auth0_id: 'auth0|langs-existing-duplicate',
+          name: 'Duplicate',
+          surname: 'Language',
+          phone_number: '+48500333333',
+          email: 'langs-duplicate-existing@example.com',
+          city: 'Gdansk',
+          profile_summary: 'Profile summary long enough for duplicate language tests.',
+          user_languages: {
+            create: [
+              {
+                language_id: TEST_LANGUAGE_IDS.english,
+                level: 'B1',
+              },
+            ],
+          },
+        },
+      });
+
+      const response = await request(app.getHttpServer())
+        .put('/users/languages')
+        .set('x-user', xUserHeader(user.auth0_id))
+        .send({
+          languages: [
+            { languageId: TEST_LANGUAGE_IDS.english, level: 'C1' },
+          ],
+        })
+        .expect(200);
+
+      expect(response.body.metadata).toEqual({
+        created: 1,
+        updated: 0,
+        deleted: 1,
+      });
+
+      const persisted = await prisma.user_Languages.findMany({
+        where: { user_id: user.id },
+      });
+
+      expect(persisted).toHaveLength(1);
+      expect(persisted[0].language_id).toBe(TEST_LANGUAGE_IDS.english);
+      expect(persisted[0].level).toBe('C1');
+    });
+
+    it('rejects update payloads when two entries target the same languageId', async () => {
+      const user = await prisma.user.create({
+        data: {
+          auth0_id: 'auth0|langs-update-conflict',
+          name: 'Update',
+          surname: 'Conflict',
+          phone_number: '+48500333444',
+          email: 'langs-update-conflict@example.com',
+          city: 'Warsaw',
+          profile_summary: 'Profile summary long enough for language update conflict tests.',
+          user_languages: {
+            create: [
+              {
+                language_id: TEST_LANGUAGE_IDS.english,
+                level: 'B2',
+              },
+              {
+                language_id: TEST_LANGUAGE_IDS.polish,
+                level: 'Native',
+              },
+            ],
+          },
+        },
+      });
+
+      const existing = await prisma.user_Languages.findMany({
+        where: { user_id: user.id },
+        orderBy: { id: 'asc' },
+      });
+
+      const response = await request(app.getHttpServer())
+        .put('/users/languages')
+        .set('x-user', xUserHeader(user.auth0_id))
+        .send({
+          languages: [
+            {
+              id: existing[0].id,
+              languageId: TEST_LANGUAGE_IDS.polish,
+              level: 'C1',
+            },
+            {
+              id: existing[1].id,
+              languageId: TEST_LANGUAGE_IDS.polish,
+              level: 'Native',
+            },
+          ],
+        })
+        .expect(400);
+
+      expect(response.body.message).toBe(
+        `Language ${TEST_LANGUAGE_IDS.polish} is provided more than once in payload`,
+      );
+    });
+
+    it('enforces restrict constraint when deleting a language referenced by user_languages', async () => {
+      const user = await prisma.user.create({
+        data: {
+          auth0_id: 'auth0|langs-restrict',
+          name: 'Restrict',
+          surname: 'Constraint',
+          phone_number: '+48500333555',
+          email: 'langs-restrict@example.com',
+          city: 'Poznan',
+          profile_summary: 'Profile summary long enough for restrict constraint verification.',
+          user_languages: {
+            create: [
+              {
+                language_id: TEST_LANGUAGE_IDS.german,
+                level: 'B1',
+              },
+            ],
+          },
+        },
+      });
+
+      expect(user.id).toBeGreaterThan(0);
+
+      await expect(
+        prisma.languages.delete({
+          where: { id: TEST_LANGUAGE_IDS.german },
+        }),
+      ).rejects.toMatchObject({
+        code: 'P2003',
+      });
     });
   });
 });

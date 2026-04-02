@@ -19,6 +19,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:integration": "jest --config ./test/jest-integration.json --runInBand",
+    "test:integration:cov": "jest --config ./test/jest-integration.json --runInBand --coverage",
     "feed": "node src/scripts/languageFeed.js",
     "delete:lang": "node src/scripts/languageDelete.js"
   },

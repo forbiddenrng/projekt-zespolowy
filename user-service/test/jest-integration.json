@@ -1,13 +1,23 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": ".",
+  "rootDir": "..",
   "testEnvironment": "node",
-  "testRegex": ".integration-spec.ts$",
+  "testRegex": "test/.*\\.integration-spec\\.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "testTimeout": 120000,
+  "collectCoverageFrom": [
+    "src/**/*.(t|j)s",
+    "!src/**/*.spec.ts",
+    "!src/main.ts",
+    "!src/**/*.module.ts",
+    "!src/data/**",
+    "!src/scripts/**"
+  ],
+  "coverageDirectory": "coverage/integration",
+  "coverageReporters": ["text", "html", "lcov", "json-summary"],
   "moduleNameMapper": {
-    "^src/(.*)$": "<rootDir>/../src/$1"
+    "^src/(.*)$": "<rootDir>/src/$1"
   }
 }
