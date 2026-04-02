@@ -56,7 +56,7 @@ export class UsersService {
         create: certificates.map((certificate: CertificateDto) => ({
           name: certificate.name,
           issuer: certificate.issuer,
-          certification_date: certificate.certificationDate,
+          certification_date: new Date(certificate.certificationDate),
         })),
       };
     }
