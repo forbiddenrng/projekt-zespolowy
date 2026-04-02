@@ -266,7 +266,7 @@ class TestGetUserId:
 
 		# Assert
 		# Boolean True is truthy, so it should be returned
-		assert result is True or result == x_user_json
+		assert result == "True"
 
 	@pytest.mark.asyncio
 	async def test_handling_json_with_zero_as_id(self):
@@ -292,7 +292,7 @@ class TestGetUserId:
 
 		# Assert
 		# Number is truthy, so it should be returned
-		assert result == 12345
+		assert result == "12345"
 
 	@pytest.mark.asyncio
 	async def test_long_user_id_string(self):
@@ -395,7 +395,9 @@ class TestGetUserId:
 
 		# Assert
 		# Numeric id from JSON would be int
-		assert isinstance(result, int)
+		# assert isinstance(result, str)
+		assert result == "12345"
+		
 
 	@pytest.mark.asyncio
 	async def test_exception_type_for_missing_header(self):

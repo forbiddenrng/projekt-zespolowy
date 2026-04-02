@@ -32,7 +32,7 @@ async def get_user_id(x_user: Optional[str] = Header(None)) -> str:
         uid = obj.get("id")
         if not uid:
             raise ValueError("Missing id in x-user")
-        return uid
+        return str(uid)
     except Exception:
         # fallback: use header value
         return x_user
