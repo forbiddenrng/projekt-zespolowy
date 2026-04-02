@@ -137,6 +137,26 @@ describe('user-service integration (users + languages)', () => {
       expect(persisted?.user_languages[0].language.code).toBe('en');
     });
 
+    it('accepts quoted JSON x-user headers and resolves auth0 id from sub', async () => {
+      const headerValue = '"{\\"sub\\":\\"auth0|quoted-sub-user\\"}"';
+      const payload = buildCreateUserPayload({
+        auth0Id: 'auth0|spoofed-again',
+      });
+
+      await request(app.getHttpServer())
+        .post('/users')
+        .set('x-user', headerValue)
+        .send(payload)
+        .expect(201);
+
+      const persisted = await prisma.user.findUnique({
+        where: { auth0_id: 'auth0|quoted-sub-user' },
+      });
+
+      expect(persisted).not.toBeNull();
+      expect(persisted?.auth0_id).toBe('auth0|quoted-sub-user');
+    });
+
     it('rejects POST /users without x-user header', async () => {
       const response = await request(app.getHttpServer())
         .post('/users')
