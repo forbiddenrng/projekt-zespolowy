@@ -169,7 +169,7 @@ describe('UsersService', () => {
       expect(createArgs.data.certificates.create[0]).toEqual({
         name: 'AWS Associate',
         issuer: 'Amazon',
-        certification_date: '2024-05-01T00:00:00.000Z',
+        certification_date: new Date('2024-05-01T00:00:00.000Z'),
       });
       expect(createArgs.data.education.create[0]).toEqual({
         school_name: 'UG',
