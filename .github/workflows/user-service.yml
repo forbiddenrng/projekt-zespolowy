@@ -41,9 +41,20 @@ jobs:
         working-directory: ./user-service
         run: npm run test:cov -- --runInBand
 
+      - name: Run integration tests with coverage
+        working-directory: ./user-service
+        run: npm run test:integration:cov
+
       - name: Upload coverage reports
         uses: actions/upload-artifact@v6
         if: always()
         with:
           name: user-service-coverage-report
           path: user-service/coverage/
+
+      - name: Upload integration coverage reports
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: user-service-integration-coverage-report
+          path: user-service/coverage/integration/
