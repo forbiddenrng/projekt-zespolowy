@@ -8,6 +8,7 @@ import {
 import { DatabaseService } from 'src/database/database.service';
 
 const USER_SERVICE_ROOT = path.resolve(__dirname, '../..');
+const POSTGRES_IMAGE = 'postgres:15.17';
 const PRISMA_BIN = path.join(
   USER_SERVICE_ROOT,
   'node_modules',
@@ -34,18 +35,33 @@ export const TEST_LANGUAGE_IDS = {
 export interface TestDatabaseContext {
   container: StartedTestContainer;
   databaseUrl: string;
+  previousDatabaseUrl?: string;
 }
 
 function runPrismaCommand(args: string[]) {
-  execFileSync(PRISMA_BIN, args, {
-    cwd: USER_SERVICE_ROOT,
-    env: process.env,
-    stdio: 'pipe',
-  });
+  try {
+    execFileSync(PRISMA_BIN, args, {
+      cwd: USER_SERVICE_ROOT,
+      env: process.env,
+      stdio: 'pipe',
+      encoding: 'utf8',
+    });
+  } catch (error: any) {
+    const stdout = error?.stdout?.toString?.() ?? '';
+    const stderr = error?.stderr?.toString?.() ?? '';
+    const output = [stdout, stderr].filter(Boolean).join('\n').trim();
+    const message = output
+      ? `Prisma command failed: prisma ${args.join(' ')}\n${output}`
+      : `Prisma command failed: prisma ${args.join(' ')}`;
+
+    throw new Error(message, { cause: error });
+  }
 }
 
 export async function startTestDatabase(): Promise<TestDatabaseContext> {
-  const container = await new GenericContainer('postgres:15')
+  const previousDatabaseUrl = process.env.DATABASE_URL;
+
+  const container = await new GenericContainer(POSTGRES_IMAGE)
     .withEnvironment({
       POSTGRES_DB: 'user_service_test',
       POSTGRES_USER: 'postgres',
@@ -65,15 +81,22 @@ export async function startTestDatabase(): Promise<TestDatabaseContext> {
 
   runPrismaCommand(['migrate', 'deploy']);
 
-  return { container, databaseUrl };
+  return { container, databaseUrl, previousDatabaseUrl };
 }
 
 export async function stopTestDatabase(context: TestDatabaseContext) {
   await context.container.stop();
+
+  if (context.previousDatabaseUrl) {
+    process.env.DATABASE_URL = context.previousDatabaseUrl;
+    return;
+  }
+
+  delete process.env.DATABASE_URL;
 }
 
 export async function resetDatabase(prisma: DatabaseService) {
-  await prisma.$executeRawUnsafe(`
+  await prisma.$executeRaw`
     TRUNCATE TABLE
       "User_Languages",
       "Abilities",
@@ -84,7 +107,7 @@ export async function resetDatabase(prisma: DatabaseService) {
       "Languages",
       "User"
     RESTART IDENTITY CASCADE;
-  `);
+  `;
 }
 
 export async function seedLanguages(prisma: DatabaseService) {
