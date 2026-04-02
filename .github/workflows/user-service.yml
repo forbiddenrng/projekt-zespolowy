@@ -3,8 +3,14 @@ name: User Service CI
 on:
   push:
     branches: ["develop"]
+    paths:
+      - "user-service/**"
+      - ".github/workflows/user-service.yml"
   pull_request:
     branches: ["develop"]
+    paths:
+      - "user-service/**"
+      - ".github/workflows/user-service.yml"
 
 jobs:
   user-service:

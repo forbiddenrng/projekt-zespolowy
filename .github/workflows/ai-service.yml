@@ -3,8 +3,14 @@ name: AI Service CI
 on:
   push:
     branches: ["develop"]
+    paths:
+      - "ai-service/**"
+      - ".github/workflows/ai-service.yml"
   pull_request:
     branches: ["develop"]
+    paths:
+      - "ai-service/**"
+      - ".github/workflows/ai-service.yml"
 
 jobs:
   ai-service:
