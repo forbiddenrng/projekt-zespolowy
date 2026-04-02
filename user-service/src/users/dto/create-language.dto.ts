@@ -21,7 +21,7 @@ export class LanguageDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  userId: string;
+  userId?: string;
 
   @IsNotEmpty()
   @IsString()

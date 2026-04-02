@@ -35,6 +35,18 @@ export class UserFromHeaderMiddleware implements NestMiddleware {
         }
       }
 
+      if (
+        typeof parsed === 'string' &&
+        parsed.trim().startsWith('{') &&
+        parsed.trim().endsWith('}')
+      ) {
+        try {
+          parsed = JSON.parse(parsed);
+        } catch (_) {
+          // keep raw string fallback
+        }
+      }
+
       // parsed can be object { id } or string "auth0|..."
       if (typeof parsed === 'object' && parsed !== null) {
         req.userId = (parsed.id ?? parsed.sub ?? null) as string | null;

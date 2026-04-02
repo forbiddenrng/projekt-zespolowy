@@ -14,7 +14,7 @@ export class CreateCertificateDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
-  userId: string;
+  userId?: string;
 
   @IsString()
   @MinLength(3)

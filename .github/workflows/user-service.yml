@@ -1,0 +1,49 @@
+name: User Service CI
+
+on:
+  push:
+    branches: ["develop"]
+    paths:
+      - "user-service/**"
+      - ".github/workflows/user-service.yml"
+  pull_request:
+    branches: ["develop"]
+    paths:
+      - "user-service/**"
+      - ".github/workflows/user-service.yml"
+
+jobs:
+  user-service:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: user-service/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./user-service
+        run: npm ci
+
+      - name: Type check
+        run: ./user-service/node_modules/.bin/tsc -p ./user-service/tsconfig.json --noEmit
+
+      - name: Run unit tests
+        working-directory: ./user-service
+        run: npm test -- --runInBand
+
+      - name: Run unit tests with coverage
+        working-directory: ./user-service
+        run: npm run test:cov -- --runInBand
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: user-service-coverage-report
+          path: user-service/coverage/

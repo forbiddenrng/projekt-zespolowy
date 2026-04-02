@@ -1,18 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { DatabaseService } from './database.service';
 
 describe('DatabaseService', () => {
-  let service: DatabaseService;
+  it('connects Prisma client during module init', async () => {
+    const service = new DatabaseService();
+    const connectSpy = jest
+      .spyOn(service, '$connect')
+      .mockResolvedValue(undefined as never);
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [DatabaseService],
-    }).compile();
+    await service.onModuleInit();
 
-    service = module.get<DatabaseService>(DatabaseService);
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+    expect(connectSpy).toHaveBeenCalled();
   });
 });
