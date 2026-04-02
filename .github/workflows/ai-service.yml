@@ -13,10 +13,10 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Python 3.11
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -35,10 +35,10 @@ jobs:
       - name: Enforce minimum coverage
         working-directory: ./ai-service
         run: |
-          coverage report --fail-under=30
+          coverage report --fail-under=80
 
       - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: ai-service-coverage-report
