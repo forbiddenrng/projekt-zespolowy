@@ -30,7 +30,7 @@ TEST_USERS = [
         {"name": "Znajomość Dockera"}
     ],
     "certificates": [
-        {"name": "Docker i Kubernetes", "issuer": "Kubernetes", "certificationDate": "2025-10-09T00:00:00"}
+        {"name": "Docker i Kubernetes", "issuer": "Kubernetes", "certificationDate": "2025-10-09"}
     ]
     },
     {
@@ -44,7 +44,7 @@ TEST_USERS = [
         {"name": "Znajomość Dockera"}
     ],
     "certificates": [
-        {"name": "Docker i Kubernetes", "issuer": "Kubernetes", "certificationDate": "2025-10-09T00:00:00"}
+        {"name": "Docker i Kubernetes", "issuer": "Kubernetes", "certificationDate": "2025-10-09"}
     ]
     },
 
@@ -105,6 +105,8 @@ def create_user(user: dict) -> bool:
             timeout=10,
         )
 
+        user["id"] = user_id
+
         if response.status_code in [200, 201]:
             print(f"✓ User created: {user_id}")
             return True
@@ -155,10 +157,10 @@ def create_user_preferences() -> bool:
         user_id = user["id"]
         preferences = {
             "technology_slugs": ["Python", "FastAPI", "MongoDB"],
-            "seniority_levels": ["JUNIOR", "MID"],
+            "seniority_levels": ["junior", "mid_level"],
             "remote": True,
             "hybrid": False,
-            "country_codes": ["PL", "US"],
+            "countries": ["PL", "US"],
         }
 
         try:
