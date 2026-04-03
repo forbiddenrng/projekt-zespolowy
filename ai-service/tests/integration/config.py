@@ -75,8 +75,10 @@ TEST_JOB_OFFERS = [
 
 
 # Service URLs
-AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8001")
-USER_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://localhost:5051")
+# AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8001")
+# USER_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://localhost:5051")
 
-print("config")
-print(AI_SERVICE_URL, USER_SERVICE_URL)
+AI_SERVICE_URL = "http://localhost:8001"
+USER_SERVICE_URL = "http://localhost:5051"
+MONGODB_URL = "mongodb://test_admin:test_password@localhost:27018"
+MONGODB_DB = "ai_service_test"

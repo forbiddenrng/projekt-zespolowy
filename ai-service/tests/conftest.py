@@ -1,7 +1,7 @@
 import pytest
 import sys
 from pathlib import Path
-from tests.integration.test_health import wait_for_services
+# from tests.integration.test_health import wait_for_services
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -24,7 +24,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timezone
 from bson import ObjectId
 
-pytest_plugins = ['tests.integration.test_health']
+# pytest_plugins = ['tests.integration.test_health']
 
 
 @pytest.fixture

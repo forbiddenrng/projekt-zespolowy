@@ -6,7 +6,7 @@ import pytest
 import requests
 from datetime import datetime, timezone
 from motor.motor_asyncio import AsyncIOMotorClient
-from tests.integration.config import AI_SERVICE_URL, TEST_USERS
+from tests.integration.config import AI_SERVICE_URL, TEST_USERS, MONGODB_DB, MONGODB_URL
 import asyncio
 import os
 
@@ -14,13 +14,10 @@ import os
 @pytest.fixture(scope="session")
 def mongodb_config():
 	"""Get MongoDB configuration"""
-	print(os.getenv("MONGODB_URL"))
-	print(os.getenv("MONGODB_DB"))
+	
 	return {
-		# "url": os.getenv("MONGODB_URL", "mongodb://localhost:27017"),
-		# "db_name": os.getenv("MONGODB_DB", "test_ai_service"),
-		"url": "mongodb://test_admin:test_password@localhost:27018",
-		"db_name": "ai_service_test",
+		"url": MONGODB_URL,
+		"db_name": MONGODB_DB,
 	}
 
 
