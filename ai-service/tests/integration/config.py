@@ -77,3 +77,6 @@ TEST_JOB_OFFERS = [
 # Service URLs
 AI_SERVICE_URL = os.getenv("AI_SERVICE_URL", "http://localhost:8001")
 USER_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://localhost:5051")
+
+print("config")
+print(AI_SERVICE_URL, USER_SERVICE_URL)

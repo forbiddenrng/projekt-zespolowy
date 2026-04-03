@@ -7,19 +7,20 @@ import requests
 import time
 from typing import Optional
 from tests.integration.test_health import wait_for_services
-from tests.integration.config import AI_SERVICE_URL
+from tests.integration.config import AI_SERVICE_URL, TEST_USERS
 
-TEST_USER_ID = "124"
-TEST_USER_2_ID = "125"
-TEST_USER_EMAIL = "testuser1@example.com"
 
 @pytest.mark.integration
 class TestAIServiceJobOffers:
   """Test AI service job offers endpoints."""
 
-  def test_get_job_offers(self, wait_for_services):
+  @pytest.fixture
+  def user_id(self):
+    return TEST_USERS[0]["id"]
+
+  def test_get_job_offers(self, wait_for_services, user_id):
     """Test getting job offers."""
-    headers = {"X-User": TEST_USER_ID}
+    headers = {"X-User": user_id}
     response = requests.get(
         f"{AI_SERVICE_URL}/api/jobs",
         headers=headers,
@@ -35,9 +36,17 @@ class TestAIServiceJobOffers:
 class TestAIServicePreferences:
   """Test AI service user preferences endpoints."""
 
-  def test_get_user_preferences(self, wait_for_services):
-    """Test getting user preferences."""
-    headers = {"X-User": TEST_USER_ID}
+  @pytest.fixture
+  def user_id(self):
+    return TEST_USERS[0]["id"]
+  
+  @pytest.fixture
+  def user_2_id(self):
+    return TEST_USERS[1]["id"]
+
+  def test_get_user_preferences(self, wait_for_services, user_id):
+    """Test getting user preferences.""" 
+    headers = {"X-User": user_id}
     response = requests.get(
         f"{AI_SERVICE_URL}/api/preferences",
         headers=headers,
@@ -58,7 +67,7 @@ class TestAIServicePreferences:
     data = response.json()
     assert response.status_code == 404
 
-  def test_create_user_preferences(self, wait_for_services):
+  def test_create_user_preferences(self, wait_for_services, user_2_id):
     """Test creating user preferences."""
     preferences = {
         "technology_slugs": ["Python", "FastAPI", "MongoDB"],
@@ -68,7 +77,7 @@ class TestAIServicePreferences:
         "countries": ["PL", "US"],
     }
 
-    headers = {"X-User": TEST_USER_2_ID}
+    headers = {"X-User": user_2_id}
     response = requests.post(
         f"{AI_SERVICE_URL}/api/preferences",
         json=preferences,
