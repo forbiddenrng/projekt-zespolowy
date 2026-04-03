@@ -35,9 +35,7 @@ class TestUserServiceIntegration:
         headers=headers,
         timeout=10,
     )
-    print(USER_SERVICE_URL)
     data = response.json()
-    print(data)
     assert response.status_code == 200
     assert data["data"] is not None
     
