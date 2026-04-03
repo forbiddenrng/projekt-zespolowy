@@ -1,5 +1,5 @@
 """
-Integration tests for CV generation task search and status endpoints.
+Integration tests for cover letter generation task search and status endpoints.
 """
 
 import pytest
@@ -41,7 +41,7 @@ async def setup_test_tasks(mongodb_client):
 	user2_id = TEST_USERS[1]["id"]
 	
 	# Clear existing tasks for test users
-	await mongodb_client["cv_generation_tasks"].delete_many(
+	await mongodb_client["cover_letter_generation_tasks"].delete_many(
 		{"user_id": {"$in": [user1_id, user2_id]}}
 	)
 	
@@ -90,7 +90,7 @@ async def setup_test_tasks(mongodb_client):
 	]
 	
 	# Insert tasks and store their IDs for verification
-	result = await mongodb_client["cv_generation_tasks"].insert_many(tasks)
+	result = await mongodb_client["cover_letter_generation_tasks"].insert_many(tasks)
 	
 	return {
 		"user1_id": user1_id,
@@ -101,8 +101,8 @@ async def setup_test_tasks(mongodb_client):
 
 
 @pytest.mark.integration
-class TestCVTaskSearch:
-	"""Test CV task search endpoint."""
+class TestCoverLetterTaskSearch:
+	"""Test cover letter task search endpoint."""
 	
 	@pytest.fixture
 	def user1_id(self):
@@ -113,10 +113,10 @@ class TestCVTaskSearch:
 		return {"X-User": user1_id}
 	
 	@pytest.mark.asyncio
-	async def test_search_cv_tasks_all(self, wait_for_services, setup_test_tasks, headers):
-		"""Test retrieving all CV tasks for a user."""
+	async def test_search_cover_letter_tasks_all(self, wait_for_services, setup_test_tasks, headers):
+		"""Test retrieving all cover_letter tasks for a user."""
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/cv/search",
+			f"{AI_SERVICE_URL}/ai/cover-letter/search",
 			headers=headers,
 			timeout=10,
 		)
@@ -136,10 +136,10 @@ class TestCVTaskSearch:
 		assert len(data["tasks"]) == 3
 	
 	@pytest.mark.asyncio
-	async def test_search_cv_tasks_by_status_pending(self, wait_for_services, setup_test_tasks, headers):
-		"""Test searching CV tasks by PENDING status."""
+	async def test_search_cover_letter_tasks_by_status_pending(self, wait_for_services, setup_test_tasks, headers):
+		"""Test searching cover_letter tasks by PENDING status."""
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/cv/search?status=PENDING",
+			f"{AI_SERVICE_URL}/ai/cover-letter/search?status=PENDING",
 			headers=headers,
 			timeout=10,
 		)
@@ -152,10 +152,10 @@ class TestCVTaskSearch:
 		assert data["tasks"][0]["status"] == "PENDING"
 	
 	@pytest.mark.asyncio
-	async def test_search_cv_tasks_by_status_completed(self, wait_for_services, setup_test_tasks, headers):
-		"""Test searching CV tasks by COMPLETED status."""
+	async def test_search_cover_letter_tasks_by_status_completed(self, wait_for_services, setup_test_tasks, headers):
+		"""Test searching cover_letter tasks by COMPLETED status."""
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/cv/search?status=COMPLETED",
+			f"{AI_SERVICE_URL}/ai/cover-letter/search?status=COMPLETED",
 			headers=headers,
 			timeout=10,
 		)
@@ -167,10 +167,10 @@ class TestCVTaskSearch:
 		assert data["tasks"][0]["status"] == "COMPLETED"
 	
 	@pytest.mark.asyncio
-	async def test_search_cv_tasks_by_status_failed(self, wait_for_services, setup_test_tasks, headers):
-		"""Test searching CV tasks by FAILED status."""
+	async def test_search_cover_letter_tasks_by_status_failed(self, wait_for_services, setup_test_tasks, headers):
+		"""Test searching cover_letter tasks by FAILED status."""
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/cv/search?status=FAILED",
+			f"{AI_SERVICE_URL}/ai/cover-letter/search?status=FAILED",
 			headers=headers,
 			timeout=10,
 		)
@@ -183,11 +183,11 @@ class TestCVTaskSearch:
 		assert data["tasks"][0]["error"] == "API rate limit exceeded"
 	
 	@pytest.mark.asyncio
-	async def test_search_cv_tasks_pagination(self, wait_for_services, setup_test_tasks, headers):
+	async def test_search_cover_letter_tasks_pagination(self, wait_for_services, setup_test_tasks, headers):
 		"""Test pagination in task search."""
 		# Get first page (limit=1)
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/cv/search?skip=0&limit=1",
+			f"{AI_SERVICE_URL}/ai/cover-letter/search?skip=0&limit=1",
 			headers=headers,
 			timeout=10,
 		)
@@ -201,7 +201,7 @@ class TestCVTaskSearch:
 		
 		# Get second page
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/cv/search?skip=1&limit=1",
+			f"{AI_SERVICE_URL}/ai/cover-letter/search?skip=1&limit=1",
 			headers=headers,
 			timeout=10,
 		)
@@ -211,10 +211,10 @@ class TestCVTaskSearch:
 		assert data["skip"] == 1
 	
 	@pytest.mark.asyncio
-	async def test_search_cv_tasks_invalid_status(self, wait_for_services, setup_test_tasks, headers):
+	async def test_search_cover_letter_tasks_invalid_status(self, wait_for_services, setup_test_tasks, headers):
 		"""Test searching with invalid status filter."""
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/cv/search?status=INVALID_STATUS",
+			f"{AI_SERVICE_URL}/ai/cover-letter/search?status=INVALID_STATUS",
 			headers=headers,
 			timeout=10,
 		)
@@ -228,8 +228,8 @@ class TestCVTaskSearch:
 
 
 @pytest.mark.integration
-class TestCVTaskStatus:
-	"""Test CV task status endpoint."""
+class Testcover_letterTaskStatus:
+	"""Test cover_letter task status endpoint."""
 	
 	@pytest.fixture
 	def user1_id(self):
@@ -248,12 +248,12 @@ class TestCVTaskStatus:
 		return {"X-User": user2_id}
 	
 	@pytest.mark.asyncio
-	async def test_get_cv_status_success(self, wait_for_services, setup_test_tasks, user1_headers):
-		"""Test retrieving status of a specific CV task."""
+	async def test_get_cover_letter_status_success(self, wait_for_services, setup_test_tasks, user1_headers):
+		"""Test retrieving status of a specific cover_letter task."""
 		task_id = str(setup_test_tasks["user1_task_ids"][0])
 		
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/generate/cv/{task_id}/status",
+			f"{AI_SERVICE_URL}/ai/generate/cover-letter/{task_id}/status",
 			headers=user1_headers,
 			timeout=10,
 		)
@@ -268,12 +268,12 @@ class TestCVTaskStatus:
 		assert data["status"] == "PENDING"
 	
 	@pytest.mark.asyncio
-	async def test_get_cv_status_completed(self, wait_for_services, setup_test_tasks, user1_headers):
+	async def test_get_cover_letter_status_completed(self, wait_for_services, setup_test_tasks, user1_headers):
 		"""Test retrieving status of a completed task."""
 		task_id = str(setup_test_tasks["user1_task_ids"][1])
 		
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/generate/cv/{task_id}/status",
+			f"{AI_SERVICE_URL}/ai/generate/cover-letter/{task_id}/status",
 			headers=user1_headers,
 			timeout=10,
 		)
@@ -285,12 +285,12 @@ class TestCVTaskStatus:
 		assert data["completed_at"] is not None
 	
 	@pytest.mark.asyncio
-	async def test_get_cv_status_failed(self, wait_for_services, setup_test_tasks, user1_headers):
+	async def test_get_cover_letter_status_failed(self, wait_for_services, setup_test_tasks, user1_headers):
 		"""Test retrieving status of a failed task."""
 		task_id = str(setup_test_tasks["user1_task_ids"][2])
 		
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/generate/cv/{task_id}/status",
+			f"{AI_SERVICE_URL}/ai/generate/cover-letter/{task_id}/status",
 			headers=user1_headers,
 			timeout=10,
 		)
@@ -302,7 +302,7 @@ class TestCVTaskStatus:
 		assert data["error"] == "API rate limit exceeded"
 	
 	@pytest.mark.asyncio
-	async def test_get_cv_status_unauthorized_different_user(
+	async def test_get_cover_letter_status_unauthorized_different_user(
 		self, 
 		wait_for_services, 
 		setup_test_tasks, 
@@ -314,7 +314,7 @@ class TestCVTaskStatus:
 		
 		# User2 tries to access User1's task
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/generate/cv/{task_id}/status",
+			f"{AI_SERVICE_URL}/ai/generate/cover-letter/{task_id}/status",
 			headers=user2_headers,
 			timeout=10,
 		)
@@ -325,12 +325,12 @@ class TestCVTaskStatus:
 		assert "Unauthorized" in data["detail"]
 	
 	@pytest.mark.asyncio
-	async def test_get_cv_status_not_found(self, wait_for_services, user1_headers):
+	async def test_get_cover_letter_status_not_found(self, wait_for_services, user1_headers):
 		"""Test retrieving status of non-existent task."""
 		fake_task_id = "000000000000000000000000"	# Valid MongoDB ObjectId format but non-existent
 		
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/generate/cv/{fake_task_id}/status",
+			f"{AI_SERVICE_URL}/ai/generate/cover-letter/{fake_task_id}/status",
 			headers=user1_headers,
 			timeout=10,
 		)
@@ -341,12 +341,12 @@ class TestCVTaskStatus:
 		assert "Task not found" in data["detail"]
 	
 	@pytest.mark.asyncio
-	async def test_get_cv_status_invalid_task_id_format(self, wait_for_services, user1_headers):
+	async def test_get_cover_letter_status_invalid_task_id_format(self, wait_for_services, user1_headers):
 		"""Test retrieving status with invalid task ID format."""
 		invalid_task_id = "invalid-id-format"
 		
 		response = requests.get(
-			f"{AI_SERVICE_URL}/ai/generate/cv/{invalid_task_id}/status",
+			f"{AI_SERVICE_URL}/ai/generate/cover-letter/{invalid_task_id}/status",
 			headers=user1_headers,
 			timeout=10,
 		)
