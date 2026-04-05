@@ -17,9 +17,6 @@ def wait_for_services():
     (AI_SERVICE_URL, "AI Service"),
   ]
 
-  print(USER_SERVICE_URL)
-  print(AI_SERVICE_URL)
-
   for url, name in services:
     max_retries = 30
     for i in range(max_retries):

@@ -30,8 +30,8 @@ class TestUserServiceIntegration:
   @pytest.fixture
   def delete_work_experience(self, user_id):
     headers = {"x-user": json.dumps({"id": user_id})}
-    response = requests.post(
-        f"{USER_SERVICE_URL}/users/work-experience",
+    response = requests.put(
+        f"{USER_SERVICE_URL}/users/work-experiences",
         headers=headers,
         json={"workExperiences": []},
         timeout=10,
@@ -108,7 +108,7 @@ class TestUserServiceIntegration:
     data = response.json()
     assert response.status_code == 200
 
-  def test_update_user_profile(self, wait_for_services, user_id):
+  def test_update_user_profile_wrong_field(self, wait_for_services, user_id):
     """Test updating user email - wrong field"""
     headers = {"x-user": json.dumps({"id": user_id})}
     response = requests.patch(

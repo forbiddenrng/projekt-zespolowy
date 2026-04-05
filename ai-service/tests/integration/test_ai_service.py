@@ -89,7 +89,7 @@ class TestAIServicePreferences:
 
     response = requests.get(
         f"{AI_SERVICE_URL}/api/preferences",
-        json=preferences,
+        # json=preferences,
         headers=headers,
         timeout=10,
     )
@@ -134,7 +134,7 @@ class TestAIServicePreferences:
     assert "min_salary" not in data
     assert "max_salary" not in data
 
-  def test_create_user_preferences_wrong_fields(self, wait_for_services):
+  def test_create_user_preferences_wrong_values(self, wait_for_services):
     """Test creating user preferences with wrong values return 422"""
     preferences = {
         "seniority_levels": ["mid", "expert"],
