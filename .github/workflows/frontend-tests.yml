@@ -3,8 +3,14 @@ name: Frontend Unit Tests
 on:
   push:
     branches: ["develop"]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-tests.yml"
   pull_request:
     branches: ["develop"]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-tests.yml"
 
 jobs:
   test:
