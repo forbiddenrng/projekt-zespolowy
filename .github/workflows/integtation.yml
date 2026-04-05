@@ -2,7 +2,7 @@ name: Integration Tests
 
 on:
   pull_request:
-    branches: ["develop"]
+    branches: ["main"]
 
 jobs:
   integration-tests:
@@ -73,7 +73,7 @@ jobs:
       - name: Collect Docker logs on failure
         if: failure()
         run: |
-          docker-compose -f docker-compose.test.yml logs > docker-logs.txt
+          docker compose -f docker-compose.test.yml logs > docker-logs.txt
           
       - name: Upload Docker logs
         if: failure()
@@ -85,4 +85,4 @@ jobs:
       - name: Cleanup services
         if: always()
         run: |
-          docker-compose -f docker-compose.test.yml down -v
+          docker compose -f docker-compose.test.yml down -v
