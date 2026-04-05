@@ -56,6 +56,13 @@ jobs:
           pip install pytest requests
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
+      - name: Initialize test data
+        working-directory: ./ai-service
+        run: |
+          python app/scripts/init_test_data.py
+        env:
+          PYTHONUNBUFFERED: 1
+
       - name: Run integration tests
         working-directory: ./ai-service
         run: |
