@@ -59,7 +59,7 @@ jobs:
       - name: Initialize test data
         working-directory: ./ai-service
         run: |
-          python app/scripts/init_test_data.py
+          python -m app.scripts.init_test_data
         env:
           PYTHONUNBUFFERED: 1
 
