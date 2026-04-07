@@ -1,0 +1,156 @@
+version: "3.9"
+
+services:
+  postgres-test:
+    image: postgres:15
+    container_name: user_db_postgresql_test
+    environment:
+      POSTGRES_USER: test_admin
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: userdb_test
+    ports:
+      - "5433:5432"
+    # volumes:
+    #   - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_admin -d userdb_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network-test
+
+  # TEST MongoDB
+  mongodb-test:
+    image: mongo:7
+    container_name: mongodb_test
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: test_admin
+      MONGO_INITDB_ROOT_PASSWORD: test_password
+    ports:
+      - "27018:27017"
+    # volumes:
+    #   - mongodb_test_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network-test
+
+  # TEST Redis
+  redis-test:
+    image: redis:7-alpine
+    container_name: redis_test
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_test_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network-test
+
+  # TEST User Service
+  user-service-test:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: user-service-app-test
+    ports:
+      - "5051:5000"
+    environment:
+      - DATABASE_URL=postgresql://test_admin:test_password@postgres-test:5432/userdb_test?schema=public
+      - PORT=5000
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "node -e 'require(\"http\").get(\"http://localhost:5000/health\", (res) => process.exit(res.statusCode === 200 ? 0 : 1))' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - app-network-test
+
+  # TEST AI Service
+  ai-service-test:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: ai-service-app-test
+    ports:
+      - "8001:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MONGODB_URL=mongodb://test_admin:test_password@mongodb-test:27017/ai_service_test?authSource=admin
+      - MONGODB_DB=ai_service_test
+      - CELERY_BROKER_URL=redis://redis-test:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis-test:6379/0
+      - USER_SERVICE_URL=http://user-service-test:5000
+      - API_BASE_URL=http://ai-service-test:8000
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL}
+      - OPENROUTER_URL=${OPENROUTER_URL}
+      - THEIRSTACK_API_KEY=${THEIRSTACK_API_KEY}
+      - THEIRSTACK_API_URL=${THEIRSTACK_API_URL}
+    volumes:
+      - ./ai-service:/app
+      - ./ai-service/storage:/app/storage
+    depends_on:
+      mongodb-test:
+        condition: service_healthy
+      redis-test:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\").read()' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    networks:
+      - app-network-test
+
+  # Celery Worker (opcjonalnie)
+  ai-celery-worker-test:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: ai-service-celery-test
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MONGODB_URL=mongodb://test_admin:test_password@mongodb-test:27017/ai_service_test?authSource=admin
+      - MONGODB_DB=ai_service_test
+      - CELERY_BROKER_URL=redis://redis-test:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis-test:6379/0
+      - USER_SERVICE_URL=http://user-service-test:5000
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL}
+      - OPENROUTER_URL=${OPENROUTER_URL}
+      - THEIRSTACK_API_KEY=${THEIRSTACK_API_KEY}
+      - THEIRSTACK_API_URL=${THEIRSTACK_API_URL}
+    volumes:
+      - ./ai-service:/app
+      - ./ai-service/storage:/app/storage
+    depends_on:
+      redis-test:
+        condition: service_healthy
+    command: celery -A app.services.cv_task worker --loglevel=info
+    networks:
+      - app-network-test
+
+volumes:
+  postgres_test_data:
+  mongodb_test_data:
+  redis_test_data:
+
+networks:
+  app-network-test:
+    driver: bridge

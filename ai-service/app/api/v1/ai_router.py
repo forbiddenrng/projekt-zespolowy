@@ -205,10 +205,11 @@ async def search_cv_tasks(
   
   try:
     sort_direction = 1 if sort_order.lower() == "asc" else -1
+    search_status = None if status is None else status.upper()
     
     result = await cv_gen_service.search_tasks(
       user_id=user_id,
-      status=status.upper(),
+      status=search_status,
       skip=skip,
       limit=limit,
       sort_order=sort_direction
@@ -361,9 +362,10 @@ async def search_cover_letter_tasks(
   try:
     sort_direction = 1 if sort_order.lower() == "asc" else -1
     
+    search_status = None if status is None else status.upper()
     result = await letter_service.search_tasks(
       user_id=user_id,
-      status=status.upper(),
+      status=search_status,
       skip=skip,
       limit=limit,
       sort_order=sort_direction

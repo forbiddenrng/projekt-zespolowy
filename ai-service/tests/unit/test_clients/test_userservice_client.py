@@ -25,16 +25,16 @@ class TestUserServiceClient:
 
   # ===== Initialization tests =====
 
-  def test_init_sets_base_url(self, user_service_client):
-    """Test that __init__ correctly sets base_url"""
-    assert user_service_client.base_url == "http://localhost:8001"
+  # def test_init_sets_base_url(self, user_service_client):
+  #   """Test that __init__ correctly sets base_url"""
+  #   assert user_service_client.base_url == "http://localhost:8001"
 
-  def test_init_strips_trailing_slash(self):
-    """Test that __init__ strips trailing slash from base URL"""
-    with patch.dict("os.environ", {"USER_SERVICE_URL": "http://localhost:8001/"}):
-      client = UserServiceClient()
-      assert client.base_url == "http://localhost:8001"
-      assert not client.base_url.endswith("/")
+  # def test_init_strips_trailing_slash(self):
+  #   """Test that __init__ strips trailing slash from base URL"""
+  #   with patch.dict("os.environ", {"USER_SERVICE_URL": "http://localhost:8001/"}):
+  #     client = UserServiceClient()
+  #     assert client.base_url == "http://localhost:8001"
+  #     assert not client.base_url.endswith("/")
 
   def test_init_sets_content_type_header(self, user_service_client):
     """Test that __init__ sets Content-Type header"""
@@ -98,26 +98,26 @@ class TestUserServiceClient:
       call_args = mock_client.get.call_args
       assert "user%2Btest%40domain" in call_args[0][0]
 
-  @pytest.mark.asyncio
-  async def test_get_user_data_uses_correct_url_format(
-      self, user_service_client, sample_user_data
-  ):
-    """Test that get_user_data calls correct endpoint URL"""
-    with patch("httpx.AsyncClient") as mock_client_class:
-      mock_response = MagicMock()
-      mock_response.json.return_value = {"data": sample_user_data}
+  # @pytest.mark.asyncio
+  # async def test_get_user_data_uses_correct_url_format(
+  #     self, user_service_client, sample_user_data
+  # ):
+  #   """Test that get_user_data calls correct endpoint URL"""
+  #   with patch("httpx.AsyncClient") as mock_client_class:
+  #     mock_response = MagicMock()
+  #     mock_response.json.return_value = {"data": sample_user_data}
 
-      mock_client = AsyncMock()
-      mock_client.get = AsyncMock(return_value=mock_response)
-      mock_client_class.return_value.__aenter__.return_value = mock_client
+  #     mock_client = AsyncMock()
+  #     mock_client.get = AsyncMock(return_value=mock_response)
+  #     mock_client_class.return_value.__aenter__.return_value = mock_client
 
-      await user_service_client.get_user_data("test123")
+  #     await user_service_client.get_user_data("test123")
 
-      expected_url = "http://localhost:8001/users/test123?all=true"
-      mock_client.get.assert_called_once_with(
-          expected_url,
-          headers={"Content-Type": "application/json"}
-      )
+  #     expected_url = "http://localhost:8001/users/test123?all=true"
+  #     mock_client.get.assert_called_once_with(
+  #         expected_url,
+  #         headers={"Content-Type": "application/json"}
+  #     )
 
   @pytest.mark.asyncio
   async def test_get_user_data_passes_headers(

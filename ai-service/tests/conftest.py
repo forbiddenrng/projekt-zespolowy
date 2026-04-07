@@ -1,6 +1,7 @@
 import pytest
 import sys
 from pathlib import Path
+# from tests.integration.test_health import wait_for_services
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -13,7 +14,7 @@ os.environ["MONGODB_DB"] = "test_ai_service"
 os.environ["OPENROUTER_API_KEY"] = "test-key"
 os.environ["OPENROUTER_MODEL"] = "test-model"
 os.environ["OPENROUTER_URL"] = "https://test-api"
-os.environ["USER_SERVICE_URL"] = "http://localhost:8001"  
+os.environ["USER_SERVICE_URL"] = "http://localhost:5051"  
 os.environ["THEIRSTACK_API_KEY"] = "test-theirstack-key"  
 os.environ["THEIRSTACK_API_URL"] = "https://theirstack.com/v1"
 os.environ["API_BASE_URL"] = "http://localhost:8000"
@@ -22,6 +23,8 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timezone
 from bson import ObjectId
+
+# pytest_plugins = ['tests.integration.test_health']
 
 
 @pytest.fixture
